@@ -1,0 +1,400 @@
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import {
+  BookOpen,
+  ArrowLeft,
+  Loader2,
+  Clock,
+  AlertTriangle,
+  Flag
+} from "lucide-react";
+
+interface Question {
+  id: string;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: string;
+}
+
+interface QuizData {
+  id: string;
+  title: string;
+  duration_minutes: number;
+  course: {
+    code: string;
+    name: string;
+  };
+}
+
+const CBTSimulation = () => {
+  const { quizId } = useParams<{ quizId: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
+  
+  const [quiz, setQuiz] = useState<QuizData | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [flagged, setFlagged] = useState<Set<string>>(new Set());
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    const fetchQuizData = async () => {
+      if (!quizId || !user) return;
+
+      try {
+        const { data: quizData, error: quizError } = await supabase
+          .from("quizzes")
+          .select("*, courses(code, name)")
+          .eq("id", quizId)
+          .single();
+
+        if (quizError) throw quizError;
+
+        setQuiz({
+          ...quizData,
+          course: quizData.courses as { code: string; name: string }
+        });
+        setTimeLeft(quizData.duration_minutes * 60);
+
+        const { data: questionsData, error: questionsError } = await supabase
+          .from("quiz_questions")
+          .select("questions(*)")
+          .eq("quiz_id", quizId)
+          .order("order_index");
+
+        if (questionsError) throw questionsError;
+
+        const formattedQuestions = questionsData.map((qq: any) => qq.questions);
+        setQuestions(formattedQuestions);
+
+        const { data: attemptData, error: attemptError } = await supabase
+          .from("quiz_attempts")
+          .insert({
+            user_id: user.id,
+            quiz_id: quizId,
+            mode: "simulation",
+            total_questions: formattedQuestions.length,
+          })
+          .select()
+          .single();
+
+        if (attemptError) throw attemptError;
+        setAttemptId(attemptData.id);
+        startTimeRef.current = Date.now();
+
+      } catch (error) {
+        console.error("Error fetching quiz:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load quiz.",
+        });
+        navigate("/dashboard");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchQuizData();
+  }, [quizId, user, navigate, toast]);
+
+  // Timer
+  useEffect(() => {
+    if (timeLeft <= 0 || isLoading) return;
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          handleSubmitExam();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isLoading]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleSelectAnswer = (questionId: string, option: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: option }));
+  };
+
+  const toggleFlag = (questionId: string) => {
+    setFlagged((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSubmitExam = async () => {
+    if (!attemptId || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    try {
+      // Calculate score
+      let correctCount = 0;
+      const answerInserts = questions.map((q) => {
+        const selectedOption = answers[q.id] || null;
+        const isCorrect = selectedOption === q.correct_option;
+        if (isCorrect) correctCount++;
+        
+        return {
+          attempt_id: attemptId,
+          question_id: q.id,
+          selected_option: selectedOption,
+          is_correct: selectedOption ? isCorrect : false,
+        };
+      });
+
+      // Insert all answers
+      await supabase.from("quiz_answers").insert(answerInserts);
+
+      // Update attempt
+      const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
+      await supabase
+        .from("quiz_attempts")
+        .update({
+          completed_at: new Date().toISOString(),
+          correct_answers: correctCount,
+          score: Math.round((correctCount / questions.length) * 100),
+          time_spent_seconds: timeSpent,
+        })
+        .eq("id", attemptId);
+
+      navigate(`/quiz/${quizId}/results/${attemptId}`);
+    } catch (error) {
+      console.error("Error submitting exam:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to submit exam. Please try again.",
+      });
+      setIsSubmitting(false);
+    }
+  };
+
+  const currentQuestion = questions[currentIndex];
+  const answeredCount = Object.keys(answers).length;
+  const isLowTime = timeLeft <= 300; // 5 minutes
+
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading CBT simulation...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const options = [
+    { key: "A", text: currentQuestion?.option_a },
+    { key: "B", text: currentQuestion?.option_b },
+    { key: "C", text: currentQuestion?.option_c },
+    { key: "D", text: currentQuestion?.option_d },
+  ];
+
+  return (
+    <div className="min-h-screen bg-foreground text-background">
+      {/* CBT-style Header */}
+      <header className="bg-primary text-primary-foreground py-3 px-4">
+        <div className="container mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <BookOpen className="w-6 h-6" />
+            <div>
+              <h1 className="font-display font-bold">{quiz?.title}</h1>
+              <p className="text-sm opacity-80">{quiz?.course.code} - {quiz?.course.name}</p>
+            </div>
+          </div>
+          
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xl font-bold ${
+            isLowTime ? "bg-destructive animate-pulse" : "bg-background/20"
+          }`}>
+            <Clock className="w-5 h-5" />
+            {formatTime(timeLeft)}
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Question Panel */}
+          <div className="lg:col-span-3">
+            <div className="bg-card text-card-foreground rounded-xl p-6 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Question {currentIndex + 1} of {questions.length}
+                </span>
+                <Button
+                  variant={flagged.has(currentQuestion?.id) ? "destructive" : "outline"}
+                  size="sm"
+                  onClick={() => currentQuestion && toggleFlag(currentQuestion.id)}
+                >
+                  <Flag className="w-4 h-4 mr-1" />
+                  {flagged.has(currentQuestion?.id) ? "Flagged" : "Flag"}
+                </Button>
+              </div>
+
+              <h2 className="font-display text-xl font-semibold text-foreground mb-6 leading-relaxed">
+                {currentQuestion?.question_text}
+              </h2>
+
+              <div className="space-y-3">
+                {options.map((option) => {
+                  const isSelected = answers[currentQuestion?.id] === option.key;
+                  
+                  return (
+                    <button
+                      key={option.key}
+                      onClick={() => currentQuestion && handleSelectAnswer(currentQuestion.id, option.key)}
+                      className={`w-full p-4 rounded-lg border-2 text-left transition-all duration-200 ${
+                        isSelected
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}>
+                          {option.key}
+                        </span>
+                        <span className="text-foreground flex-1 pt-1">{option.text}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center justify-between">
+              <Button
+                variant="secondary"
+                onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                disabled={currentIndex === 0}
+              >
+                Previous
+              </Button>
+              
+              <Button
+                variant="secondary"
+                onClick={() => setCurrentIndex(Math.min(questions.length - 1, currentIndex + 1))}
+                disabled={currentIndex === questions.length - 1}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+
+          {/* Question Navigator */}
+          <div className="lg:col-span-1">
+            <div className="bg-card text-card-foreground rounded-xl p-4 sticky top-4">
+              <h3 className="font-display font-semibold text-foreground mb-4">
+                Questions
+              </h3>
+              
+              <div className="grid grid-cols-5 gap-2 mb-6">
+                {questions.map((q, idx) => (
+                  <button
+                    key={q.id}
+                    onClick={() => setCurrentIndex(idx)}
+                    className={`w-10 h-10 rounded-lg font-medium text-sm flex items-center justify-center transition-colors ${
+                      idx === currentIndex
+                        ? "bg-primary text-primary-foreground"
+                        : answers[q.id]
+                        ? "bg-success text-success-foreground"
+                        : flagged.has(q.id)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-2 text-sm mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-success" />
+                  <span className="text-muted-foreground">Answered ({answeredCount})</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-muted" />
+                  <span className="text-muted-foreground">Unanswered ({questions.length - answeredCount})</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-destructive" />
+                  <span className="text-muted-foreground">Flagged ({flagged.size})</span>
+                </div>
+              </div>
+
+              {answeredCount < questions.length && (
+                <div className="flex items-start gap-2 p-3 bg-accent/10 rounded-lg mb-4">
+                  <AlertTriangle className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">
+                    You have {questions.length - answeredCount} unanswered questions
+                  </p>
+                </div>
+              )}
+
+              <Button
+                variant="accent"
+                className="w-full"
+                onClick={handleSubmitExam}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Submit Exam"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CBTSimulation;
