@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   GraduationCap, 
@@ -34,6 +35,8 @@ const benefits = [
 ];
 
 const TutorSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section id="tutors" className="py-20 lg:py-32 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
@@ -68,7 +71,7 @@ const TutorSection = () => {
               ))}
             </div>
 
-            <Button variant="accent" size="xl" className="group">
+            <Button variant="accent" size="xl" className="group" onClick={() => navigate("/apply-tutor")}>
               Apply as Tutor
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
