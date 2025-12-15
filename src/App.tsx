@@ -11,6 +11,7 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import TutorDashboard from "./pages/tutor/TutorDashboard";
 import ApplyTutor from "./pages/ApplyTutor";
 import TutorApplications from "./pages/admin/TutorApplications";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import QuizPractice from "./pages/quiz/QuizPractice";
 import CBTSimulation from "./pages/quiz/CBTSimulation";
 import QuizResults from "./pages/quiz/QuizResults";
