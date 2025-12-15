@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, BookOpen, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,7 +21,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-2 group">
             <div className="relative">
               <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-md group-hover:shadow-glow transition-shadow duration-300">
                 <BookOpen className="w-5 h-5 text-primary-foreground" />
@@ -34,7 +34,7 @@ const Navbar = () => {
               </span>
               <span className="text-xs text-muted-foreground font-medium">FUTA</span>
             </div>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
