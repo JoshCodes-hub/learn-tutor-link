@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import StudentDashboard from "./pages/student/StudentDashboard";
+import TutorDashboard from "./pages/tutor/TutorDashboard";
 import ApplyTutor from "./pages/ApplyTutor";
 import TutorApplications from "./pages/admin/TutorApplications";
 import QuizPractice from "./pages/quiz/QuizPractice";
@@ -27,7 +28,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<StudentDashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/student/dashboard" element={<StudentDashboard />} />
+            <Route path="/tutor/dashboard" element={<TutorDashboard />} />
             <Route path="/apply-tutor" element={<ApplyTutor />} />
             <Route path="/admin/applications" element={<TutorApplications />} />
             <Route path="/quiz/:quizId/practice" element={<QuizPractice />} />

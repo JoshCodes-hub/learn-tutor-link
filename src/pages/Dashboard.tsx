@@ -26,15 +26,23 @@ const Dashboard = () => {
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/auth");
+    } else if (!isLoading && user && primaryRole) {
+      // Redirect to role-specific dashboard
+      if (primaryRole === "tutor") {
+        navigate("/tutor/dashboard", { replace: true });
+      } else if (primaryRole === "student") {
+        navigate("/student/dashboard", { replace: true });
+      }
+      // Admin stays on this page
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, primaryRole, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
 
-  if (isLoading) {
+  if (isLoading || (primaryRole && primaryRole !== "admin")) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
