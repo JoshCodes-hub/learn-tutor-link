@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -228,7 +228,7 @@ const StudentDashboard = () => {
       <header className="bg-card border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <a href="/" className="flex items-center gap-2 group">
+            <Link to="/" className="flex items-center gap-2 group">
               <div className="relative">
                 <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-md">
                   <BookOpen className="w-5 h-5 text-primary-foreground" />
@@ -241,7 +241,7 @@ const StudentDashboard = () => {
                 </span>
                 <span className="text-xs text-muted-foreground font-medium">FUTA</span>
               </div>
-            </a>
+            </Link>
 
             <div className="flex items-center gap-4">
               {/* Wallet Balance */}
