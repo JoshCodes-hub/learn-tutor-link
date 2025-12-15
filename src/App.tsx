@@ -7,8 +7,12 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import StudentDashboard from "./pages/student/StudentDashboard";
 import ApplyTutor from "./pages/ApplyTutor";
 import TutorApplications from "./pages/admin/TutorApplications";
+import QuizPractice from "./pages/quiz/QuizPractice";
+import CBTSimulation from "./pages/quiz/CBTSimulation";
+import QuizResults from "./pages/quiz/QuizResults";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,10 +27,12 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<StudentDashboard />} />
             <Route path="/apply-tutor" element={<ApplyTutor />} />
             <Route path="/admin/applications" element={<TutorApplications />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/quiz/:quizId/practice" element={<QuizPractice />} />
+            <Route path="/quiz/:quizId/simulation" element={<CBTSimulation />} />
+            <Route path="/quiz/:quizId/results/:attemptId" element={<QuizResults />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

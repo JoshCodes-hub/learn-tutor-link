@@ -1,0 +1,482 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { 
+  BookOpen, 
+  Sparkles, 
+  LogOut, 
+  User, 
+  Brain,
+  Target,
+  TrendingUp,
+  Wallet,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  ChevronRight,
+  Loader2,
+  Play,
+  Lock,
+  Coins
+} from "lucide-react";
+
+interface Stats {
+  totalAttempts: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  averageScore: number;
+  practiceTime: number;
+}
+
+interface Quiz {
+  id: string;
+  title: string;
+  description: string | null;
+  duration_minutes: number;
+  question_count: number;
+  is_premium: boolean;
+  token_cost: number;
+  course: {
+    code: string;
+    name: string;
+  };
+}
+
+interface Wallet {
+  balance: number;
+  total_earned: number;
+  total_spent: number;
+}
+
+const StudentDashboard = () => {
+  const navigate = useNavigate();
+  const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const [stats, setStats] = useState<Stats>({
+    totalAttempts: 0,
+    totalQuestions: 0,
+    correctAnswers: 0,
+    averageScore: 0,
+    practiceTime: 0,
+  });
+  const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch quiz attempts
+        const { data: attempts } = await supabase
+          .from("quiz_attempts")
+          .select("*, quizzes(title, course_id, courses(code, name))")
+          .eq("user_id", user.id)
+          .order("started_at", { ascending: false });
+
+        if (attempts) {
+          const completed = attempts.filter(a => a.completed_at);
+          const totalCorrect = completed.reduce((sum, a) => sum + a.correct_answers, 0);
+          const totalQuestions = completed.reduce((sum, a) => sum + a.total_questions, 0);
+          const totalTime = completed.reduce((sum, a) => sum + (a.time_spent_seconds || 0), 0);
+
+          setStats({
+            totalAttempts: completed.length,
+            totalQuestions,
+            correctAnswers: totalCorrect,
+            averageScore: totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0,
+            practiceTime: Math.round(totalTime / 60),
+          });
+
+          setRecentAttempts(attempts.slice(0, 5));
+        }
+
+        // Fetch wallet
+        const { data: walletData } = await supabase
+          .from("token_wallets")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (walletData) {
+          setWallet(walletData);
+        } else {
+          // Create wallet if it doesn't exist
+          const { data: newWallet } = await supabase
+            .from("token_wallets")
+            .insert({ user_id: user.id, balance: 50 })
+            .select()
+            .single();
+          if (newWallet) setWallet(newWallet);
+        }
+
+        // Fetch available quizzes
+        const { data: quizzesData } = await supabase
+          .from("quizzes")
+          .select("*, courses(code, name)")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(6);
+
+        if (quizzesData) {
+          setQuizzes(quizzesData.map(q => ({
+            ...q,
+            course: q.courses as { code: string; name: string }
+          })));
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  const calculateReadinessScore = () => {
+    if (stats.totalAttempts === 0) return 0;
+    
+    const accuracyWeight = 0.5;
+    const consistencyWeight = 0.3;
+    const volumeWeight = 0.2;
+
+    const accuracyScore = stats.averageScore;
+    const consistencyScore = Math.min(stats.totalAttempts * 10, 100);
+    const volumeScore = Math.min((stats.totalQuestions / 100) * 100, 100);
+
+    return Math.round(
+      (accuracyScore * accuracyWeight) +
+      (consistencyScore * consistencyWeight) +
+      (volumeScore * volumeWeight)
+    );
+  };
+
+  const readinessScore = calculateReadinessScore();
+
+  const getReadinessColor = () => {
+    if (readinessScore >= 80) return "text-success";
+    if (readinessScore >= 60) return "text-accent";
+    if (readinessScore >= 40) return "text-primary";
+    return "text-destructive";
+  };
+
+  const getReadinessLabel = () => {
+    if (readinessScore >= 80) return "Exam Ready!";
+    if (readinessScore >= 60) return "Almost There";
+    if (readinessScore >= 40) return "Keep Practicing";
+    return "Just Getting Started";
+  };
+
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b border-border sticky top-0 z-50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <a href="/" className="flex items-center gap-2 group">
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-md">
+                  <BookOpen className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <Sparkles className="w-4 h-4 text-accent absolute -top-1 -right-1 animate-pulse-subtle" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-display font-bold text-lg text-foreground leading-tight">
+                  OverraPrep AI
+                </span>
+                <span className="text-xs text-muted-foreground font-medium">FUTA</span>
+              </div>
+            </a>
+
+            <div className="flex items-center gap-4">
+              {/* Wallet Balance */}
+              <div className="hidden sm:flex items-center gap-2 bg-accent/10 px-3 py-1.5 rounded-full">
+                <Coins className="w-4 h-4 text-accent" />
+                <span className="font-semibold text-foreground">{wallet?.balance || 0}</span>
+                <span className="text-sm text-muted-foreground">tokens</span>
+              </div>
+
+              <Button variant="ghost" size="sm" onClick={() => signOut()}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
+            Welcome back, {profile?.full_name || "Student"}! 👋
+          </h1>
+          <p className="text-muted-foreground">
+            Ready to ace your exams? Let's continue your preparation journey.
+          </p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          {/* Exam Readiness Score */}
+          <div className="col-span-2 lg:col-span-1 bg-card rounded-xl border border-border p-5">
+            <div className="text-center">
+              <div className={`font-display text-4xl font-bold ${getReadinessColor()} mb-1`}>
+                {readinessScore}%
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">Exam Readiness</p>
+              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                readinessScore >= 80 ? "bg-success/10 text-success" :
+                readinessScore >= 60 ? "bg-accent/10 text-accent" :
+                readinessScore >= 40 ? "bg-primary/10 text-primary" :
+                "bg-destructive/10 text-destructive"
+              }`}>
+                {getReadinessLabel()}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Target className="w-5 h-5 text-primary" />
+              </div>
+            </div>
+            <p className="font-display text-2xl font-bold text-foreground">{stats.averageScore}%</p>
+            <p className="text-sm text-muted-foreground">Accuracy</p>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-success" />
+              </div>
+            </div>
+            <p className="font-display text-2xl font-bold text-foreground">{stats.correctAnswers}</p>
+            <p className="text-sm text-muted-foreground">Correct Answers</p>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
+                <Brain className="w-5 h-5 text-accent" />
+              </div>
+            </div>
+            <p className="font-display text-2xl font-bold text-foreground">{stats.totalAttempts}</p>
+            <p className="text-sm text-muted-foreground">Quizzes Taken</p>
+          </div>
+
+          <div className="bg-card rounded-xl border border-border p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                <Clock className="w-5 h-5 text-muted-foreground" />
+              </div>
+            </div>
+            <p className="font-display text-2xl font-bold text-foreground">{stats.practiceTime}m</p>
+            <p className="text-sm text-muted-foreground">Practice Time</p>
+          </div>
+        </div>
+
+        {/* Token Wallet Card */}
+        <div className="bg-gradient-card rounded-2xl border border-border p-6 mb-8">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center">
+                <Wallet className="w-7 h-7 text-accent" />
+              </div>
+              <div>
+                <h3 className="font-display text-xl font-bold text-foreground">Token Wallet</h3>
+                <p className="text-muted-foreground">Use tokens to unlock premium quizzes</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <p className="font-display text-3xl font-bold text-accent">{wallet?.balance || 0}</p>
+                <p className="text-sm text-muted-foreground">Available</p>
+              </div>
+              <div className="text-center">
+                <p className="font-display text-xl font-bold text-foreground">{wallet?.total_spent || 0}</p>
+                <p className="text-sm text-muted-foreground">Spent</p>
+              </div>
+              <Button variant="accent">
+                <Coins className="w-4 h-4 mr-2" />
+                Buy Tokens
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Available Quizzes */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-xl font-bold text-foreground">Available Quizzes</h2>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/quizzes")}>
+              View All
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+
+          {quizzes.length === 0 ? (
+            <div className="bg-muted/30 rounded-xl p-8 text-center">
+              <Brain className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-foreground font-medium mb-2">No quizzes available yet</p>
+              <p className="text-sm text-muted-foreground">Check back soon for new practice quizzes!</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {quizzes.map((quiz) => (
+                <div
+                  key={quiz.id}
+                  className="bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded">
+                          {quiz.course?.code}
+                        </span>
+                        {quiz.is_premium && (
+                          <span className="text-xs font-medium bg-accent/10 text-accent px-2 py-0.5 rounded flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            {quiz.token_cost} tokens
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-display font-semibold text-foreground">{quiz.title}</h3>
+                    </div>
+                  </div>
+
+                  {quiz.description && (
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {quiz.description}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                    <span className="flex items-center gap-1">
+                      <Brain className="w-4 h-4" />
+                      {quiz.question_count} questions
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      {quiz.duration_minutes} min
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => navigate(`/quiz/${quiz.id}/practice`)}
+                    >
+                      <Play className="w-4 h-4 mr-1" />
+                      Practice
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => navigate(`/quiz/${quiz.id}/simulation`)}
+                    >
+                      <Target className="w-4 h-4 mr-1" />
+                      CBT Mode
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Activity */}
+        <div>
+          <h2 className="font-display text-xl font-bold text-foreground mb-4">Recent Activity</h2>
+          
+          {recentAttempts.length === 0 ? (
+            <div className="bg-muted/30 rounded-xl p-8 text-center">
+              <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-foreground font-medium mb-2">No activity yet</p>
+              <p className="text-sm text-muted-foreground">Start practicing to see your progress here!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentAttempts.map((attempt) => (
+                <div
+                  key={attempt.id}
+                  className="bg-card rounded-xl border border-border p-4 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      attempt.completed_at 
+                        ? attempt.correct_answers / attempt.total_questions >= 0.7
+                          ? "bg-success/10"
+                          : "bg-accent/10"
+                        : "bg-muted"
+                    }`}>
+                      {attempt.completed_at ? (
+                        attempt.correct_answers / attempt.total_questions >= 0.7 ? (
+                          <CheckCircle2 className="w-5 h-5 text-success" />
+                        ) : (
+                          <Target className="w-5 h-5 text-accent" />
+                        )
+                      ) : (
+                        <Clock className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-foreground">
+                        {attempt.quizzes?.title || "Quiz"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {attempt.mode === "practice" ? "Practice Mode" : "CBT Simulation"} • {
+                          new Date(attempt.started_at).toLocaleDateString()
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {attempt.completed_at && (
+                    <div className="text-right">
+                      <p className="font-display font-bold text-foreground">
+                        {attempt.correct_answers}/{attempt.total_questions}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {Math.round((attempt.correct_answers / attempt.total_questions) * 100)}%
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default StudentDashboard;
