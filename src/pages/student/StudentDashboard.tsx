@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
 import { 
   BookOpen, 
   Sparkles, 
@@ -19,7 +20,8 @@ import {
   Loader2,
   Play,
   Lock,
-  Coins
+  Coins,
+  History
 } from "lucide-react";
 
 interface Stats {
@@ -64,6 +66,8 @@ const StudentDashboard = () => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showBuyTokens, setShowBuyTokens] = useState(false);
+  const [purchaseRequests, setPurchaseRequests] = useState<any[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -132,6 +136,18 @@ const StudentDashboard = () => {
             ...q,
             course: q.courses as { code: string; name: string }
           })));
+        }
+
+        // Fetch pending purchase requests
+        const { data: purchaseData } = await supabase
+          .from("token_purchase_requests")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        if (purchaseData) {
+          setPurchaseRequests(purchaseData);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -321,12 +337,22 @@ const StudentDashboard = () => {
                 <p className="font-display text-xl font-bold text-foreground">{wallet?.total_spent || 0}</p>
                 <p className="text-sm text-muted-foreground">Spent</p>
               </div>
-              <Button variant="accent">
+              <Button variant="accent" onClick={() => setShowBuyTokens(true)}>
                 <Coins className="w-4 h-4 mr-2" />
                 Buy Tokens
               </Button>
             </div>
           </div>
+
+          {/* Pending Requests */}
+          {purchaseRequests.filter(r => r.status === 'pending').length > 0 && (
+            <div className="mt-4 p-3 bg-accent/10 rounded-lg flex items-center gap-2">
+              <History className="w-4 h-4 text-accent" />
+              <span className="text-sm text-muted-foreground">
+                You have {purchaseRequests.filter(r => r.status === 'pending').length} pending token purchase request(s)
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Available Quizzes */}
@@ -475,6 +501,16 @@ const StudentDashboard = () => {
           )}
         </div>
       </main>
+
+      {/* Buy Tokens Dialog */}
+      <BuyTokensDialog
+        open={showBuyTokens}
+        onOpenChange={setShowBuyTokens}
+        onSuccess={() => {
+          // Refetch data
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };

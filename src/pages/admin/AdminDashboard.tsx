@@ -17,12 +17,16 @@ import {
   TrendingUp,
   Coins,
   Brain,
+  Wallet,
+  Banknote,
 } from "lucide-react";
 import { TutorManagement } from "@/components/admin/TutorManagement";
 import { CourseModeration } from "@/components/admin/CourseModeration";
 import { QuestionModeration } from "@/components/admin/QuestionModeration";
 import { PlatformSettings } from "@/components/admin/PlatformSettings";
 import { PlatformAnalytics } from "@/components/admin/PlatformAnalytics";
+import { TokenPurchaseManagement } from "@/components/admin/TokenPurchaseManagement";
+import { WithdrawalManagement } from "@/components/admin/WithdrawalManagement";
 
 interface DashboardStats {
   totalStudents: number;
@@ -31,6 +35,8 @@ interface DashboardStats {
   totalQuestions: number;
   totalQuizAttempts: number;
   pendingApplications: number;
+  pendingPurchases: number;
+  pendingWithdrawals: number;
   totalRevenue: number;
   platformRevenue: number;
 }
@@ -45,6 +51,8 @@ const AdminDashboard = () => {
     totalQuestions: 0,
     totalQuizAttempts: 0,
     pendingApplications: 0,
+    pendingPurchases: 0,
+    pendingWithdrawals: 0,
     totalRevenue: 0,
     platformRevenue: 0,
   });
@@ -72,6 +80,8 @@ const AdminDashboard = () => {
           questionsResult,
           attemptsResult,
           applicationsResult,
+          purchasesResult,
+          withdrawalsResult,
           commissionResult,
         ] = await Promise.all([
           supabase
@@ -89,6 +99,14 @@ const AdminDashboard = () => {
             .from("tutor_applications")
             .select("*", { count: "exact", head: true })
             .eq("status", "pending"),
+          supabase
+            .from("token_purchase_requests")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
+          supabase
+            .from("withdrawal_requests")
+            .select("*", { count: "exact", head: true })
+            .in("status", ["pending", "approved"]),
           supabase
             .from("platform_settings")
             .select("value")
@@ -123,6 +141,8 @@ const AdminDashboard = () => {
           totalQuestions: questionsResult.count || 0,
           totalQuizAttempts: attemptsResult.count || 0,
           pendingApplications: applicationsResult.count || 0,
+          pendingPurchases: purchasesResult.count || 0,
+          pendingWithdrawals: withdrawalsResult.count || 0,
           totalRevenue,
           platformRevenue,
         });
@@ -254,7 +274,7 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Analytics
@@ -262,6 +282,14 @@ const AdminDashboard = () => {
             <TabsTrigger value="tutors" className="flex items-center gap-2">
               <GraduationCap className="w-4 h-4" />
               Tutors
+            </TabsTrigger>
+            <TabsTrigger value="tokens" className="flex items-center gap-2">
+              <Coins className="w-4 h-4" />
+              Tokens {stats.pendingPurchases > 0 && `(${stats.pendingPurchases})`}
+            </TabsTrigger>
+            <TabsTrigger value="withdrawals" className="flex items-center gap-2">
+              <Banknote className="w-4 h-4" />
+              Withdrawals {stats.pendingWithdrawals > 0 && `(${stats.pendingWithdrawals})`}
             </TabsTrigger>
             <TabsTrigger value="courses" className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" />
@@ -283,6 +311,14 @@ const AdminDashboard = () => {
 
           <TabsContent value="tutors">
             <TutorManagement />
+          </TabsContent>
+
+          <TabsContent value="tokens">
+            <TokenPurchaseManagement />
+          </TabsContent>
+
+          <TabsContent value="withdrawals">
+            <WithdrawalManagement />
           </TabsContent>
 
           <TabsContent value="courses">
