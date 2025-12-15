@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
+import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
 import { 
   BookOpen, 
   Sparkles, 
@@ -21,7 +22,8 @@ import {
   Play,
   Lock,
   Coins,
-  History
+  History,
+  Unlock
 } from "lucide-react";
 
 interface Stats {
@@ -40,6 +42,7 @@ interface Quiz {
   question_count: number;
   is_premium: boolean;
   token_cost: number;
+  tutor_id: string | null;
   course: {
     code: string;
     name: string;
@@ -64,9 +67,12 @@ const StudentDashboard = () => {
   });
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [purchasedQuizIds, setPurchasedQuizIds] = useState<Set<string>>(new Set());
   const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showBuyTokens, setShowBuyTokens] = useState(false);
+  const [showPurchaseQuiz, setShowPurchaseQuiz] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [purchaseRequests, setPurchaseRequests] = useState<any[]>([]);
 
   useEffect(() => {
@@ -136,6 +142,16 @@ const StudentDashboard = () => {
             ...q,
             course: q.courses as { code: string; name: string }
           })));
+        }
+
+        // Fetch purchased quizzes
+        const { data: purchasedData } = await supabase
+          .from("student_quiz_purchases")
+          .select("quiz_id")
+          .eq("student_id", user.id);
+
+        if (purchasedData) {
+          setPurchasedQuizIds(new Set(purchasedData.map(p => p.quiz_id)));
         }
 
         // Fetch pending purchase requests
@@ -373,67 +389,94 @@ const StudentDashboard = () => {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {quizzes.map((quiz) => (
-                <div
-                  key={quiz.id}
-                  className="bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded">
-                          {quiz.course?.code}
-                        </span>
-                        {quiz.is_premium && (
-                          <span className="text-xs font-medium bg-accent/10 text-accent px-2 py-0.5 rounded flex items-center gap-1">
-                            <Lock className="w-3 h-3" />
-                            {quiz.token_cost} tokens
+              {quizzes.map((quiz) => {
+                const isPurchased = purchasedQuizIds.has(quiz.id);
+                const needsPurchase = quiz.is_premium && !isPurchased;
+                
+                return (
+                  <div
+                    key={quiz.id}
+                    className="bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded">
+                            {quiz.course?.code}
                           </span>
-                        )}
+                          {quiz.is_premium && (
+                            isPurchased ? (
+                              <span className="text-xs font-medium bg-success/10 text-success px-2 py-0.5 rounded flex items-center gap-1">
+                                <Unlock className="w-3 h-3" />
+                                Owned
+                              </span>
+                            ) : (
+                              <span className="text-xs font-medium bg-accent/10 text-accent px-2 py-0.5 rounded flex items-center gap-1">
+                                <Lock className="w-3 h-3" />
+                                {quiz.token_cost} tokens
+                              </span>
+                            )
+                          )}
+                        </div>
+                        <h3 className="font-display font-semibold text-foreground">{quiz.title}</h3>
                       </div>
-                      <h3 className="font-display font-semibold text-foreground">{quiz.title}</h3>
                     </div>
-                  </div>
 
-                  {quiz.description && (
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {quiz.description}
-                    </p>
-                  )}
+                    {quiz.description && (
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        {quiz.description}
+                      </p>
+                    )}
 
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                    <span className="flex items-center gap-1">
-                      <Brain className="w-4 h-4" />
-                      {quiz.question_count} questions
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {quiz.duration_minutes} min
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                      <span className="flex items-center gap-1">
+                        <Brain className="w-4 h-4" />
+                        {quiz.question_count} questions
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {quiz.duration_minutes} min
+                      </span>
+                    </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => navigate(`/quiz/${quiz.id}/practice`)}
-                    >
-                      <Play className="w-4 h-4 mr-1" />
-                      Practice
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => navigate(`/quiz/${quiz.id}/simulation`)}
-                    >
-                      <Target className="w-4 h-4 mr-1" />
-                      CBT Mode
-                    </Button>
+                    {needsPurchase ? (
+                      <Button
+                        variant="accent"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          setSelectedQuiz(quiz);
+                          setShowPurchaseQuiz(true);
+                        }}
+                      >
+                        <Lock className="w-4 h-4 mr-1" />
+                        Unlock for {quiz.token_cost} tokens
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => navigate(`/quiz/${quiz.id}/practice`)}
+                        >
+                          <Play className="w-4 h-4 mr-1" />
+                          Practice
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => navigate(`/quiz/${quiz.id}/simulation`)}
+                        >
+                          <Target className="w-4 h-4 mr-1" />
+                          CBT Mode
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -507,8 +550,46 @@ const StudentDashboard = () => {
         open={showBuyTokens}
         onOpenChange={setShowBuyTokens}
         onSuccess={() => {
-          // Refetch data
-          window.location.reload();
+          // Refetch wallet data
+          if (user) {
+            supabase
+              .from("token_wallets")
+              .select("*")
+              .eq("user_id", user.id)
+              .single()
+              .then(({ data }) => {
+                if (data) setWallet(data);
+              });
+          }
+        }}
+      />
+
+      {/* Purchase Quiz Dialog */}
+      <PurchaseQuizDialog
+        open={showPurchaseQuiz}
+        onOpenChange={setShowPurchaseQuiz}
+        quiz={selectedQuiz}
+        walletBalance={wallet?.balance || 0}
+        onSuccess={() => {
+          // Refetch wallet and purchases
+          if (user) {
+            supabase
+              .from("token_wallets")
+              .select("*")
+              .eq("user_id", user.id)
+              .single()
+              .then(({ data }) => {
+                if (data) setWallet(data);
+              });
+            
+            supabase
+              .from("student_quiz_purchases")
+              .select("quiz_id")
+              .eq("student_id", user.id)
+              .then(({ data }) => {
+                if (data) setPurchasedQuizIds(new Set(data.map(p => p.quiz_id)));
+              });
+          }
         }}
       />
     </div>
