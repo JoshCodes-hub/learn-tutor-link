@@ -81,6 +81,26 @@ const QuizPractice = () => {
 
         if (quizError) throw quizError;
 
+        // Check if premium quiz requires purchase
+        if (quizData.is_premium) {
+          const { data: purchase } = await supabase
+            .from("student_quiz_purchases")
+            .select("id")
+            .eq("student_id", user.id)
+            .eq("quiz_id", quizId)
+            .maybeSingle();
+
+          if (!purchase) {
+            toast({
+              variant: "destructive",
+              title: "Quiz not purchased",
+              description: "You need to purchase this premium quiz first.",
+            });
+            navigate("/student/dashboard");
+            return;
+          }
+        }
+
         setQuiz({
           ...quizData,
           course: quizData.courses as { code: string; name: string }
@@ -124,7 +144,7 @@ const QuizPractice = () => {
           title: "Error",
           description: "Failed to load quiz. Please try again.",
         });
-        navigate("/dashboard");
+        navigate("/student/dashboard");
       } finally {
         setIsLoading(false);
       }
