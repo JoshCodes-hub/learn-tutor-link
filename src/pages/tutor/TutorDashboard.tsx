@@ -22,6 +22,7 @@ import {
 import { CreateCourseDialog } from "@/components/tutor/CreateCourseDialog";
 import { CreateQuizDialog } from "@/components/tutor/CreateQuizDialog";
 import { UploadQuestionsDialog } from "@/components/tutor/UploadQuestionsDialog";
+import { WithdrawalRequestDialog } from "@/components/tutor/WithdrawalRequestDialog";
 
 interface Course {
   id: string;
@@ -71,6 +72,8 @@ const TutorDashboard = () => {
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [showCreateQuiz, setShowCreateQuiz] = useState(false);
   const [showUploadQuestions, setShowUploadQuestions] = useState(false);
+  const [showWithdrawal, setShowWithdrawal] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -178,6 +181,17 @@ const TutorDashboard = () => {
             totalStudents: uniqueStudents.size,
             totalAttempts,
           });
+
+          // Fetch actual earnings from tutor_earnings table
+          const { data: earningsData } = await supabase
+            .from("tutor_earnings")
+            .select("tutor_share")
+            .eq("tutor_id", user.id);
+
+          if (earningsData) {
+            const actualEarnings = earningsData.reduce((sum, e) => sum + e.tutor_share, 0);
+            setWalletBalance(actualEarnings);
+          }
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -264,6 +278,10 @@ const TutorDashboard = () => {
           <Button variant="outline" onClick={() => setShowUploadQuestions(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Upload Questions
+          </Button>
+          <Button variant="accent" onClick={() => setShowWithdrawal(true)}>
+            <Coins className="w-4 h-4 mr-2" />
+            Withdraw Earnings
           </Button>
         </div>
 
@@ -487,6 +505,14 @@ const TutorDashboard = () => {
         onSuccess={() => {
           setShowUploadQuestions(false);
           window.location.reload();
+        }}
+      />
+      <WithdrawalRequestDialog
+        open={showWithdrawal}
+        onOpenChange={setShowWithdrawal}
+        availableBalance={walletBalance}
+        onSuccess={() => {
+          setShowWithdrawal(false);
         }}
       />
     </div>

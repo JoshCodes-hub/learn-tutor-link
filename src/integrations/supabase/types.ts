@@ -354,6 +354,83 @@ export type Database = {
           },
         ]
       }
+      student_quiz_purchases: {
+        Row: {
+          id: string
+          purchased_at: string
+          quiz_id: string
+          student_id: string
+          tokens_spent: number
+        }
+        Insert: {
+          id?: string
+          purchased_at?: string
+          quiz_id: string
+          student_id: string
+          tokens_spent: number
+        }
+        Update: {
+          id?: string
+          purchased_at?: string
+          quiz_id?: string
+          student_id?: string
+          tokens_spent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_quiz_purchases_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      token_purchase_requests: {
+        Row: {
+          admin_notes: string | null
+          amount_paid: number
+          created_at: string
+          id: string
+          payment_method: string
+          payment_reference: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tokens_requested: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount_paid: number
+          created_at?: string
+          id?: string
+          payment_method?: string
+          payment_reference: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tokens_requested: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          payment_method?: string
+          payment_reference?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tokens_requested?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       token_transactions: {
         Row: {
           amount: number
@@ -508,6 +585,47 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_earnings: {
+        Row: {
+          created_at: string
+          id: string
+          platform_share: number
+          quiz_id: string | null
+          student_id: string
+          tokens_paid: number
+          tutor_id: string
+          tutor_share: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform_share: number
+          quiz_id?: string | null
+          student_id: string
+          tokens_paid: number
+          tutor_id: string
+          tutor_share: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform_share?: number
+          quiz_id?: string | null
+          student_id?: string
+          tokens_paid?: number
+          tutor_id?: string
+          tutor_share?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutor_earnings_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -526,6 +644,51 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      withdrawal_requests: {
+        Row: {
+          account_name: string
+          account_number: string
+          admin_notes: string | null
+          amount: number
+          bank_name: string
+          created_at: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          admin_notes?: string | null
+          amount: number
+          bank_name: string
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          admin_notes?: string | null
+          amount?: number
+          bank_name?: string
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tutor_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
