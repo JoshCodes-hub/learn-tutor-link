@@ -22,8 +22,17 @@ import {
 } from "lucide-react";
 import { CreateCourseDialog } from "@/components/tutor/CreateCourseDialog";
 import { CreateQuizDialog } from "@/components/tutor/CreateQuizDialog";
+import { EditQuizDialog } from "@/components/tutor/EditQuizDialog";
+import { DeleteQuizDialog } from "@/components/tutor/DeleteQuizDialog";
 import { UploadQuestionsDialog } from "@/components/tutor/UploadQuestionsDialog";
 import { WithdrawalRequestDialog } from "@/components/tutor/WithdrawalRequestDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 interface Course {
   id: string;
@@ -72,6 +81,9 @@ const TutorDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   const [showCreateQuiz, setShowCreateQuiz] = useState(false);
+  const [showEditQuiz, setShowEditQuiz] = useState(false);
+  const [showDeleteQuiz, setShowDeleteQuiz] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [showUploadQuestions, setShowUploadQuestions] = useState(false);
   const [showWithdrawal, setShowWithdrawal] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
@@ -435,6 +447,7 @@ const TutorDashboard = () => {
                     <th className="text-center py-3 px-4 font-medium text-muted-foreground">Attempts</th>
                     <th className="text-center py-3 px-4 font-medium text-muted-foreground">Earnings</th>
                     <th className="text-center py-3 px-4 font-medium text-muted-foreground">Status</th>
+                    <th className="text-center py-3 px-4 font-medium text-muted-foreground">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -475,6 +488,36 @@ const TutorDashboard = () => {
                         >
                           {quiz.is_active ? "Active" : "Inactive"}
                         </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedQuiz(quiz);
+                                setShowEditQuiz(true);
+                              }}
+                            >
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Edit Quiz
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => {
+                                setSelectedQuiz(quiz);
+                                setShowDeleteQuiz(true);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Quiz
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
@@ -518,6 +561,26 @@ const TutorDashboard = () => {
         availableBalance={walletBalance}
         onSuccess={() => {
           setShowWithdrawal(false);
+        }}
+      />
+      <EditQuizDialog
+        open={showEditQuiz}
+        onOpenChange={setShowEditQuiz}
+        quiz={selectedQuiz}
+        onSuccess={() => {
+          setShowEditQuiz(false);
+          setSelectedQuiz(null);
+          window.location.reload();
+        }}
+      />
+      <DeleteQuizDialog
+        open={showDeleteQuiz}
+        onOpenChange={setShowDeleteQuiz}
+        quiz={selectedQuiz}
+        onSuccess={() => {
+          setShowDeleteQuiz(false);
+          setSelectedQuiz(null);
+          window.location.reload();
         }}
       />
     </div>
