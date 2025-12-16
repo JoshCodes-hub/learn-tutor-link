@@ -837,6 +837,24 @@ const StudentDashboard = () => {
                         </div>
                         <h3 className="font-display font-semibold text-foreground">{quiz.title}</h3>
                       </div>
+                      {/* Tutor Avatar - Prominent Display */}
+                      {quiz.tutor && (
+                        <Link
+                          to={`/tutor/${quiz.tutor.id}`}
+                          className="relative group ml-3 flex-shrink-0"
+                          title={`By ${quiz.tutor.full_name || 'Tutor'}`}
+                        >
+                          <Avatar className="w-10 h-10 border-2 border-primary/30 group-hover:border-primary transition-colors shadow-md">
+                            <AvatarImage src={quiz.tutor.profile_image_url || undefined} />
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-sm font-bold">
+                              {quiz.tutor.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'T'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                            <GraduationCap className="w-2.5 h-2.5 text-primary-foreground" />
+                          </div>
+                        </Link>
+                      )}
                     </div>
 
                     {quiz.description && (
@@ -845,27 +863,16 @@ const StudentDashboard = () => {
                       </p>
                     )}
 
-                    {/* Tutor Profile - Clickable */}
+                    {/* Tutor Name Display */}
                     {quiz.tutor && (
                       <Link
                         to={`/tutor/${quiz.tutor.id}`}
-                        className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
+                        className="flex items-center gap-2 mb-3 text-sm text-muted-foreground hover:text-primary transition-colors"
                       >
-                        <Avatar className="w-8 h-8 border border-border group-hover:border-primary/50 transition-colors">
-                          <AvatarImage src={quiz.tutor.profile_image_url || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                            {quiz.tutor.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'T'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                            {quiz.tutor.full_name || 'Tutor'}
-                          </p>
-                          {quiz.tutor.tutor_code && (
-                            <p className="text-xs text-muted-foreground font-mono">{quiz.tutor.tutor_code}</p>
-                          )}
-                        </div>
-                        <GraduationCap className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span>by <span className="font-medium text-foreground">{quiz.tutor.full_name || 'Tutor'}</span></span>
+                        {quiz.tutor.tutor_code && (
+                          <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{quiz.tutor.tutor_code}</span>
+                        )}
                       </Link>
                     )}
 
