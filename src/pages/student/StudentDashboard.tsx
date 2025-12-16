@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
 import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
+import { AIQuizRecommendations } from "@/components/student/AIQuizRecommendations";
 import { SEO } from "@/components/seo/SEO";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -520,6 +521,23 @@ const StudentDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* AI Quiz Recommendations */}
+        {user && stats.totalAttempts > 0 && (
+          <div className="mb-8">
+            <AIQuizRecommendations
+              userId={user.id}
+              onSelectQuiz={(quizId) => navigate(`/quiz/${quizId}/practice`)}
+              onPurchaseQuiz={(quizId) => {
+                const quiz = quizzes.find(q => q.id === quizId);
+                if (quiz) {
+                  setSelectedQuiz(quiz);
+                  setShowPurchaseQuiz(true);
+                }
+              }}
+            />
+          </div>
+        )}
 
         {/* Available Quizzes */}
         <div className="mb-8">
