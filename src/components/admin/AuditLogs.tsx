@@ -21,8 +21,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-import { Shield, Clock, User, Database, Download } from "lucide-react";
+import { Shield, Clock, User, Database } from "lucide-react";
 import { exportToCsv } from "@/lib/exportCsv";
+import { exportToPdf } from "@/lib/exportPdf";
+import { ExportButton } from "./ExportButton";
 
 interface AuditLog {
   id: string;
@@ -100,22 +102,27 @@ export const AuditLogs = () => {
     return profile?.full_name || profile?.email || "Unknown Admin";
   };
 
-  const handleExport = () => {
-    exportToCsv(
-      logs.map((log) => ({
-        ...log,
-        admin_name: getAdminName(log.admin_id),
-        created_at: format(new Date(log.created_at), "yyyy-MM-dd HH:mm:ss"),
-      })),
-      "audit-logs",
-      [
-        { key: "created_at", label: "Time" },
-        { key: "admin_name", label: "Admin" },
-        { key: "action", label: "Action" },
-        { key: "table_name", label: "Table" },
-        { key: "record_id", label: "Record ID" },
-      ]
-    );
+  const exportColumns = [
+    { key: "created_at", label: "Time" },
+    { key: "admin_name", label: "Admin" },
+    { key: "action", label: "Action" },
+    { key: "table_name", label: "Table" },
+    { key: "record_id", label: "Record ID" },
+  ];
+
+  const getExportData = () =>
+    logs.map((log) => ({
+      ...log,
+      admin_name: getAdminName(log.admin_id),
+      created_at: format(new Date(log.created_at), "yyyy-MM-dd HH:mm:ss"),
+    }));
+
+  const handleExportCsv = () => {
+    exportToCsv(getExportData(), "audit-logs", exportColumns);
+  };
+
+  const handleExportPdf = () => {
+    exportToPdf(getExportData(), "audit-logs", "Audit Logs Report", exportColumns);
   };
 
   return (
@@ -126,10 +133,11 @@ export const AuditLogs = () => {
           <CardTitle>Audit Logs</CardTitle>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={logs.length === 0}>
-            <Download className="h-4 w-4 mr-1" />
-            Export CSV
-          </Button>
+          <ExportButton
+            onExportCsv={handleExportCsv}
+            onExportPdf={handleExportPdf}
+            disabled={logs.length === 0}
+          />
           <Select value={tableFilter} onValueChange={setTableFilter}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by table" />
