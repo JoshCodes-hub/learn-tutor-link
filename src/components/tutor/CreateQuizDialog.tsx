@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Camera, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Course {
   id: string;
@@ -44,7 +45,9 @@ export function CreateQuizDialog({
   onSuccess,
 }: CreateQuizDialogProps) {
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [courseId, setCourseId] = useState("");
@@ -53,6 +56,28 @@ export function CreateQuizDialog({
   const [isPremium, setIsPremium] = useState(false);
   const [tokenCost, setTokenCost] = useState("10");
   const [availableQuestions, setAvailableQuestions] = useState(0);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
+  const [tutorName, setTutorName] = useState<string | null>(null);
+
+  // Fetch tutor profile on open
+  useEffect(() => {
+    const fetchTutorProfile = async () => {
+      if (!user || !open) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("profile_image_url, full_name")
+        .eq("id", user.id)
+        .single();
+      
+      if (data) {
+        setProfileImageUrl(data.profile_image_url);
+        setTutorName(data.full_name);
+      }
+    };
+
+    fetchTutorProfile();
+  }, [user, open]);
 
   useEffect(() => {
     const fetchQuestionCount = async () => {
@@ -72,6 +97,58 @@ export function CreateQuizDialog({
 
     fetchQuestionCount();
   }, [courseId]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/profile.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("tutor-profiles")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("tutor-profiles")
+        .getPublicUrl(fileName);
+
+      const newImageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      // Update both avatar_url and profile_image_url
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ 
+          avatar_url: newImageUrl,
+          profile_image_url: newImageUrl 
+        })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      setProfileImageUrl(newImageUrl);
+      toast.success("Profile image updated!");
+    } catch (error: any) {
+      console.error("Error uploading image:", error);
+      toast.error(error.message || "Failed to upload image");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,13 +235,51 @@ export function CreateQuizDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Quiz</DialogTitle>
           <DialogDescription>
             Create a quiz from your uploaded questions.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Tutor Profile Section */}
+        <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg border border-border">
+          <div className="relative group">
+            <Avatar className="w-16 h-16 border-2 border-primary/30">
+              <AvatarImage src={profileImageUrl || undefined} />
+              <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-lg font-bold">
+                {tutorName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || <User className="w-6 h-6" />}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingImage}
+              className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              {isUploadingImage ? (
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              ) : (
+                <Camera className="w-5 h-5 text-white" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-foreground">{tutorName || "Your Name"}</p>
+            <p className="text-sm text-muted-foreground">Quiz will display "by {tutorName || 'you'}"</p>
+            {!profileImageUrl && (
+              <p className="text-xs text-amber-600 mt-1">Upload a photo to appear on quiz cards</p>
+            )}
+          </div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
