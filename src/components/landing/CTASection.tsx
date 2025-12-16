@@ -14,7 +14,7 @@ const CTASection = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="bg-card rounded-3xl border border-border p-8 md:p-12 lg:p-16 text-center shadow-xl">
+        <div className="bg-card rounded-2xl sm:rounded-3xl border border-border p-6 sm:p-8 md:p-12 lg:p-16 text-center shadow-xl">
           <div className="inline-flex items-center gap-2 bg-accent/10 rounded-full px-4 py-2 mb-6">
             <Sparkles className="w-4 h-4 text-accent" />
             <span className="text-sm font-medium text-foreground">Start Your Journey Today</span>

@@ -32,16 +32,16 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="py-20 bg-background">
+    <section className="py-16 sm:py-20 bg-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-10 sm:mb-12">
           <Badge variant="outline" className="mb-4">
             Student Stories
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             What Our Students Say
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-sm sm:text-base">
             Join thousands of FUTA students who have improved their exam performance with OverraPrep AI
           </p>
         </div>

@@ -274,36 +274,43 @@ const AdminDashboard = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 flex-wrap">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="tutors" className="flex items-center gap-2">
-              <GraduationCap className="w-4 h-4" />
-              Tutors
-            </TabsTrigger>
-            <TabsTrigger value="tokens" className="flex items-center gap-2">
-              <Coins className="w-4 h-4" />
-              Tokens {stats.pendingPurchases > 0 && `(${stats.pendingPurchases})`}
-            </TabsTrigger>
-            <TabsTrigger value="withdrawals" className="flex items-center gap-2">
-              <Banknote className="w-4 h-4" />
-              Withdrawals {stats.pendingWithdrawals > 0 && `(${stats.pendingWithdrawals})`}
-            </TabsTrigger>
-            <TabsTrigger value="courses" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Courses
-            </TabsTrigger>
-            <TabsTrigger value="questions" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Questions
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+            <TabsList className="mb-6 inline-flex w-max md:w-auto md:flex-wrap">
+              <TabsTrigger value="overview" className="flex items-center gap-2 text-xs md:text-sm">
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Analytics</span>
+                <span className="sm:hidden">Stats</span>
+              </TabsTrigger>
+              <TabsTrigger value="tutors" className="flex items-center gap-2 text-xs md:text-sm">
+                <GraduationCap className="w-4 h-4" />
+                Tutors
+              </TabsTrigger>
+              <TabsTrigger value="tokens" className="flex items-center gap-2 text-xs md:text-sm">
+                <Coins className="w-4 h-4" />
+                Tokens {stats.pendingPurchases > 0 && `(${stats.pendingPurchases})`}
+              </TabsTrigger>
+              <TabsTrigger value="withdrawals" className="flex items-center gap-2 text-xs md:text-sm">
+                <Banknote className="w-4 h-4" />
+                <span className="hidden sm:inline">Withdrawals</span>
+                <span className="sm:hidden">Payouts</span>
+                {stats.pendingWithdrawals > 0 && ` (${stats.pendingWithdrawals})`}
+              </TabsTrigger>
+              <TabsTrigger value="courses" className="flex items-center gap-2 text-xs md:text-sm">
+                <BookOpen className="w-4 h-4" />
+                Courses
+              </TabsTrigger>
+              <TabsTrigger value="questions" className="flex items-center gap-2 text-xs md:text-sm">
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">Questions</span>
+                <span className="sm:hidden">Q&A</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2 text-xs md:text-sm">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Settings</span>
+                <span className="sm:hidden">⚙️</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview">
             <PlatformAnalytics />

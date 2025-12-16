@@ -257,14 +257,20 @@ const TutorDashboard = () => {
               </div>
             </Link>
 
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/profile/edit")}>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/profile/edit")} className="hidden sm:flex">
                 <User className="w-4 h-4 mr-2" />
                 Profile
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => signOut()}>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/profile/edit")} className="sm:hidden">
+                <User className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => signOut()} className="hidden sm:flex">
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => signOut()} className="sm:hidden">
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -436,8 +442,8 @@ const TutorDashboard = () => {
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+              <table className="w-full min-w-[800px]">
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">Quiz</th>

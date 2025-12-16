@@ -371,22 +371,28 @@ const StudentDashboard = () => {
               </div>
             </Link>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               {/* Wallet Balance */}
-              <div className="hidden sm:flex items-center gap-2 bg-accent/10 px-3 py-1.5 rounded-full">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-accent/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                 <Coins className="w-4 h-4 text-accent" />
-                <span className="font-semibold text-foreground">{wallet?.balance || 0}</span>
-                <span className="text-sm text-muted-foreground">tokens</span>
+                <span className="font-semibold text-foreground text-sm sm:text-base">{wallet?.balance || 0}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">tokens</span>
               </div>
 
-              <Button variant="ghost" size="sm" onClick={() => navigate("/profile/edit")}>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/profile/edit")} className="hidden sm:flex">
                 <User className="w-4 h-4 mr-2" />
                 Profile
               </Button>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/profile/edit")} className="sm:hidden">
+                <User className="w-4 h-4" />
+              </Button>
 
-              <Button variant="ghost" size="sm" onClick={() => signOut()}>
+              <Button variant="ghost" size="sm" onClick={() => signOut()} className="hidden sm:flex">
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => signOut()} className="sm:hidden">
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -395,8 +401,8 @@ const StudentDashboard = () => {
 
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-2">
             Welcome back, {profile?.full_name || "Student"}! 👋
           </h1>
           <p className="text-muted-foreground">

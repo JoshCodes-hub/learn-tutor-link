@@ -255,26 +255,26 @@ const CBTSimulation = () => {
     <div className="min-h-screen bg-foreground text-background">
       {/* CBT-style Header */}
       <header className="bg-primary text-primary-foreground py-3 px-4">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <BookOpen className="w-6 h-6" />
+        <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
             <div>
-              <h1 className="font-display font-bold">{quiz?.title}</h1>
-              <p className="text-sm opacity-80">{quiz?.course.code} - {quiz?.course.name}</p>
+              <h1 className="font-display font-bold text-sm sm:text-base">{quiz?.title}</h1>
+              <p className="text-xs sm:text-sm opacity-80">{quiz?.course.code} - {quiz?.course.name}</p>
             </div>
           </div>
           
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-xl font-bold ${
+          <div className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-mono text-base sm:text-xl font-bold ${
             isLowTime ? "bg-destructive animate-pulse" : "bg-background/20"
           }`}>
-            <Clock className="w-5 h-5" />
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
             {formatTime(timeLeft)}
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-4 gap-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6">
+        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Question Panel */}
           <div className="lg:col-span-3">
             <div className="bg-card text-card-foreground rounded-xl p-6 mb-4">
@@ -347,18 +347,18 @@ const CBTSimulation = () => {
           </div>
 
           {/* Question Navigator */}
-          <div className="lg:col-span-1">
-            <div className="bg-card text-card-foreground rounded-xl p-4 sticky top-4">
+          <div className="lg:col-span-1 order-first lg:order-last">
+            <div className="bg-card text-card-foreground rounded-xl p-4 lg:sticky lg:top-4">
               <h3 className="font-display font-semibold text-foreground mb-4">
                 Questions
               </h3>
               
-              <div className="grid grid-cols-5 gap-2 mb-6">
+              <div className="grid grid-cols-10 sm:grid-cols-10 lg:grid-cols-5 gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                 {questions.map((q, idx) => (
                   <button
                     key={q.id}
                     onClick={() => setCurrentIndex(idx)}
-                    className={`w-10 h-10 rounded-lg font-medium text-sm flex items-center justify-center transition-colors ${
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-medium text-xs sm:text-sm flex items-center justify-center transition-colors ${
                       idx === currentIndex
                         ? "bg-primary text-primary-foreground"
                         : answers[q.id]
@@ -373,7 +373,7 @@ const CBTSimulation = () => {
                 ))}
               </div>
 
-              <div className="space-y-2 text-sm mb-6">
+              <div className="hidden sm:flex flex-col space-y-2 text-sm mb-4 sm:mb-6">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 rounded bg-success" />
                   <span className="text-muted-foreground">Answered ({answeredCount})</span>
@@ -386,6 +386,13 @@ const CBTSimulation = () => {
                   <div className="w-4 h-4 rounded bg-destructive" />
                   <span className="text-muted-foreground">Flagged ({flagged.size})</span>
                 </div>
+              </div>
+
+              {/* Mobile summary */}
+              <div className="flex sm:hidden items-center justify-center gap-4 text-xs mb-4">
+                <span className="text-success">{answeredCount} answered</span>
+                <span className="text-muted-foreground">{questions.length - answeredCount} left</span>
+                {flagged.size > 0 && <span className="text-destructive">{flagged.size} flagged</span>}
               </div>
 
               {answeredCount < questions.length && (
