@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { Button } from "@/components/ui/button";
+import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { 
   BookOpen, 
   Sparkles, 
@@ -22,6 +24,7 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, profile, primaryRole, isLoading, signOut, hasRole } = useAuth();
+  const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -214,6 +217,13 @@ const Dashboard = () => {
           </div>
         )}
       </main>
+
+      <OnboardingDialog
+        isOpen={showOnboarding}
+        onComplete={completeOnboarding}
+        userRole={primaryRole as "student" | "tutor" | "admin"}
+        userName={profile?.full_name || undefined}
+      />
     </div>
   );
 };

@@ -1,11 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
 import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
+import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -85,6 +87,7 @@ interface Wallet {
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
   const [stats, setStats] = useState<Stats>({
     totalAttempts: 0,
     totalQuestions: 0,
@@ -821,6 +824,13 @@ const StudentDashboard = () => {
               });
           }
         }}
+      />
+
+      <OnboardingDialog
+        isOpen={showOnboarding}
+        onComplete={completeOnboarding}
+        userRole="student"
+        userName={profile?.full_name || undefined}
       />
     </div>
   );
