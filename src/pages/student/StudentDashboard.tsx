@@ -50,7 +50,8 @@ import {
   X,
   Trophy,
   MessageSquare,
-  Flame
+  Flame,
+  RefreshCw
 } from "lucide-react";
 
 interface Stats {
@@ -112,6 +113,7 @@ const StudentDashboard = () => {
   const [purchasedQuizIds, setPurchasedQuizIds] = useState<Set<string>>(new Set());
   const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showBuyTokens, setShowBuyTokens] = useState(false);
   const [showPurchaseQuiz, setShowPurchaseQuiz] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
@@ -284,6 +286,52 @@ const StudentDashboard = () => {
       fetchDashboardData();
     }
   }, [user]);
+
+  // Refresh quizzes function
+  const refreshQuizzes = async () => {
+    if (!user || isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const { data: quizzesData, error } = await supabase
+        .from("quizzes")
+        .select("*, courses(id, code, name)")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error refreshing quizzes:", error);
+        return;
+      }
+
+      if (quizzesData) {
+        const tutorIds = [...new Set(quizzesData.filter(q => q.tutor_id).map(q => q.tutor_id))];
+        let tutorProfiles: Record<string, TutorProfile> = {};
+        
+        if (tutorIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, full_name, profile_image_url, tutor_code")
+            .in("id", tutorIds);
+          
+          if (profiles) {
+            tutorProfiles = profiles.reduce((acc, p) => {
+              acc[p.id] = p;
+              return acc;
+            }, {} as Record<string, TutorProfile>);
+          }
+        }
+
+        setQuizzes(quizzesData.map(q => ({
+          ...q,
+          course: q.courses as { id: string; code: string; name: string },
+          tutor: q.tutor_id ? tutorProfiles[q.tutor_id] || null : null,
+          rating: null
+        })));
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Filtered quizzes based on search and filters
   const filteredQuizzes = useMemo(() => {
@@ -602,9 +650,20 @@ const StudentDashboard = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-xl font-bold text-foreground">Available Quizzes</h2>
-            <span className="text-sm text-muted-foreground">
-              {filteredQuizzes.length} of {quizzes.length} quizzes
-            </span>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={refreshQuizzes}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`w-4 h-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {filteredQuizzes.length} of {quizzes.length} quizzes
+              </span>
+            </div>
           </div>
 
           {/* Search and Filters */}
