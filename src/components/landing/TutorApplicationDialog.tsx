@@ -31,6 +31,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const applicationSchema = z.object({
   fullName: z.string().min(2, "Full name is required").max(100),
   email: z.string().email("Valid email is required"),
+  password: z.string().optional(),
+  confirmPassword: z.string().optional(),
   phone: z.string().min(10, "Valid phone number is required").max(15),
   department: z.string().min(2, "Department is required").max(100),
   level: z.string().min(1, "Level is required"),
@@ -68,6 +70,8 @@ const TutorApplicationDialog = ({ open, onOpenChange }: TutorApplicationDialogPr
     defaultValues: {
       fullName: "",
       email: "",
+      password: "",
+      confirmPassword: "",
       phone: "",
       department: "",
       level: "",
@@ -186,17 +190,67 @@ const TutorApplicationDialog = ({ open, onOpenChange }: TutorApplicationDialogPr
   };
 
   const handleSubmit = async (data: ApplicationFormData) => {
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in or create an account to submit your application.",
-      });
-      onOpenChange(false);
-      navigate("/auth?redirect=/apply-tutor");
-      return;
-    }
-
     setIsSubmitting(true);
+    
+    let currentUser = user;
+    
+    // If not logged in, create account first
+    if (!currentUser) {
+      // Validate password for new users
+      if (!data.password || data.password.length < 6) {
+        toast({
+          variant: "destructive",
+          title: "Password required",
+          description: "Please enter a password with at least 6 characters.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (data.password !== data.confirmPassword) {
+        toast({
+          variant: "destructive",
+          title: "Passwords don't match",
+          description: "Please make sure your passwords match.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const redirectUrl = `${window.location.origin}/`;
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: data.fullName,
+          },
+        },
+      });
+      
+      if (signUpError) {
+        toast({
+          variant: "destructive",
+          title: "Account creation failed",
+          description: signUpError.message,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      currentUser = authData.user;
+      
+      if (!currentUser) {
+        toast({
+          variant: "destructive",
+          title: "Account creation failed",
+          description: "Unable to create account. Please try again.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
     
     let profileImageUrl = null;
     if (profileImage) {
@@ -206,7 +260,7 @@ const TutorApplicationDialog = ({ open, onOpenChange }: TutorApplicationDialogPr
     const { error } = await supabase
       .from("tutor_applications")
       .insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         full_name: data.fullName,
         email: data.email,
         qualifications: data.qualifications,
@@ -373,6 +427,36 @@ const TutorApplicationDialog = ({ open, onOpenChange }: TutorApplicationDialogPr
                     )}
                   </div>
                 </div>
+
+                {!user && (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="password" className="text-sm">Password *</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="Min. 6 characters"
+                        {...form.register("password")}
+                      />
+                      {form.formState.errors.password && (
+                        <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirmPassword" className="text-sm">Confirm Password *</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm your password"
+                        {...form.register("confirmPassword")}
+                      />
+                      {form.formState.errors.confirmPassword && (
+                        <p className="text-xs text-destructive">{form.formState.errors.confirmPassword.message}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
