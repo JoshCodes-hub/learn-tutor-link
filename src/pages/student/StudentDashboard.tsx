@@ -206,15 +206,10 @@ const StudentDashboard = () => {
           let tutorProfiles: Record<string, TutorProfile> = {};
           
           if (tutorIds.length > 0) {
-            const { data: profiles, error: profilesError } = await supabase
+            const { data: profiles } = await supabase
               .from("profiles")
               .select("id, full_name, profile_image_url, tutor_code")
               .in("id", tutorIds);
-            
-            if (profilesError) {
-              console.error("Error fetching tutor profiles:", profilesError);
-            }
-            console.log("Tutor IDs:", tutorIds, "Fetched profiles:", profiles);
             
             // Fetch tutor quiz counts
             const { data: tutorQuizCounts } = await supabase
