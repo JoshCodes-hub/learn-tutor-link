@@ -287,6 +287,70 @@ const StudentDashboard = () => {
     }
   }, [user]);
 
+  // Real-time subscription for new quizzes
+  useEffect(() => {
+    const channel = supabase
+      .channel('quizzes-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'quizzes',
+        },
+        async (payload) => {
+          const newQuiz = payload.new as any;
+          if (!newQuiz.is_active) return;
+
+          // Fetch course info
+          const { data: courseData } = await supabase
+            .from('courses')
+            .select('id, code, name')
+            .eq('id', newQuiz.course_id)
+            .single();
+
+          // Fetch tutor info if exists
+          let tutorProfile = null;
+          if (newQuiz.tutor_id) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('id, full_name, profile_image_url, tutor_code')
+              .eq('id', newQuiz.tutor_id)
+              .single();
+            tutorProfile = profile;
+          }
+
+          setQuizzes(prev => [{
+            ...newQuiz,
+            course: courseData,
+            tutor: tutorProfile,
+            rating: null
+          }, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'quizzes',
+        },
+        async (payload) => {
+          const updatedQuiz = payload.new as any;
+          setQuizzes(prev => prev.map(q => 
+            q.id === updatedQuiz.id 
+              ? { ...q, ...updatedQuiz }
+              : q
+          ).filter(q => q.is_active));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   // Refresh quizzes function
   const refreshQuizzes = async () => {
     if (!user || isRefreshing) return;
