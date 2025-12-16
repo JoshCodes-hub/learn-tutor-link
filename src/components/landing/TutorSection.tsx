@@ -40,7 +40,7 @@ const TutorSection = () => {
 
   return (
     <>
-    <section id="tutors" className="py-20 lg:py-32 bg-background overflow-hidden">
+    <section id="become-tutor" className="py-20 lg:py-32 bg-background overflow-hidden scroll-mt-20">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left Content */}
