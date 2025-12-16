@@ -78,13 +78,7 @@ const TutorApplicationDialog = ({ open, onOpenChange }: TutorApplicationDialogPr
     },
   });
 
-  // Redirect to auth if not logged in
-  useEffect(() => {
-    if (open && !authLoading && !user) {
-      onOpenChange(false);
-      navigate("/auth");
-    }
-  }, [user, authLoading, open, navigate, onOpenChange]);
+  // No longer redirect - allow form to be viewed without login
 
   // Pre-fill form with profile data
   useEffect(() => {
@@ -192,7 +186,15 @@ const TutorApplicationDialog = ({ open, onOpenChange }: TutorApplicationDialogPr
   };
 
   const handleSubmit = async (data: ApplicationFormData) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in or create an account to submit your application.",
+      });
+      onOpenChange(false);
+      navigate("/auth?redirect=/apply-tutor");
+      return;
+    }
 
     setIsSubmitting(true);
     
@@ -281,7 +283,7 @@ const TutorApplicationDialog = ({ open, onOpenChange }: TutorApplicationDialogPr
     );
   };
 
-  const isLoading = authLoading || isLoadingApplication;
+  const isLoading = user && (authLoading || isLoadingApplication);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
