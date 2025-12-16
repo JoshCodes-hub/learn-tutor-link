@@ -17,6 +17,7 @@ import { TeamChallenges } from "@/components/student/TeamChallenges";
 import { TeamChat } from "@/components/student/TeamChat";
 import { SEO } from "@/components/seo/SEO";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -326,6 +327,12 @@ const StudentDashboard = () => {
             tutor: tutorProfile,
             rating: null
           }, ...prev]);
+
+          // Show toast notification for new quiz
+          toast({
+            title: "New Quiz Available!",
+            description: `"${newQuiz.title}" in ${courseData?.name || 'Unknown Course'} is now available.`,
+          });
         }
       )
       .on(
