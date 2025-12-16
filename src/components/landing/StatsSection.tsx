@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, GraduationCap, Brain, HelpCircle } from "lucide-react";
 
@@ -9,6 +9,68 @@ interface Stats {
   questions: number;
 }
 
+const useCountUp = (end: number, duration: number = 2000, start: boolean = false) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!start || end === 0) {
+      if (start) setCount(end);
+      return;
+    }
+
+    let startTime: number | null = null;
+    let animationFrame: number;
+
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      setCount(Math.floor(easeOutQuart * end));
+
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [end, duration, start]);
+
+  return count;
+};
+
+const AnimatedCounter = ({ 
+  value, 
+  isVisible, 
+  isLoading 
+}: { 
+  value: number; 
+  isVisible: boolean; 
+  isLoading: boolean;
+}) => {
+  const count = useCountUp(value, 2000, isVisible && !isLoading);
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace(/\.0$/, "") + "k+";
+    }
+    return num.toString() + "+";
+  };
+
+  if (isLoading) {
+    return <span className="inline-block w-16 h-8 bg-muted animate-pulse rounded" />;
+  }
+
+  return <span>{formatNumber(count)}</span>;
+};
+
 const StatsSection = () => {
   const [stats, setStats] = useState<Stats>({
     students: 0,
@@ -17,29 +79,45 @@ const StatsSection = () => {
     questions: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Count students (users with student role)
         const { count: studentCount } = await supabase
           .from("user_roles")
           .select("*", { count: "exact", head: true })
           .eq("role", "student");
 
-        // Count approved tutors
         const { count: tutorCount } = await supabase
           .from("tutor_applications")
           .select("*", { count: "exact", head: true })
           .eq("status", "approved");
 
-        // Count active quizzes
         const { count: quizCount } = await supabase
           .from("quizzes")
           .select("*", { count: "exact", head: true })
           .eq("is_active", true);
 
-        // Count approved questions
         const { count: questionCount } = await supabase
           .from("questions")
           .select("*", { count: "exact", head: true })
@@ -60,13 +138,6 @@ const StatsSection = () => {
 
     fetchStats();
   }, []);
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1).replace(/\.0$/, "") + "k+";
-    }
-    return num.toString() + "+";
-  };
 
   const statsData = [
     {
@@ -100,13 +171,19 @@ const StatsSection = () => {
   ];
 
   return (
-    <section className="py-16 bg-primary/5 border-y border-border">
+    <section ref={sectionRef} className="py-16 bg-primary/5 border-y border-border">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {statsData.map((stat, index) => (
             <div
               key={index}
               className="text-center group"
+              style={{ 
+                animationDelay: `${index * 100}ms`,
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+                transition: `opacity 0.5s ease-out ${index * 100}ms, transform 0.5s ease-out ${index * 100}ms`
+              }}
             >
               <div
                 className={`w-14 h-14 ${stat.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}
@@ -114,11 +191,11 @@ const StatsSection = () => {
                 <stat.icon className={`w-7 h-7 ${stat.color}`} />
               </div>
               <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">
-                {isLoading ? (
-                  <span className="inline-block w-16 h-8 bg-muted animate-pulse rounded" />
-                ) : (
-                  formatNumber(stat.value)
-                )}
+                <AnimatedCounter 
+                  value={stat.value} 
+                  isVisible={isVisible} 
+                  isLoading={isLoading} 
+                />
               </div>
               <p className="text-sm text-muted-foreground">{stat.label}</p>
             </div>
