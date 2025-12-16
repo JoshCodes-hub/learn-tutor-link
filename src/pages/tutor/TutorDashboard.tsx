@@ -17,7 +17,8 @@ import {
   Edit,
   Eye,
   GraduationCap,
-  BarChart3
+  BarChart3,
+  User
 } from "lucide-react";
 import { CreateCourseDialog } from "@/components/tutor/CreateCourseDialog";
 import { CreateQuizDialog } from "@/components/tutor/CreateQuizDialog";
@@ -245,6 +246,10 @@ const TutorDashboard = () => {
             </Link>
 
             <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/profile/edit")}>
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => signOut()}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
