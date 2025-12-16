@@ -86,6 +86,7 @@ export type Database = {
           full_name: string | null
           id: string
           profile_image_url: string | null
+          tutor_code: string | null
           updated_at: string
         }
         Insert: {
@@ -96,6 +97,7 @@ export type Database = {
           full_name?: string | null
           id: string
           profile_image_url?: string | null
+          tutor_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -106,6 +108,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           profile_image_url?: string | null
+          tutor_code?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -703,6 +706,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_tutor_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
