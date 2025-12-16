@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trophy, Medal, Award, Crown, Loader2 } from "lucide-react";
+import { Trophy, Medal, Award, Crown, Loader2, Users } from "lucide-react";
+import { TeamLeaderboard } from "./TeamLeaderboard";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -234,10 +235,14 @@ export const Leaderboard = () => {
       </div>
 
       <Tabs defaultValue="overall" className="w-full">
-        <TabsList className="w-full mb-4">
-          <TabsTrigger value="overall" className="flex-1">Overall</TabsTrigger>
-          <TabsTrigger value="weekly" className="flex-1">This Week</TabsTrigger>
-          <TabsTrigger value="course" className="flex-1">By Course</TabsTrigger>
+        <TabsList className="w-full mb-4 grid grid-cols-4">
+          <TabsTrigger value="overall">Overall</TabsTrigger>
+          <TabsTrigger value="weekly">Weekly</TabsTrigger>
+          <TabsTrigger value="course">Course</TabsTrigger>
+          <TabsTrigger value="teams" className="flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            Teams
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overall">
@@ -262,6 +267,10 @@ export const Leaderboard = () => {
             </SelectContent>
           </Select>
           <LeaderboardList leaders={courseLeaders} />
+        </TabsContent>
+
+        <TabsContent value="teams">
+          <TeamLeaderboard />
         </TabsContent>
       </Tabs>
     </div>
