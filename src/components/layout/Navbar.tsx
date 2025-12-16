@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, BookOpen, Sparkles, GraduationCap, Users } from "lucide-react";
+import { Menu, X, BookOpen, Sparkles, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import TutorApplicationDialog from "@/components/landing/TutorApplicationDialog";
 
@@ -9,14 +9,38 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showTutorDialog, setShowTutorDialog] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isLoading, hasRole } = useAuth();
 
   const navLinks = [
     { name: "Features", href: "#features" },
     { name: "How It Works", href: "#how-it-works" },
     { name: "Tutors", href: "/tutors", isRoute: true },
-    { name: "For Tutors", href: "#tutors" },
+    { name: "For Tutors", href: "#become-tutor" },
+    { name: "FAQ", href: "#faq" },
   ];
+
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    
+    // If not on home page, navigate there first
+    if (location.pathname !== "/") {
+      navigate("/");
+      // Wait for navigation then scroll
+      setTimeout(() => {
+        const element = document.querySelector(href);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    } else {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+    setIsMenuOpen(false);
+  };
 
   // Don't show "Become a Tutor" if user is already a tutor or admin
   const showTutorButton = !hasRole("tutor") && !hasRole("admin");
@@ -57,7 +81,8 @@ const Navbar = () => {
                   <a
                     key={link.name}
                     href={link.href}
-                    className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200"
+                    onClick={(e) => handleSmoothScroll(e, link.href)}
+                    className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 cursor-pointer"
                   >
                     {link.name}
                   </a>
@@ -123,8 +148,8 @@ const Navbar = () => {
                     <a
                       key={link.name}
                       href={link.href}
-                      className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 py-2"
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={(e) => handleSmoothScroll(e, link.href)}
+                      className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 py-2 cursor-pointer"
                     >
                       {link.name}
                     </a>
