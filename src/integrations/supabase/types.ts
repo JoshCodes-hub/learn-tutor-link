@@ -85,6 +85,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          profile_image_url: string | null
           updated_at: string
         }
         Insert: {
@@ -94,6 +95,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          profile_image_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -103,6 +105,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          profile_image_url?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -544,6 +547,7 @@ export type Database = {
           experience: string
           full_name: string
           id: string
+          profile_image_url: string | null
           qualifications: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -560,6 +564,7 @@ export type Database = {
           experience: string
           full_name: string
           id?: string
+          profile_image_url?: string | null
           qualifications: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -576,6 +581,7 @@ export type Database = {
           experience?: string
           full_name?: string
           id?: string
+          profile_image_url?: string | null
           qualifications?: string
           reviewed_at?: string | null
           reviewed_by?: string | null

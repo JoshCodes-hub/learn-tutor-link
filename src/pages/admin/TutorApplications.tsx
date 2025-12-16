@@ -12,10 +12,15 @@ import {
   GraduationCap,
   Loader2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Phone,
+  Building,
+  BookMarked,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +37,7 @@ interface TutorApplication {
   status: "pending" | "approved" | "rejected";
   admin_notes: string | null;
   created_at: string;
+  profile_image_url: string | null;
 }
 
 const TutorApplications = () => {
@@ -118,6 +124,14 @@ const TutorApplications = () => {
       console.error("Error adding role:", roleError);
     }
 
+    // Update profile with tutor image if provided
+    if (application.profile_image_url) {
+      await supabase
+        .from("profiles")
+        .update({ profile_image_url: application.profile_image_url })
+        .eq("id", application.user_id);
+    }
+
     // Update local state
     setApplications(apps =>
       apps.map(app =>
@@ -178,6 +192,10 @@ const TutorApplications = () => {
     }
     
     setProcessingId(null);
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   if (authLoading || isLoading) {
@@ -251,9 +269,12 @@ const TutorApplications = () => {
                     className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-primary" />
-                      </div>
+                      <Avatar className="w-14 h-14 border-2 border-primary/20">
+                        <AvatarImage src={application.profile_image_url || undefined} alt={application.full_name} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                          {getInitials(application.full_name)}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="text-left">
                         <h3 className="font-semibold text-foreground">{application.full_name}</h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -262,35 +283,63 @@ const TutorApplications = () => {
                         </div>
                       </div>
                     </div>
-                    {expandedId === application.id ? (
-                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    )}
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(application.created_at).toLocaleDateString()}
+                      </span>
+                      {expandedId === application.id ? (
+                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </div>
                   </button>
 
                   {/* Expanded Content */}
                   {expandedId === application.id && (
-                    <div className="border-t border-border p-4 space-y-4">
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground mb-1">Qualifications</h4>
-                          <p className="text-foreground text-sm">{application.qualifications}</p>
+                    <div className="border-t border-border p-6 space-y-5">
+                      {/* Profile Image Large View */}
+                      {application.profile_image_url && (
+                        <div className="flex justify-center mb-4">
+                          <img 
+                            src={application.profile_image_url} 
+                            alt={application.full_name}
+                            className="w-32 h-32 rounded-full object-cover border-4 border-primary/20 shadow-lg"
+                          />
                         </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground mb-1">Experience</h4>
-                          <p className="text-foreground text-sm">{application.experience}</p>
+                      )}
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-muted/30 rounded-lg p-4">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+                            <GraduationCap className="w-4 h-4" />
+                            Qualifications
+                          </div>
+                          <p className="text-foreground text-sm whitespace-pre-wrap">{application.qualifications}</p>
+                        </div>
+                        <div className="bg-muted/30 rounded-lg p-4">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+                            <FileText className="w-4 h-4" />
+                            Experience
+                          </div>
+                          <p className="text-foreground text-sm whitespace-pre-wrap">{application.experience}</p>
                         </div>
                       </div>
                       
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-1">Courses to Teach</h4>
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+                          <BookMarked className="w-4 h-4" />
+                          Courses to Teach
+                        </div>
                         <p className="text-foreground text-sm">{application.courses_to_teach}</p>
                       </div>
 
                       {application.bio && (
-                        <div>
-                          <h4 className="text-sm font-medium text-muted-foreground mb-1">Bio</h4>
+                        <div className="bg-muted/30 rounded-lg p-4">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+                            <User className="w-4 h-4" />
+                            Bio
+                          </div>
                           <p className="text-foreground text-sm">{application.bio}</p>
                         </div>
                       )}
@@ -298,7 +347,7 @@ const TutorApplications = () => {
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground mb-2">Admin Notes</h4>
                         <Textarea
-                          placeholder="Add notes (required for rejection)"
+                          placeholder="Add notes (required for rejection, optional for approval)"
                           value={adminNotes[application.id] || ""}
                           onChange={(e) => setAdminNotes({
                             ...adminNotes,
@@ -361,9 +410,12 @@ const TutorApplications = () => {
                   className="bg-card rounded-xl border border-border p-4 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-muted-foreground" />
-                    </div>
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={application.profile_image_url || undefined} alt={application.full_name} />
+                      <AvatarFallback className="bg-muted">
+                        {getInitials(application.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
                       <h3 className="font-medium text-foreground">{application.full_name}</h3>
                       <p className="text-sm text-muted-foreground">{application.email}</p>
