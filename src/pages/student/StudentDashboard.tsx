@@ -395,10 +395,15 @@ const StudentDashboard = () => {
               rating: null
             }, ...prev]);
 
+            // Auto-clear filters so new quiz is visible
+            setSearchQuery("");
+            setSelectedCourse("all");
+            setSelectedType("all");
+
             // Show toast notification for new quiz
             toast({
               title: "New Quiz Available!",
-              description: `"${newQuiz.title}" in ${courseData?.name || 'Unknown Course'} is now available.`,
+              description: `"${newQuiz.title}" in ${courseData?.name || 'Unknown Course'} is now available. Filters cleared to show it.`,
             });
           } catch (error) {
             console.error('Error processing new quiz:', error);
