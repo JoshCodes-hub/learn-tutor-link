@@ -921,6 +921,22 @@ const StudentDashboard = () => {
             </div>
           </div>
 
+          {/* Filters Active Banner */}
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between p-3 bg-accent/10 border border-accent/20 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-accent" />
+                <span className="text-sm text-foreground">
+                  Filters active — showing {filteredQuizzes.length} of {quizzes.length} quizzes
+                </span>
+              </div>
+              <Button variant="outline" size="sm" onClick={clearFilters} className="gap-1">
+                <X className="w-3 h-3" />
+                Show All Quizzes
+              </Button>
+            </div>
+          )}
+
           {quizzes.length === 0 ? (
             <div className="bg-muted/30 rounded-xl p-8 text-center">
               <Brain className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
