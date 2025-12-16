@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
+import { SEO } from "@/components/seo/SEO";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen,
@@ -240,9 +241,16 @@ const TutorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
+    <>
+      <SEO
+        title="Tutor Dashboard"
+        description="Manage your courses, create quizzes, and track your earnings on OverraPrep AI."
+        noindex={true}
+        url="https://overraprep.com/tutor/dashboard"
+      />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2 group">
@@ -600,6 +608,7 @@ const TutorDashboard = () => {
         userName={profile?.full_name || undefined}
       />
     </div>
+    </>
   );
 };
 

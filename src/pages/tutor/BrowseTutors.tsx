@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { SEO } from "@/components/seo/SEO";
 import {
   Select,
   SelectContent,
@@ -226,9 +227,15 @@ const BrowseTutors = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
+    <>
+      <SEO
+        title="Browse Tutors"
+        description="Discover expert tutors at FUTA. Browse verified tutors by department, view ratings, and access their quiz content."
+        url="https://overraprep.com/tutors"
+      />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2 group">
@@ -456,6 +463,7 @@ const BrowseTutors = () => {
         )}
       </main>
     </div>
+    </>
   );
 };
 

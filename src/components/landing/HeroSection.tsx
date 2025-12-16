@@ -6,7 +6,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative min-h-screen bg-gradient-hero overflow-hidden pt-16">
+    <section className="relative min-h-screen bg-gradient-hero overflow-hidden pt-16" aria-label="Hero section">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />

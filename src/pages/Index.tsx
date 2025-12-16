@@ -1,3 +1,4 @@
+import { SEO } from "@/components/seo/SEO";
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import StatsSection from "@/components/landing/StatsSection";
@@ -10,23 +11,53 @@ import TutorSection from "@/components/landing/TutorSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/layout/Footer";
 
+const homepageStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "OverraPrep AI",
+  url: "https://overraprep.com",
+  description: "AI-powered CBT exam preparation platform for FUTA students",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://overraprep.com/search?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "OverraPrep AI",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://overraprep.com/logo.png",
+    },
+  },
+};
+
 const Index = () => {
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main>
-        <HeroSection />
-        <StatsSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <FeaturedTutorsSection />
-        <TestimonialsSection />
-        <FAQSection />
-        <TutorSection />
-        <CTASection />
-      </main>
-      <Footer />
-    </div>
+    <>
+      <SEO
+        title="AI-Powered CBT Exam Preparation"
+        description="Ace your FUTA CBT exams with AI-powered practice questions, instant explanations, and personalized learning paths. Join thousands of students preparing smarter."
+        keywords="FUTA, CBT, exam preparation, past questions, AI tutoring, online learning, Nigeria university, Federal University of Technology Akure"
+        url="https://overraprep.com"
+        structuredData={homepageStructuredData}
+      />
+      <div className="min-h-screen">
+        <Navbar />
+        <main role="main" aria-label="Main content">
+          <HeroSection />
+          <StatsSection />
+          <FeaturesSection />
+          <HowItWorksSection />
+          <FeaturedTutorsSection />
+          <TestimonialsSection />
+          <FAQSection />
+          <TutorSection />
+          <CTASection />
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 
