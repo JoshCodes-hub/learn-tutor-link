@@ -23,6 +23,8 @@ import {
   Loader2,
   ArrowLeft,
   ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface Tutor {
@@ -38,6 +40,8 @@ interface Tutor {
   ratingCount: number;
 }
 
+const TUTORS_PER_PAGE = 9;
+
 const BrowseTutors = () => {
   const navigate = useNavigate();
   const [tutors, setTutors] = useState<Tutor[]>([]);
@@ -47,6 +51,11 @@ const BrowseTutors = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("rating");
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(filteredTutors.length / TUTORS_PER_PAGE);
+  const startIndex = (currentPage - 1) * TUTORS_PER_PAGE;
+  const paginatedTutors = filteredTutors.slice(startIndex, startIndex + TUTORS_PER_PAGE);
 
   useEffect(() => {
     const fetchTutors = async () => {
@@ -202,6 +211,7 @@ const BrowseTutors = () => {
     }
 
     setFilteredTutors(filtered);
+    setCurrentPage(1); // Reset to first page on filter change
   }, [searchQuery, selectedDepartment, sortBy, tutors]);
 
   if (isLoading) {
@@ -296,6 +306,7 @@ const BrowseTutors = () => {
         {/* Results Count */}
         <p className="text-sm text-muted-foreground mb-4">
           {filteredTutors.length} tutor{filteredTutors.length !== 1 ? "s" : ""} found
+          {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
         </p>
 
         {/* Tutors Grid */}
@@ -310,78 +321,138 @@ const BrowseTutors = () => {
             </p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTutors.map((tutor) => {
-              const initials =
-                tutor.full_name
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2) || "T";
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedTutors.map((tutor) => {
+                const initials =
+                  tutor.full_name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2) || "T";
 
-              return (
-                <Link
-                  key={tutor.id}
-                  to={`/tutor/${tutor.id}`}
-                  className="bg-card rounded-xl border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300 group"
-                >
-                  <div className="flex items-start gap-4 mb-4">
-                    <Avatar className="w-16 h-16 border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
-                      <AvatarImage src={tutor.profile_image_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
+                return (
+                  <Link
+                    key={tutor.id}
+                    to={`/tutor/${tutor.id}`}
+                    className="bg-card rounded-xl border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300 group"
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      <Avatar className="w-16 h-16 border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
+                        <AvatarImage src={tutor.profile_image_url || undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
 
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-display font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                        {tutor.full_name || "Tutor"}
-                      </h3>
-                      {tutor.tutor_code && (
-                        <p className="text-xs text-muted-foreground font-mono">
-                          {tutor.tutor_code}
-                        </p>
-                      )}
-                      {tutor.department && (
-                        <Badge variant="secondary" className="mt-1 text-xs">
-                          {tutor.department}
-                        </Badge>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                          {tutor.full_name || "Tutor"}
+                        </h3>
+                        {tutor.tutor_code && (
+                          <p className="text-xs text-muted-foreground font-mono">
+                            {tutor.tutor_code}
+                          </p>
+                        )}
+                        {tutor.department && (
+                          <Badge variant="secondary" className="mt-1 text-xs">
+                            {tutor.department}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {tutor.bio && (
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        {tutor.bio}
+                      </p>
+                    )}
+
+                    <div className="flex items-center flex-wrap gap-4 text-sm">
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Brain className="w-4 h-4" />
+                        {tutor.quizCount} quizzes
+                      </span>
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Users className="w-4 h-4" />
+                        {tutor.studentCount} students
+                      </span>
+                      {tutor.ratingCount > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-accent text-accent" />
+                          <span className="text-foreground font-medium">
+                            {tutor.averageRating.toFixed(1)}
+                          </span>
+                          <span className="text-muted-foreground text-xs">
+                            ({tutor.ratingCount})
+                          </span>
+                        </span>
                       )}
                     </div>
-                  </div>
+                  </Link>
+                );
+              })}
+            </div>
 
-                  {tutor.bio && (
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {tutor.bio}
-                    </p>
-                  )}
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Previous
+                </Button>
 
-                  <div className="flex items-center flex-wrap gap-4 text-sm">
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Brain className="w-4 h-4" />
-                      {tutor.quizCount} quizzes
-                    </span>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Users className="w-4 h-4" />
-                      {tutor.studentCount} students
-                    </span>
-                    {tutor.ratingCount > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-accent text-accent" />
-                        <span className="text-foreground font-medium">
-                          {tutor.averageRating.toFixed(1)}
-                        </span>
-                        <span className="text-muted-foreground text-xs">
-                          ({tutor.ratingCount})
-                        </span>
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => {
+                      // Show first, last, current, and adjacent pages
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1
+                      );
+                    })
+                    .map((page, idx, arr) => {
+                      // Add ellipsis if there's a gap
+                      const prev = arr[idx - 1];
+                      const showEllipsis = prev && page - prev > 1;
+
+                      return (
+                        <div key={page} className="flex items-center">
+                          {showEllipsis && (
+                            <span className="px-2 text-muted-foreground">...</span>
+                          )}
+                          <Button
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            className="w-9 h-9 p-0"
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
