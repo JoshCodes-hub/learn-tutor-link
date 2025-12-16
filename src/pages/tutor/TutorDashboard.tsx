@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
+import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen,
@@ -70,6 +72,7 @@ interface EarningsData {
 const TutorDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading, signOut, hasRole } = useAuth();
+  const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
   const [courses, setCourses] = useState<Course[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [earnings, setEarnings] = useState<EarningsData>({
@@ -588,6 +591,13 @@ const TutorDashboard = () => {
           setSelectedQuiz(null);
           window.location.reload();
         }}
+      />
+
+      <OnboardingDialog
+        isOpen={showOnboarding}
+        onComplete={completeOnboarding}
+        userRole="tutor"
+        userName={profile?.full_name || undefined}
       />
     </div>
   );
