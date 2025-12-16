@@ -22,8 +22,10 @@ import {
   Search,
   Banknote,
   CreditCard,
+  Download,
 } from "lucide-react";
 import { format } from "date-fns";
+import { exportToCsv } from "@/lib/exportCsv";
 
 interface WithdrawalRequest {
   id: string;
@@ -273,6 +275,26 @@ export function WithdrawalManagement() {
   const pendingCount = requests.filter((r) => r.status === "pending").length;
   const approvedCount = requests.filter((r) => r.status === "approved").length;
 
+  const handleExport = () => {
+    exportToCsv(
+      filteredRequests.map((r) => ({
+        ...r,
+        created_at: format(new Date(r.created_at), "yyyy-MM-dd HH:mm:ss"),
+      })),
+      "withdrawal-requests",
+      [
+        { key: "tutor_name", label: "Tutor Name" },
+        { key: "tutor_email", label: "Email" },
+        { key: "amount", label: "Amount (Tokens)" },
+        { key: "bank_name", label: "Bank" },
+        { key: "account_number", label: "Account Number" },
+        { key: "account_name", label: "Account Name" },
+        { key: "status", label: "Status" },
+        { key: "created_at", label: "Date" },
+      ]
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -298,14 +320,20 @@ export function WithdrawalManagement() {
           </div>
         </div>
 
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search tutors"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search tutors"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={filteredRequests.length === 0}>
+            <Download className="w-4 h-4 mr-1" />
+            Export CSV
+          </Button>
         </div>
       </div>
 

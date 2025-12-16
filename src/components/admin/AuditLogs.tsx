@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -20,7 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-import { Shield, Clock, User, Database } from "lucide-react";
+import { Shield, Clock, User, Database, Download } from "lucide-react";
+import { exportToCsv } from "@/lib/exportCsv";
 
 interface AuditLog {
   id: string;
@@ -98,6 +100,24 @@ export const AuditLogs = () => {
     return profile?.full_name || profile?.email || "Unknown Admin";
   };
 
+  const handleExport = () => {
+    exportToCsv(
+      logs.map((log) => ({
+        ...log,
+        admin_name: getAdminName(log.admin_id),
+        created_at: format(new Date(log.created_at), "yyyy-MM-dd HH:mm:ss"),
+      })),
+      "audit-logs",
+      [
+        { key: "created_at", label: "Time" },
+        { key: "admin_name", label: "Admin" },
+        { key: "action", label: "Action" },
+        { key: "table_name", label: "Table" },
+        { key: "record_id", label: "Record ID" },
+      ]
+    );
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -105,18 +125,24 @@ export const AuditLogs = () => {
           <Shield className="h-5 w-5 text-primary" />
           <CardTitle>Audit Logs</CardTitle>
         </div>
-        <Select value={tableFilter} onValueChange={setTableFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filter by table" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tables</SelectItem>
-            <SelectItem value="tutor_applications">Tutor Applications</SelectItem>
-            <SelectItem value="withdrawal_requests">Withdrawals</SelectItem>
-            <SelectItem value="token_purchase_requests">Token Purchases</SelectItem>
-            <SelectItem value="user_roles">User Roles</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={logs.length === 0}>
+            <Download className="h-4 w-4 mr-1" />
+            Export CSV
+          </Button>
+          <Select value={tableFilter} onValueChange={setTableFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by table" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tables</SelectItem>
+              <SelectItem value="tutor_applications">Tutor Applications</SelectItem>
+              <SelectItem value="withdrawal_requests">Withdrawals</SelectItem>
+              <SelectItem value="token_purchase_requests">Token Purchases</SelectItem>
+              <SelectItem value="user_roles">User Roles</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
