@@ -40,6 +40,7 @@ interface TutorProfile {
   id: string;
   full_name: string | null;
   profile_image_url: string | null;
+  tutor_code: string | null;
 }
 
 interface Quiz {
@@ -154,7 +155,7 @@ const StudentDashboard = () => {
           if (tutorIds.length > 0) {
             const { data: profiles } = await supabase
               .from("profiles")
-              .select("id, full_name, profile_image_url")
+              .select("id, full_name, profile_image_url, tutor_code")
               .in("id", tutorIds);
             
             if (profiles) {
@@ -466,8 +467,10 @@ const StudentDashboard = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-muted-foreground">Created by</p>
                           <p className="text-sm font-medium text-foreground truncate">{quiz.tutor.full_name || 'Tutor'}</p>
+                          {quiz.tutor.tutor_code && (
+                            <p className="text-xs text-muted-foreground font-mono">{quiz.tutor.tutor_code}</p>
+                          )}
                         </div>
                         <GraduationCap className="w-4 h-4 text-primary flex-shrink-0" />
                       </div>
