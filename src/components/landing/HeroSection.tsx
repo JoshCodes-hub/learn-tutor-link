@@ -48,32 +48,32 @@ const HeroSection = () => {
             </div>
 
             {/* Stats */}
-            <div className="flex flex-wrap gap-8">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center">
-                  <Target className="w-6 h-6 text-success" />
+            <div className="grid grid-cols-3 gap-4 sm:flex sm:flex-wrap sm:gap-8">
+              <div className="flex flex-col sm:flex-row items-center sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-success/10 rounded-xl flex items-center justify-center mb-1 sm:mb-0">
+                  <Target className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
                 </div>
-                <div>
-                  <p className="font-display font-bold text-2xl text-foreground">10,000+</p>
-                  <p className="text-sm text-muted-foreground">Questions</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-display font-bold text-2xl text-foreground">5,000+</p>
-                  <p className="text-sm text-muted-foreground">Students</p>
+                <div className="text-center sm:text-left">
+                  <p className="font-display font-bold text-lg sm:text-2xl text-foreground">10,000+</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Questions</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-accent" />
+              <div className="flex flex-col sm:flex-row items-center sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-1 sm:mb-0">
+                  <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
-                  <p className="font-display font-bold text-2xl text-foreground">95%</p>
-                  <p className="text-sm text-muted-foreground">Success Rate</p>
+                <div className="text-center sm:text-left">
+                  <p className="font-display font-bold text-lg sm:text-2xl text-foreground">5,000+</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Students</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-1 sm:mb-0">
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <p className="font-display font-bold text-lg sm:text-2xl text-foreground">95%</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Success Rate</p>
                 </div>
               </div>
             </div>

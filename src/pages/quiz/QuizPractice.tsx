@@ -299,7 +299,7 @@ const QuizPractice = () => {
               <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-1 rounded">
                 {quiz.course.code}
               </span>
-              <span className="font-display font-semibold text-foreground">
+              <span className="font-display font-semibold text-foreground text-sm sm:text-base truncate max-w-[120px] sm:max-w-none">
                 {quiz.title}
               </span>
             </div>
@@ -448,11 +448,12 @@ const QuizPractice = () => {
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <Button
             variant="ghost"
             onClick={handlePrevQuestion}
             disabled={currentIndex === 0}
+            className="w-full sm:w-auto"
           >
             <ChevronLeft className="w-5 h-5 mr-1" />
             Previous
@@ -463,21 +464,22 @@ const QuizPractice = () => {
               variant="hero"
               onClick={handleSubmitAnswer}
               disabled={!selectedAnswer}
+              className="w-full sm:w-auto order-first sm:order-none"
             >
               Submit Answer
             </Button>
           ) : currentIndex < questions.length - 1 ? (
-            <Button variant="hero" onClick={handleNextQuestion}>
+            <Button variant="hero" onClick={handleNextQuestion} className="w-full sm:w-auto order-first sm:order-none">
               Next Question
               <ChevronRight className="w-5 h-5 ml-1" />
             </Button>
           ) : (
-            <Button variant="accent" onClick={handleFinishQuiz}>
+            <Button variant="accent" onClick={handleFinishQuiz} className="w-full sm:w-auto order-first sm:order-none">
               Finish Quiz
             </Button>
           )}
 
-          <div className="w-24" /> {/* Spacer for alignment */}
+          <div className="hidden sm:block w-24" /> {/* Spacer for alignment on desktop */}
         </div>
       </main>
     </div>
