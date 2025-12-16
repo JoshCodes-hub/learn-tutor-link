@@ -140,6 +140,7 @@ const EditProfile = () => {
           full_name: fullName.trim(),
           department: department || null,
           avatar_url: avatarUrl,
+          profile_image_url: avatarUrl, // Also update profile_image_url for quiz cards display
         })
         .eq("id", user.id);
 
