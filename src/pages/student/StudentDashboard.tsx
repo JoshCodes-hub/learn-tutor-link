@@ -12,6 +12,7 @@ import { AIQuizRecommendations } from "@/components/student/AIQuizRecommendation
 import { StudyStreak } from "@/components/student/StudyStreak";
 import { Achievements } from "@/components/student/Achievements";
 import { ReferralCard } from "@/components/student/ReferralCard";
+import { TeamCard } from "@/components/student/TeamCard";
 import { SEO } from "@/components/seo/SEO";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -568,9 +569,10 @@ const StudentDashboard = () => {
           <Achievements />
         </div>
 
-        {/* Referral Card */}
-        <div className="mb-8">
+        {/* Referral & Team Cards */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <ReferralCard />
+          <TeamCard />
         </div>
         {user && stats.totalAttempts > 0 && (
           <div className="mb-8">
