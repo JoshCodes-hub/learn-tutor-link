@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { sendNotification } from "@/hooks/useSendNotification";
 import {
   Table,
   TableBody,
@@ -132,9 +133,23 @@ export function TokenPurchaseManagement() {
 
       if (reqError) throw reqError;
 
+      // Send email notification
+      if (request.user_email) {
+        await sendNotification({
+          type: "purchase_confirmation",
+          to: request.user_email,
+          data: {
+            tokens: request.tokens_requested,
+            amount: request.amount_paid.toLocaleString(),
+            reference: request.payment_reference,
+            dashboardUrl: `${window.location.origin}/dashboard`,
+          },
+        });
+      }
+
       toast({
         title: "Request Approved",
-        description: `${request.tokens_requested} tokens credited to user`,
+        description: `${request.tokens_requested} tokens credited. Email notification sent.`,
       });
 
       fetchRequests();

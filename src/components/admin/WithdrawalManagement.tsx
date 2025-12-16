@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { sendNotification } from "@/hooks/useSendNotification";
 import {
   Table,
   TableBody,
@@ -98,9 +99,23 @@ export function WithdrawalManagement() {
 
       if (error) throw error;
 
+      // Send email notification
+      if (request.tutor_email) {
+        await sendNotification({
+          type: "withdrawal_approved",
+          to: request.tutor_email,
+          data: {
+            name: request.tutor_name,
+            amount: request.amount.toLocaleString(),
+            bankName: request.bank_name,
+            accountNumber: request.account_number,
+          },
+        });
+      }
+
       toast({
         title: "Withdrawal Approved",
-        description: "Please proceed to transfer the funds to the tutor",
+        description: "Email sent to tutor. Please proceed to transfer the funds.",
       });
 
       fetchRequests();
@@ -195,9 +210,22 @@ export function WithdrawalManagement() {
 
       if (error) throw error;
 
+      // Send email notification
+      if (request.tutor_email) {
+        await sendNotification({
+          type: "withdrawal_rejected",
+          to: request.tutor_email,
+          data: {
+            name: request.tutor_name,
+            amount: request.amount.toLocaleString(),
+            adminNotes: request.admin_notes,
+          },
+        });
+      }
+
       toast({
         title: "Withdrawal Rejected",
-        description: "The withdrawal request has been rejected",
+        description: "Email notification sent to tutor.",
       });
 
       fetchRequests();
