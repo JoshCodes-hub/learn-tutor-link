@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +14,66 @@ interface EmailRequest {
   type: "purchase_confirmation" | "application_approved" | "application_rejected" | "withdrawal_approved" | "withdrawal_rejected" | "quiz_purchased" | "welcome";
   to: string;
   data: Record<string, any>;
+  userId?: string;
 }
+
+const getNotificationContent = (type: string, data: Record<string, any>): { title: string; message: string; notificationType: string; link?: string } => {
+  switch (type) {
+    case "purchase_confirmation":
+      return {
+        title: "Token Purchase Confirmed!",
+        message: `Your purchase of ${data.tokens} tokens has been approved and credited to your wallet.`,
+        notificationType: "success",
+        link: "/student/dashboard",
+      };
+    case "application_approved":
+      return {
+        title: "Tutor Application Approved!",
+        message: `Congratulations! Your tutor application has been approved. You now have full access to the tutor dashboard.`,
+        notificationType: "success",
+        link: "/tutor/dashboard",
+      };
+    case "application_rejected":
+      return {
+        title: "Tutor Application Update",
+        message: `Your tutor application was not approved. ${data.adminNotes ? `Feedback: ${data.adminNotes}` : "You can reapply with updated qualifications."}`,
+        notificationType: "warning",
+      };
+    case "withdrawal_approved":
+      return {
+        title: "Withdrawal Approved!",
+        message: `Your withdrawal request of ₦${data.amount} has been approved and is being processed.`,
+        notificationType: "success",
+        link: "/tutor/dashboard",
+      };
+    case "withdrawal_rejected":
+      return {
+        title: "Withdrawal Request Update",
+        message: `Your withdrawal request of ₦${data.amount} could not be processed. ${data.adminNotes || "Please contact support."}`,
+        notificationType: "error",
+      };
+    case "quiz_purchased":
+      return {
+        title: "Quiz Unlocked!",
+        message: `You've unlocked "${data.quizTitle}" for ${data.tokensSpent} tokens. Start practicing now!`,
+        notificationType: "success",
+        link: "/student/dashboard",
+      };
+    case "welcome":
+      return {
+        title: "Welcome to OverraPrep AI!",
+        message: `You've received 50 free tokens to get started. Begin your exam preparation journey today!`,
+        notificationType: "info",
+        link: "/dashboard",
+      };
+    default:
+      return {
+        title: "Notification",
+        message: "You have a new notification.",
+        notificationType: "info",
+      };
+  }
+};
 
 const getEmailContent = (type: string, data: Record<string, any>) => {
   switch (type) {
@@ -304,8 +366,30 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { type, to, data }: EmailRequest = await req.json();
-    console.log(`Sending ${type} email to ${to}`);
+    const { type, to, data, userId }: EmailRequest = await req.json();
+    console.log(`Sending ${type} notification to ${to}`, userId ? `(user: ${userId})` : "");
+
+    // Create in-app notification if userId is provided
+    if (userId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const notificationContent = getNotificationContent(type, data);
+      
+      const { error: notificationError } = await supabase
+        .from("notifications")
+        .insert({
+          user_id: userId,
+          title: notificationContent.title,
+          message: notificationContent.message,
+          type: notificationContent.notificationType,
+          link: notificationContent.link,
+        });
+
+      if (notificationError) {
+        console.error("Error creating in-app notification:", notificationError);
+      } else {
+        console.log("In-app notification created successfully");
+      }
+    }
 
     const { subject, html } = getEmailContent(type, data);
 

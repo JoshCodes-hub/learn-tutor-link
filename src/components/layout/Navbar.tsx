@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, BookOpen, Sparkles, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import TutorApplicationDialog from "@/components/landing/TutorApplicationDialog";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -105,9 +106,12 @@ const Navbar = () => {
               )}
               {!isLoading && (
                 user ? (
-                  <Button variant="hero" size="sm" onClick={() => navigate("/dashboard")}>
-                    Go to Dashboard
-                  </Button>
+                  <>
+                    <NotificationCenter />
+                    <Button variant="hero" size="sm" onClick={() => navigate("/dashboard")}>
+                      Go to Dashboard
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
@@ -167,9 +171,12 @@ const Navbar = () => {
                     </Button>
                   )}
                   {user ? (
-                    <Button variant="hero" className="w-full justify-center" onClick={() => navigate("/dashboard")}>
-                      Go to Dashboard
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <NotificationCenter />
+                      <Button variant="hero" className="flex-1 justify-center" onClick={() => navigate("/dashboard")}>
+                        Go to Dashboard
+                      </Button>
+                    </div>
                   ) : (
                     <>
                       <Button variant="ghost" className="w-full justify-center" onClick={() => navigate("/auth")}>
