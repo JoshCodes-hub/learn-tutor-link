@@ -457,23 +457,28 @@ const StudentDashboard = () => {
                       </p>
                     )}
 
-                    {/* Tutor Profile */}
+                    {/* Tutor Profile - Clickable */}
                     {quiz.tutor && (
-                      <div className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-lg">
-                        <Avatar className="w-8 h-8 border border-border">
+                      <Link
+                        to={`/tutor/${quiz.tutor.id}`}
+                        className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
+                      >
+                        <Avatar className="w-8 h-8 border border-border group-hover:border-primary/50 transition-colors">
                           <AvatarImage src={quiz.tutor.profile_image_url || undefined} />
                           <AvatarFallback className="bg-primary/10 text-primary text-xs">
                             {quiz.tutor.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'T'}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{quiz.tutor.full_name || 'Tutor'}</p>
+                          <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                            {quiz.tutor.full_name || 'Tutor'}
+                          </p>
                           {quiz.tutor.tutor_code && (
                             <p className="text-xs text-muted-foreground font-mono">{quiz.tutor.tutor_code}</p>
                           )}
                         </div>
                         <GraduationCap className="w-4 h-4 text-primary flex-shrink-0" />
-                      </div>
+                      </Link>
                     )}
 
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
