@@ -358,39 +358,51 @@ const StudentDashboard = () => {
           table: 'quizzes',
         },
         async (payload) => {
-          const newQuiz = payload.new as any;
-          if (!newQuiz.is_active) return;
+          try {
+            const newQuiz = payload.new as any;
+            if (!newQuiz.is_active) return;
 
-          // Fetch course info
-          const { data: courseData } = await supabase
-            .from('courses')
-            .select('id, code, name')
-            .eq('id', newQuiz.course_id)
-            .single();
+            // Fetch course info
+            const { data: courseData, error: courseError } = await supabase
+              .from('courses')
+              .select('id, code, name')
+              .eq('id', newQuiz.course_id)
+              .maybeSingle();
 
-          // Fetch tutor info if exists
-          let tutorProfile = null;
-          if (newQuiz.tutor_id) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('id, full_name, profile_image_url, tutor_code')
-              .eq('id', newQuiz.tutor_id)
-              .single();
-            tutorProfile = profile;
+            if (courseError) {
+              console.error('Error fetching course for new quiz:', courseError);
+            }
+
+            // Fetch tutor info if exists
+            let tutorProfile = null;
+            if (newQuiz.tutor_id) {
+              const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, full_name, profile_image_url, tutor_code')
+                .eq('id', newQuiz.tutor_id)
+                .maybeSingle();
+              
+              if (profileError) {
+                console.error('Error fetching tutor profile for new quiz:', profileError);
+              }
+              tutorProfile = profile;
+            }
+
+            setQuizzes(prev => [{
+              ...newQuiz,
+              course: courseData,
+              tutor: tutorProfile,
+              rating: null
+            }, ...prev]);
+
+            // Show toast notification for new quiz
+            toast({
+              title: "New Quiz Available!",
+              description: `"${newQuiz.title}" in ${courseData?.name || 'Unknown Course'} is now available.`,
+            });
+          } catch (error) {
+            console.error('Error processing new quiz:', error);
           }
-
-          setQuizzes(prev => [{
-            ...newQuiz,
-            course: courseData,
-            tutor: tutorProfile,
-            rating: null
-          }, ...prev]);
-
-          // Show toast notification for new quiz
-          toast({
-            title: "New Quiz Available!",
-            description: `"${newQuiz.title}" in ${courseData?.name || 'Unknown Course'} is now available.`,
-          });
         }
       )
       .on(
@@ -401,15 +413,25 @@ const StudentDashboard = () => {
           table: 'quizzes',
         },
         async (payload) => {
-          const updatedQuiz = payload.new as any;
-          setQuizzes(prev => prev.map(q => 
-            q.id === updatedQuiz.id 
-              ? { ...q, ...updatedQuiz }
-              : q
-          ).filter(q => q.is_active));
+          try {
+            const updatedQuiz = payload.new as any;
+            setQuizzes(prev => prev.map(q => 
+              q.id === updatedQuiz.id 
+                ? { ...q, ...updatedQuiz }
+                : q
+            ).filter(q => q.is_active));
+          } catch (error) {
+            console.error('Error processing quiz update:', error);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Real-time subscription active for quizzes');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Real-time subscription error');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
