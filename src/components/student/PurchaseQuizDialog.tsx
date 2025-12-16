@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { sendNotification } from "@/hooks/useSendNotification";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,8 @@ interface Quiz {
   description: string | null;
   token_cost: number;
   tutor_id: string | null;
+  question_count?: number;
+  duration_minutes?: number;
   course?: {
     code: string;
     name: string;
@@ -152,6 +155,29 @@ export const PurchaseQuizDialog = ({
           tokens_paid: quiz.token_cost,
           tutor_share: tutorShare,
           platform_share: platformShare,
+        });
+      }
+
+      // Send email notification to the student
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.email) {
+        await sendNotification({
+          type: "quiz_purchased",
+          to: profile.email,
+          data: {
+            studentName: profile.full_name || "Student",
+            quizTitle: quiz.title,
+            courseName: quiz.course?.name || "N/A",
+            questionCount: quiz.question_count || 20,
+            duration: quiz.duration_minutes || 30,
+            tokensSpent: quiz.token_cost,
+            dashboardUrl: `${window.location.origin}/student/dashboard`,
+          },
         });
       }
 

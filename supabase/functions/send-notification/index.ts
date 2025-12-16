@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  type: "purchase_confirmation" | "application_approved" | "application_rejected" | "withdrawal_approved" | "withdrawal_rejected";
+  type: "purchase_confirmation" | "application_approved" | "application_rejected" | "withdrawal_approved" | "withdrawal_rejected" | "quiz_purchased" | "welcome";
   to: string;
   data: Record<string, any>;
 }
@@ -196,6 +196,91 @@ const getEmailContent = (type: string, data: Record<string, any>) => {
             </div>
             
             <p>Please review the feedback and submit a new request if applicable. If you have questions, please contact support.</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} OverraPrep AI - FUTA. All rights reserved.
+            </p>
+          </div>
+        `,
+      };
+
+    case "quiz_purchased":
+      return {
+        subject: `Quiz Purchased: ${data.quizTitle} - OverraPrep AI`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #0f9b8e; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">FUTA Exam Preparation Platform</p>
+            </div>
+            
+            <h2 style="color: #22c55e;">Quiz Unlocked! 🎯</h2>
+            
+            <p>Hi ${data.studentName},</p>
+            
+            <p>You've successfully unlocked a new quiz! Here are the details:</p>
+            
+            <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>Quiz:</strong> ${data.quizTitle}</p>
+              <p style="margin: 0 0 10px 0;"><strong>Course:</strong> ${data.courseName}</p>
+              <p style="margin: 0 0 10px 0;"><strong>Questions:</strong> ${data.questionCount}</p>
+              <p style="margin: 0 0 10px 0;"><strong>Duration:</strong> ${data.duration} minutes</p>
+              <p style="margin: 0;"><strong>Tokens Spent:</strong> ${data.tokensSpent} tokens</p>
+            </div>
+            
+            <p>Start practicing now to boost your exam confidence!</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${data.dashboardUrl}" style="background: #0f9b8e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">Start Quiz</a>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} OverraPrep AI - FUTA. All rights reserved.
+            </p>
+          </div>
+        `,
+      };
+
+    case "welcome":
+      return {
+        subject: "Welcome to OverraPrep AI! 🎓",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #0f9b8e; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">FUTA Exam Preparation Platform</p>
+            </div>
+            
+            <h2 style="color: #0f9b8e;">Welcome to OverraPrep AI! 🎉</h2>
+            
+            <p>Hi ${data.name},</p>
+            
+            <p>Welcome to OverraPrep AI - your AI-powered CBT exam preparation companion!</p>
+            
+            <p>Here's what you can do:</p>
+            
+            <ul style="color: #333; line-height: 1.8;">
+              <li>📚 Practice with thousands of past questions</li>
+              <li>🧠 Get AI-powered explanations for every answer</li>
+              <li>⏱️ Take CBT simulation tests under real exam conditions</li>
+              <li>📊 Track your progress and identify weak areas</li>
+            </ul>
+            
+            <div style="background: #f0f9ff; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+              <p style="margin: 0 0 10px 0; color: #666;">You've received</p>
+              <p style="margin: 0; font-size: 32px; font-weight: bold; color: #0f9b8e;">50 Free Tokens</p>
+              <p style="margin: 10px 0 0 0; color: #666;">to get you started!</p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${data.dashboardUrl}" style="background: #0f9b8e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">Start Learning</a>
+            </div>
+            
+            <p style="color: #666;">Best of luck with your exams!<br>The OverraPrep AI Team</p>
             
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             
