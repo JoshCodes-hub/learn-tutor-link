@@ -97,11 +97,7 @@ export function CreateCourseDialog({
       onSuccess();
     } catch (error: any) {
       console.error("Error creating course:", error);
-      if (error.code === "23505" || error.message?.includes("duplicate key")) {
-        toast.error("A course with this code already exists. Please use a different code.");
-      } else {
-        toast.error(error.message || "Failed to create course");
-      }
+      toast.error(error.message || "Failed to create course");
     } finally {
       setIsLoading(false);
     }
