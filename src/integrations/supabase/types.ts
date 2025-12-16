@@ -195,6 +195,27 @@ export type Database = {
           },
         ]
       }
+      favorite_tutors: {
+        Row: {
+          created_at: string
+          id: string
+          student_id: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          student_id: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          student_id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string

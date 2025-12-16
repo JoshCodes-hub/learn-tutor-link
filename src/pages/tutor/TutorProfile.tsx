@@ -22,6 +22,8 @@ import {
   Quote,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useFavoriteTutors } from "@/hooks/useFavoriteTutors";
+import { Heart } from "lucide-react";
 
 interface TutorData {
   id: string;
@@ -73,6 +75,7 @@ interface TutorStats {
 const TutorProfile = () => {
   const { tutorId } = useParams<{ tutorId: string }>();
   const navigate = useNavigate();
+  const { isFavorite, isLoading: favoriteLoading, followerCount, toggleFavorite } = useFavoriteTutors(tutorId);
   const [tutor, setTutor] = useState<TutorData | null>(null);
   const [application, setApplication] = useState<TutorApplication | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -335,6 +338,23 @@ const TutorProfile = () => {
                   {application.bio}
                 </p>
               )}
+
+              {/* Follow Button */}
+              <div className="mt-4 flex items-center gap-3">
+                <Button
+                  variant={isFavorite ? "default" : "outline"}
+                  size="sm"
+                  onClick={toggleFavorite}
+                  disabled={favoriteLoading}
+                  className={isFavorite ? "bg-destructive hover:bg-destructive/90" : ""}
+                >
+                  <Heart className={`w-4 h-4 mr-2 ${isFavorite ? "fill-current" : ""}`} />
+                  {isFavorite ? "Following" : "Follow"}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {followerCount} {followerCount === 1 ? "follower" : "followers"}
+                </span>
+              </div>
 
               {/* Stats Row */}
               <div className="flex flex-wrap justify-center md:justify-start gap-6 mt-6">
