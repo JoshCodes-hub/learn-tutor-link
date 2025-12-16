@@ -13,14 +13,15 @@ interface NotificationData {
   type: NotificationType;
   to: string;
   data: Record<string, any>;
+  userId?: string;
 }
 
-export const sendNotification = async ({ type, to, data }: NotificationData) => {
+export const sendNotification = async ({ type, to, data, userId }: NotificationData) => {
   try {
-    console.log(`Sending ${type} notification to ${to}`);
+    console.log(`Sending ${type} notification to ${to}`, userId ? `(user: ${userId})` : "");
     
     const { data: response, error } = await supabase.functions.invoke("send-notification", {
-      body: { type, to, data },
+      body: { type, to, data, userId },
     });
 
     if (error) {
