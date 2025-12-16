@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   GraduationCap, 
@@ -10,6 +10,7 @@ import {
   Shield,
   Wallet
 } from "lucide-react";
+import TutorApplicationDialog from "./TutorApplicationDialog";
 
 const benefits = [
   {
@@ -35,9 +36,10 @@ const benefits = [
 ];
 
 const TutorSection = () => {
-  const navigate = useNavigate();
+  const [showApplicationDialog, setShowApplicationDialog] = useState(false);
 
   return (
+    <>
     <section id="tutors" className="py-20 lg:py-32 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -71,7 +73,7 @@ const TutorSection = () => {
               ))}
             </div>
 
-            <Button variant="accent" size="xl" className="group" onClick={() => navigate("/apply-tutor")}>
+            <Button variant="accent" size="xl" className="group" onClick={() => setShowApplicationDialog(true)}>
               Apply as Tutor
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -126,6 +128,12 @@ const TutorSection = () => {
         </div>
       </div>
     </section>
+    
+    <TutorApplicationDialog 
+      open={showApplicationDialog} 
+      onOpenChange={setShowApplicationDialog} 
+    />
+    </>
   );
 };
 
