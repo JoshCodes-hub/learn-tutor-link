@@ -25,7 +25,8 @@ import {
   Coins,
   History,
   Unlock,
-  GraduationCap
+  GraduationCap,
+  Star
 } from "lucide-react";
 
 interface Stats {
@@ -57,6 +58,10 @@ interface Quiz {
     name: string;
   };
   tutor?: TutorProfile | null;
+  rating?: {
+    average: number;
+    count: number;
+  } | null;
 }
 
 interface Wallet {
@@ -166,10 +171,42 @@ const StudentDashboard = () => {
             }
           }
 
+          // Fetch ratings for quizzes
+          const quizIds = quizzesData.map(q => q.id);
+          let quizRatings: Record<string, { average: number; count: number }> = {};
+
+          if (quizIds.length > 0) {
+            const { data: ratingsData } = await supabase
+              .from("quiz_ratings")
+              .select("quiz_id, rating")
+              .in("quiz_id", quizIds);
+
+            if (ratingsData && ratingsData.length > 0) {
+              // Group ratings by quiz_id
+              const ratingsByQuiz = ratingsData.reduce((acc, r) => {
+                if (!acc[r.quiz_id]) {
+                  acc[r.quiz_id] = [];
+                }
+                acc[r.quiz_id].push(r.rating);
+                return acc;
+              }, {} as Record<string, number[]>);
+
+              // Calculate averages
+              for (const [quizId, ratings] of Object.entries(ratingsByQuiz)) {
+                const sum = ratings.reduce((a, b) => a + b, 0);
+                quizRatings[quizId] = {
+                  average: sum / ratings.length,
+                  count: ratings.length
+                };
+              }
+            }
+          }
+
           setQuizzes(quizzesData.map(q => ({
             ...q,
             course: q.courses as { code: string; name: string },
-            tutor: q.tutor_id ? tutorProfiles[q.tutor_id] || null : null
+            tutor: q.tutor_id ? tutorProfiles[q.tutor_id] || null : null,
+            rating: quizRatings[q.id] || null
           })));
         }
 
@@ -481,7 +518,7 @@ const StudentDashboard = () => {
                       </Link>
                     )}
 
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                    <div className="flex items-center flex-wrap gap-3 text-sm text-muted-foreground mb-4">
                       <span className="flex items-center gap-1">
                         <Brain className="w-4 h-4" />
                         {quiz.question_count} questions
@@ -490,6 +527,13 @@ const StudentDashboard = () => {
                         <Clock className="w-4 h-4" />
                         {quiz.duration_minutes} min
                       </span>
+                      {quiz.rating && (
+                        <span className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-accent text-accent" />
+                          <span className="text-foreground font-medium">{quiz.rating.average.toFixed(1)}</span>
+                          <span className="text-xs">({quiz.rating.count})</span>
+                        </span>
+                      )}
                     </div>
 
                     {needsPurchase ? (
