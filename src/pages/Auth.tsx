@@ -289,21 +289,33 @@ const Auth = () => {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-referral" className="text-foreground font-medium flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-primary" />
-                  Referral Code (Optional)
-                </Label>
-                <Input
-                  id="signup-referral"
-                  type="text"
-                  placeholder="REF-XXXXXX"
-                  className="h-12 font-mono uppercase"
-                  {...signUpForm.register("referralCode")}
-                />
-                {referralCodeFromUrl && (
-                  <p className="text-sm text-primary">🎁 Referral code applied! Complete your first quiz to earn bonus tokens.</p>
-                )}
+              {/* Referral Code Section - Highlighted */}
+              <div className="relative p-4 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-xl border border-primary/20">
+                <div className="absolute -top-3 left-4 bg-card px-2">
+                  <span className="text-xs font-semibold text-primary flex items-center gap-1">
+                    <Gift className="w-3 h-3" />
+                    BONUS TOKENS
+                  </span>
+                </div>
+                <div className="space-y-2 mt-1">
+                  <Label htmlFor="signup-referral" className="text-foreground font-medium">
+                    Got a referral code from a friend?
+                  </Label>
+                  <Input
+                    id="signup-referral"
+                    type="text"
+                    placeholder="Paste code here (e.g., REF-ABC123)"
+                    className="h-12 font-mono uppercase bg-card border-primary/30 focus:border-primary"
+                    {...signUpForm.register("referralCode")}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {referralCodeFromUrl ? (
+                      <span className="text-primary font-medium">🎁 Referral code applied! Complete your first quiz to earn bonus tokens.</span>
+                    ) : (
+                      "Enter a friend's referral code to earn bonus tokens after your first quiz!"
+                    )}
+                  </p>
+                </div>
               </div>
 
               <Button variant="hero" size="lg" className="w-full" disabled={isSubmitting}>
