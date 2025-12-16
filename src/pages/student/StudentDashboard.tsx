@@ -206,10 +206,15 @@ const StudentDashboard = () => {
           let tutorProfiles: Record<string, TutorProfile> = {};
           
           if (tutorIds.length > 0) {
-            const { data: profiles } = await supabase
+            const { data: profiles, error: profilesError } = await supabase
               .from("profiles")
               .select("id, full_name, profile_image_url, tutor_code")
               .in("id", tutorIds);
+            
+            if (profilesError) {
+              console.error("Error fetching tutor profiles:", profilesError);
+            }
+            console.log("Tutor IDs:", tutorIds, "Fetched profiles:", profiles);
             
             // Fetch tutor quiz counts
             const { data: tutorQuizCounts } = await supabase
@@ -945,17 +950,17 @@ const StudentDashboard = () => {
                         </div>
                         <h3 className="font-display font-semibold text-foreground">{quiz.title}</h3>
                       </div>
-                      {/* Tutor Avatar - Prominent Display */}
-                      {quiz.tutor && (
+                      {/* Tutor Avatar - Always show if quiz has tutor_id */}
+                      {(quiz.tutor || quiz.tutor_id) && (
                         <Link
-                          to={`/tutor/${quiz.tutor.id}`}
+                          to={`/tutor/${quiz.tutor?.id || quiz.tutor_id}`}
                           className="relative group ml-3 flex-shrink-0"
-                          title={`By ${quiz.tutor.full_name || 'Tutor'}`}
+                          title={`By ${quiz.tutor?.full_name || 'Tutor'}`}
                         >
                           <Avatar className="w-10 h-10 border-2 border-primary/30 group-hover:border-primary transition-colors shadow-md">
-                            <AvatarImage src={quiz.tutor.profile_image_url || undefined} />
+                            <AvatarImage src={quiz.tutor?.profile_image_url || undefined} />
                             <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-sm font-bold">
-                              {quiz.tutor.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'T'}
+                              {quiz.tutor?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'T'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
@@ -971,30 +976,36 @@ const StudentDashboard = () => {
                       </p>
                     )}
 
-                    {/* Tutor Name & Stats Display */}
-                    {quiz.tutor && (
+                    {/* Tutor Name & Stats Display - Always show if quiz has tutor_id */}
+                    {(quiz.tutor || quiz.tutor_id) && (
                       <Link
-                        to={`/tutor/${quiz.tutor.id}`}
+                        to={`/tutor/${quiz.tutor?.id || quiz.tutor_id}`}
                         className="flex items-center justify-between mb-3 p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">by <span className="font-medium text-foreground">{quiz.tutor.full_name || 'Tutor'}</span></span>
-                          {quiz.tutor.tutor_code && (
+                          <Avatar className="w-6 h-6 border border-primary/20">
+                            <AvatarImage src={quiz.tutor?.profile_image_url || undefined} />
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs font-bold">
+                              {quiz.tutor?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'T'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">by <span className="font-medium text-foreground">{quiz.tutor?.full_name || 'Tutor'}</span></span>
+                          {quiz.tutor?.tutor_code && (
                             <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{quiz.tutor.tutor_code}</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {quiz.tutor.total_quizzes !== undefined && quiz.tutor.total_quizzes > 0 && (
+                          {quiz.tutor?.total_quizzes !== undefined && quiz.tutor.total_quizzes > 0 && (
                             <span className="flex items-center gap-1">
                               <BookOpen className="w-3 h-3" />
                               {quiz.tutor.total_quizzes}
                             </span>
                           )}
-                          {quiz.tutor.avg_rating !== undefined && (
+                          {quiz.tutor?.avg_rating !== undefined && (
                             <span className="flex items-center gap-1">
                               <Star className="w-3 h-3 fill-accent text-accent" />
                               {quiz.tutor.avg_rating.toFixed(1)}
-                              {quiz.tutor.total_ratings !== undefined && quiz.tutor.total_ratings > 0 && (
+                              {quiz.tutor?.total_ratings !== undefined && quiz.tutor.total_ratings > 0 && (
                                 <span className="text-muted-foreground">({quiz.tutor.total_ratings})</span>
                               )}
                             </span>
