@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
 import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   BookOpen, 
   Sparkles, 
@@ -23,7 +24,8 @@ import {
   Lock,
   Coins,
   History,
-  Unlock
+  Unlock,
+  GraduationCap
 } from "lucide-react";
 
 interface Stats {
@@ -32,6 +34,12 @@ interface Stats {
   correctAnswers: number;
   averageScore: number;
   practiceTime: number;
+}
+
+interface TutorProfile {
+  id: string;
+  full_name: string | null;
+  profile_image_url: string | null;
 }
 
 interface Quiz {
@@ -47,6 +55,7 @@ interface Quiz {
     code: string;
     name: string;
   };
+  tutor?: TutorProfile | null;
 }
 
 interface Wallet {
@@ -129,7 +138,7 @@ const StudentDashboard = () => {
           if (newWallet) setWallet(newWallet);
         }
 
-        // Fetch available quizzes
+        // Fetch available quizzes with tutor profiles
         const { data: quizzesData } = await supabase
           .from("quizzes")
           .select("*, courses(code, name)")
@@ -138,9 +147,28 @@ const StudentDashboard = () => {
           .limit(6);
 
         if (quizzesData) {
+          // Fetch tutor profiles for quizzes that have tutors
+          const tutorIds = [...new Set(quizzesData.filter(q => q.tutor_id).map(q => q.tutor_id))];
+          let tutorProfiles: Record<string, TutorProfile> = {};
+          
+          if (tutorIds.length > 0) {
+            const { data: profiles } = await supabase
+              .from("profiles")
+              .select("id, full_name, profile_image_url")
+              .in("id", tutorIds);
+            
+            if (profiles) {
+              tutorProfiles = profiles.reduce((acc, p) => {
+                acc[p.id] = p;
+                return acc;
+              }, {} as Record<string, TutorProfile>);
+            }
+          }
+
           setQuizzes(quizzesData.map(q => ({
             ...q,
-            course: q.courses as { code: string; name: string }
+            course: q.courses as { code: string; name: string },
+            tutor: q.tutor_id ? tutorProfiles[q.tutor_id] || null : null
           })));
         }
 
@@ -423,9 +451,26 @@ const StudentDashboard = () => {
                     </div>
 
                     {quiz.description && (
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                         {quiz.description}
                       </p>
+                    )}
+
+                    {/* Tutor Profile */}
+                    {quiz.tutor && (
+                      <div className="flex items-center gap-2 mb-3 p-2 bg-muted/30 rounded-lg">
+                        <Avatar className="w-8 h-8 border border-border">
+                          <AvatarImage src={quiz.tutor.profile_image_url || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                            {quiz.tutor.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'T'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground">Created by</p>
+                          <p className="text-sm font-medium text-foreground truncate">{quiz.tutor.full_name || 'Tutor'}</p>
+                        </div>
+                        <GraduationCap className="w-4 h-4 text-primary flex-shrink-0" />
+                      </div>
                     )}
 
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">

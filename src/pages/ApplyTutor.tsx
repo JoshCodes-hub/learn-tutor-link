@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -11,7 +11,10 @@ import {
   Loader2,
   CheckCircle2,
   Clock,
-  XCircle
+  XCircle,
+  Upload,
+  User,
+  Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +27,9 @@ import { supabase } from "@/integrations/supabase/client";
 const applicationSchema = z.object({
   fullName: z.string().min(2, "Full name is required").max(100),
   email: z.string().email("Valid email is required"),
+  phone: z.string().min(10, "Valid phone number is required").max(15),
+  department: z.string().min(2, "Department is required").max(100),
+  level: z.string().min(1, "Level is required"),
   qualifications: z.string().min(20, "Please describe your qualifications (min 20 characters)").max(1000),
   experience: z.string().min(20, "Please describe your experience (min 20 characters)").max(1000),
   coursesToTeach: z.string().min(5, "Please list the courses you want to teach").max(500),
@@ -44,12 +50,19 @@ const ApplyTutor = () => {
   } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingApplication, setIsLoadingApplication] = useState(true);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
       fullName: profile?.full_name || "",
       email: profile?.email || "",
+      phone: "",
+      department: profile?.department || "",
+      level: "",
       qualifications: "",
       experience: "",
       coursesToTeach: "",
@@ -67,6 +80,7 @@ const ApplyTutor = () => {
     if (profile) {
       form.setValue("fullName", profile.full_name || "");
       form.setValue("email", profile.email || "");
+      form.setValue("department", profile.department || "");
     }
   }, [profile, form]);
 
@@ -76,7 +90,7 @@ const ApplyTutor = () => {
       
       const { data, error } = await supabase
         .from("tutor_applications")
-        .select("status, admin_notes")
+        .select("status, admin_notes, profile_image_url")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -85,6 +99,9 @@ const ApplyTutor = () => {
           status: data.status as ApplicationStatus,
           admin_notes: data.admin_notes,
         });
+        if (data.profile_image_url) {
+          setProfileImagePreview(data.profile_image_url);
+        }
       }
       setIsLoadingApplication(false);
     };
@@ -101,10 +118,76 @@ const ApplyTutor = () => {
     }
   }, [hasRole, navigate]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Please select an image under 5MB",
+        });
+        return;
+      }
+      
+      if (!file.type.startsWith("image/")) {
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: "Please select an image file",
+        });
+        return;
+      }
+      
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadProfileImage = async (): Promise<string | null> => {
+    if (!profileImage || !user) return null;
+    
+    setIsUploadingImage(true);
+    const fileExt = profileImage.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('tutor-profiles')
+      .upload(fileName, profileImage);
+    
+    if (uploadError) {
+      console.error("Upload error:", uploadError);
+      toast({
+        variant: "destructive",
+        title: "Image upload failed",
+        description: uploadError.message,
+      });
+      setIsUploadingImage(false);
+      return null;
+    }
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('tutor-profiles')
+      .getPublicUrl(fileName);
+    
+    setIsUploadingImage(false);
+    return publicUrl;
+  };
+
   const handleSubmit = async (data: ApplicationFormData) => {
     if (!user) return;
 
     setIsSubmitting(true);
+    
+    // Upload profile image first
+    let profileImageUrl = null;
+    if (profileImage) {
+      profileImageUrl = await uploadProfileImage();
+    }
     
     const { error } = await supabase
       .from("tutor_applications")
@@ -116,6 +199,7 @@ const ApplyTutor = () => {
         experience: data.experience,
         courses_to_teach: data.coursesToTeach,
         bio: data.bio || null,
+        profile_image_url: profileImageUrl,
       });
 
     if (error) {
@@ -234,9 +318,42 @@ const ApplyTutor = () => {
             </div>
 
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {/* Profile Image Upload */}
+              <div className="flex flex-col items-center mb-6">
+                <Label className="mb-3 text-center">Profile Photo</Label>
+                <div 
+                  className="relative w-28 h-28 rounded-full overflow-hidden bg-muted border-2 border-dashed border-border hover:border-primary transition-colors cursor-pointer group"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {profileImagePreview ? (
+                    <img 
+                      src={profileImagePreview} 
+                      alt="Profile preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
+                      <User className="w-10 h-10 mb-1" />
+                      <span className="text-xs">Add Photo</span>
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <p className="text-xs text-muted-foreground mt-2">Max 5MB, JPG/PNG</p>
+              </div>
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">Full Name *</Label>
                   <Input
                     id="fullName"
                     placeholder="John Doe"
@@ -248,7 +365,7 @@ const ApplyTutor = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -261,11 +378,50 @@ const ApplyTutor = () => {
                 </div>
               </div>
 
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="08012345678"
+                    {...form.register("phone")}
+                  />
+                  {form.formState.errors.phone && (
+                    <p className="text-sm text-destructive">{form.formState.errors.phone.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department *</Label>
+                  <Input
+                    id="department"
+                    placeholder="e.g. Computer Science"
+                    {...form.register("department")}
+                  />
+                  {form.formState.errors.department && (
+                    <p className="text-sm text-destructive">{form.formState.errors.department.message}</p>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="qualifications">Qualifications</Label>
+                <Label htmlFor="level">Level/Year of Study *</Label>
+                <Input
+                  id="level"
+                  placeholder="e.g. 400 Level, Graduate, Postgraduate"
+                  {...form.register("level")}
+                />
+                {form.formState.errors.level && (
+                  <p className="text-sm text-destructive">{form.formState.errors.level.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="qualifications">Qualifications *</Label>
                 <Textarea
                   id="qualifications"
-                  placeholder="Describe your academic qualifications (degrees, certifications, etc.)"
+                  placeholder="Describe your academic qualifications, certifications, awards, etc."
                   rows={3}
                   {...form.register("qualifications")}
                 />
@@ -275,10 +431,10 @@ const ApplyTutor = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="experience">Teaching Experience</Label>
+                <Label htmlFor="experience">Teaching/Tutoring Experience *</Label>
                 <Textarea
                   id="experience"
-                  placeholder="Describe your teaching or tutoring experience"
+                  placeholder="Describe your teaching, tutoring, or mentoring experience. Include any relevant workshops, seminars, or classes you've conducted."
                   rows={3}
                   {...form.register("experience")}
                 />
@@ -288,10 +444,10 @@ const ApplyTutor = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="coursesToTeach">Courses You Want to Teach</Label>
+                <Label htmlFor="coursesToTeach">Courses You Want to Teach *</Label>
                 <Textarea
                   id="coursesToTeach"
-                  placeholder="List the courses you'd like to create content for (e.g., PHY 101, MTH 201)"
+                  placeholder="List the courses you'd like to create content for (e.g., PHY 101, MTH 201, CSC 301)"
                   rows={2}
                   {...form.register("coursesToTeach")}
                 />
@@ -304,17 +460,28 @@ const ApplyTutor = () => {
                 <Label htmlFor="bio">Short Bio (Optional)</Label>
                 <Textarea
                   id="bio"
-                  placeholder="Tell students a bit about yourself"
-                  rows={2}
+                  placeholder="Tell students about yourself - your teaching style, areas of expertise, and what makes you a great tutor"
+                  rows={3}
                   {...form.register("bio")}
                 />
               </div>
 
-              <Button variant="accent" size="lg" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+              <Button 
+                variant="accent" 
+                size="lg" 
+                className="w-full" 
+                disabled={isSubmitting || isUploadingImage}
+              >
+                {isSubmitting || isUploadingImage ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    {isUploadingImage ? "Uploading Image..." : "Submitting..."}
+                  </>
                 ) : (
-                  "Submit Application"
+                  <>
+                    <Upload className="w-5 h-5 mr-2" />
+                    Submit Application
+                  </>
                 )}
               </Button>
             </form>
