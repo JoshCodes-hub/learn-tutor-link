@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { sendNotification } from "@/hooks/useSendNotification";
+import { useAuditLog } from "@/hooks/useAuditLog";
 import {
   Table,
   TableBody,
@@ -40,6 +41,7 @@ interface PurchaseRequest {
 export function TokenPurchaseManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { logAction } = useAuditLog();
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,11 +135,21 @@ export function TokenPurchaseManagement() {
 
       if (reqError) throw reqError;
 
+      // Log audit action
+      await logAction({
+        action: "approve",
+        tableName: "token_purchase_requests",
+        recordId: request.id,
+        oldData: { status: "pending" },
+        newData: { status: "approved", tokens_credited: request.tokens_requested },
+      });
+
       // Send email notification
       if (request.user_email) {
         await sendNotification({
           type: "purchase_confirmation",
           to: request.user_email,
+          userId: request.user_id,
           data: {
             tokens: request.tokens_requested,
             amount: request.amount_paid.toLocaleString(),
@@ -179,6 +191,15 @@ export function TokenPurchaseManagement() {
         .eq("id", request.id);
 
       if (error) throw error;
+
+      // Log audit action
+      await logAction({
+        action: "reject",
+        tableName: "token_purchase_requests",
+        recordId: request.id,
+        oldData: { status: "pending" },
+        newData: { status: "rejected" },
+      });
 
       toast({
         title: "Request Rejected",

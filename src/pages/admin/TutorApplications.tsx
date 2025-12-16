@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { sendNotification } from "@/hooks/useSendNotification";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 interface TutorApplication {
   id: string;
@@ -45,6 +46,7 @@ const TutorApplications = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isLoading: authLoading, hasRole } = useAuth();
+  const { logAction } = useAuditLog();
   const [applications, setApplications] = useState<TutorApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -140,10 +142,20 @@ const TutorApplications = () => {
       .eq("id", application.user_id)
       .single();
 
+    // Log audit action
+    await logAction({
+      action: "approve",
+      tableName: "tutor_applications",
+      recordId: application.id,
+      oldData: { status: "pending" },
+      newData: { status: "approved", admin_notes: adminNotes[application.id] || null },
+    });
+
     // Send approval email notification
     await sendNotification({
       type: "application_approved",
       to: application.email,
+      userId: application.user_id,
       data: {
         name: application.full_name,
         tutorCode: profile?.tutor_code,
@@ -197,10 +209,20 @@ const TutorApplications = () => {
         description: "Failed to reject application.",
       });
     } else {
+      // Log audit action
+      await logAction({
+        action: "reject",
+        tableName: "tutor_applications",
+        recordId: application.id,
+        oldData: { status: "pending" },
+        newData: { status: "rejected", admin_notes: adminNotes[application.id] },
+      });
+
       // Send rejection email notification
       await sendNotification({
         type: "application_rejected",
         to: application.email,
+        userId: application.user_id,
         data: {
           name: application.full_name,
           adminNotes: adminNotes[application.id],
