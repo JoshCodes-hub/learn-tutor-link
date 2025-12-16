@@ -18,7 +18,10 @@ import {
   ArrowLeft,
   Loader2,
   Coins,
+  MessageSquare,
+  Quote,
 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 interface TutorData {
   id: string;
@@ -49,6 +52,16 @@ interface Quiz {
   };
 }
 
+interface Review {
+  id: string;
+  rating: number;
+  review: string | null;
+  created_at: string;
+  quiz_title: string;
+  student_name: string;
+  student_avatar: string | null;
+}
+
 interface TutorStats {
   totalQuizzes: number;
   totalStudents: number;
@@ -63,6 +76,7 @@ const TutorProfile = () => {
   const [tutor, setTutor] = useState<TutorData | null>(null);
   const [application, setApplication] = useState<TutorApplication | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<TutorStats>({
     totalQuizzes: 0,
     totalStudents: 0,
@@ -156,6 +170,52 @@ const TutorProfile = () => {
             totalRatings = ratingsData.length;
             const sum = ratingsData.reduce((acc, r) => acc + r.rating, 0);
             averageRating = sum / totalRatings;
+          }
+
+          // Fetch detailed reviews with student info
+          const { data: reviewsData } = await supabase
+            .from("quiz_ratings")
+            .select(`
+              id,
+              rating,
+              review,
+              created_at,
+              quiz_id,
+              user_id
+            `)
+            .in("quiz_id", quizIds)
+            .not("review", "is", null)
+            .order("created_at", { ascending: false })
+            .limit(10);
+
+          if (reviewsData && reviewsData.length > 0) {
+            // Fetch student profiles
+            const userIds = [...new Set(reviewsData.map((r) => r.user_id))];
+            const { data: studentProfiles } = await supabase
+              .from("profiles")
+              .select("id, full_name, profile_image_url")
+              .in("id", userIds);
+
+            const profileMap = new Map(
+              studentProfiles?.map((p) => [p.id, p]) || []
+            );
+
+            // Map quiz IDs to titles
+            const quizMap = new Map(
+              quizzesData?.map((q) => [q.id, q.title]) || []
+            );
+
+            setReviews(
+              reviewsData.map((r) => ({
+                id: r.id,
+                rating: r.rating,
+                review: r.review,
+                created_at: r.created_at,
+                quiz_title: quizMap.get(r.quiz_id) || "Quiz",
+                student_name: profileMap.get(r.user_id)?.full_name || "Student",
+                student_avatar: profileMap.get(r.user_id)?.profile_image_url || null,
+              }))
+            );
           }
         }
 
@@ -423,6 +483,77 @@ const TutorProfile = () => {
             </div>
           )}
         </div>
+
+        {/* Reviews Section */}
+        {reviews.length > 0 && (
+          <div className="mt-8">
+            <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              Student Reviews
+            </h2>
+
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="bg-card rounded-xl border border-border p-5"
+                >
+                  <div className="flex items-start gap-4">
+                    <Avatar className="w-10 h-10 border border-border flex-shrink-0">
+                      <AvatarImage src={review.student_avatar || undefined} />
+                      <AvatarFallback className="bg-muted text-muted-foreground text-sm">
+                        {review.student_name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {review.student_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            on {review.quiz_title}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-4 h-4 ${
+                                star <= review.rating
+                                  ? "fill-accent text-accent"
+                                  : "text-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-2 relative">
+                        <Quote className="w-4 h-4 text-muted-foreground/30 absolute -left-1 -top-1" />
+                        <p className="text-muted-foreground pl-4 italic">
+                          {review.review}
+                        </p>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {formatDistanceToNow(new Date(review.created_at), {
+                          addSuffix: true,
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
