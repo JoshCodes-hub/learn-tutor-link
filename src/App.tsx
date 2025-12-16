@@ -24,6 +24,8 @@ const QuizPractice = lazy(() => import("./pages/quiz/QuizPractice"));
 const CBTSimulation = lazy(() => import("./pages/quiz/CBTSimulation"));
 const QuizResults = lazy(() => import("./pages/quiz/QuizResults"));
 const EditProfile = lazy(() => import("./pages/profile/EditProfile"));
+const Community = lazy(() => import("./pages/Community"));
+const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -58,6 +60,8 @@ const App = () => (
               <Route path="/quiz/:quizId/simulation" element={<CBTSimulation />} />
               <Route path="/quiz/:quizId/results/:attemptId" element={<QuizResults />} />
               <Route path="/profile/edit" element={<EditProfile />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

@@ -9,6 +9,8 @@ import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
 import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { AIQuizRecommendations } from "@/components/student/AIQuizRecommendations";
+import { StudyStreak } from "@/components/student/StudyStreak";
+import { Achievements } from "@/components/student/Achievements";
 import { SEO } from "@/components/seo/SEO";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -41,7 +43,10 @@ import {
   Star,
   Search,
   Filter,
-  X
+  X,
+  Trophy,
+  MessageSquare,
+  Flame
 } from "lucide-react";
 
 interface Stats {
@@ -384,6 +389,16 @@ const StudentDashboard = () => {
             </Link>
 
             <div className="flex items-center gap-2 sm:gap-4">
+              {/* Navigation Links */}
+              <Button variant="ghost" size="sm" onClick={() => navigate("/leaderboard")} className="hidden md:flex">
+                <Trophy className="w-4 h-4 mr-2" />
+                Leaderboard
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/community")} className="hidden md:flex">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Community
+              </Button>
+
               {/* Wallet Balance */}
               <div className="flex items-center gap-1.5 sm:gap-2 bg-accent/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                 <Coins className="w-4 h-4 text-accent" />
@@ -520,6 +535,36 @@ const StudentDashboard = () => {
               </span>
             </div>
           )}
+        </div>
+
+        {/* Study Streak & Quick Links */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <StudyStreak />
+          
+          {/* Quick Links - Mobile */}
+          <div className="bg-card rounded-xl border border-border p-6 md:hidden">
+            <h3 className="font-display text-lg font-semibold text-foreground mb-4">Quick Links</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <Button variant="outline" onClick={() => navigate("/leaderboard")} className="h-auto py-4 flex-col gap-2">
+                <Trophy className="w-5 h-5 text-yellow-500" />
+                <span>Leaderboard</span>
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/community")} className="h-auto py-4 flex-col gap-2">
+                <MessageSquare className="w-5 h-5 text-purple-500" />
+                <span>Community</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Achievements on larger screens */}
+          <div className="hidden md:block">
+            <Achievements />
+          </div>
+        </div>
+
+        {/* Achievements on mobile */}
+        <div className="mb-8 md:hidden">
+          <Achievements />
         </div>
 
         {/* AI Quiz Recommendations */}
