@@ -29,8 +29,10 @@ import {
   Eye,
   UserMinus,
   Clock,
+  Download,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { exportToCsv } from "@/lib/exportCsv";
 
 interface TutorApplication {
   id: string;
@@ -241,6 +243,47 @@ export function TutorManagement() {
       t.profile.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleExportApplications = () => {
+    exportToCsv(
+      applications.map((a) => ({
+        ...a,
+        created_at: new Date(a.created_at).toLocaleDateString(),
+      })),
+      "tutor-applications",
+      [
+        { key: "full_name", label: "Name" },
+        { key: "email", label: "Email" },
+        { key: "qualifications", label: "Qualifications" },
+        { key: "experience", label: "Experience" },
+        { key: "courses_to_teach", label: "Courses" },
+        { key: "status", label: "Status" },
+        { key: "created_at", label: "Date" },
+      ]
+    );
+  };
+
+  const handleExportTutors = () => {
+    exportToCsv(
+      filteredTutors.map((t) => ({
+        full_name: t.profile.full_name || "Unknown",
+        email: t.profile.email,
+        department: t.profile.department || "",
+        courses_count: t.courses_count,
+        questions_count: t.questions_count,
+        total_earnings: t.total_earnings,
+      })),
+      "active-tutors",
+      [
+        { key: "full_name", label: "Name" },
+        { key: "email", label: "Email" },
+        { key: "department", label: "Department" },
+        { key: "courses_count", label: "Courses" },
+        { key: "questions_count", label: "Questions" },
+        { key: "total_earnings", label: "Earnings (Tokens)" },
+      ]
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -252,18 +295,29 @@ export function TutorManagement() {
   return (
     <div className="space-y-6">
       {/* Toggle */}
-      <div className="flex gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+          <Button
+            variant={activeView === "applications" ? "default" : "outline"}
+            onClick={() => setActiveView("applications")}
+          >
+            Applications ({pendingApps.length} pending)
+          </Button>
+          <Button
+            variant={activeView === "tutors" ? "default" : "outline"}
+            onClick={() => setActiveView("tutors")}
+          >
+            Active Tutors ({tutors.length})
+          </Button>
+        </div>
         <Button
-          variant={activeView === "applications" ? "default" : "outline"}
-          onClick={() => setActiveView("applications")}
+          variant="outline"
+          size="sm"
+          onClick={activeView === "applications" ? handleExportApplications : handleExportTutors}
+          disabled={activeView === "applications" ? applications.length === 0 : tutors.length === 0}
         >
-          Applications ({pendingApps.length} pending)
-        </Button>
-        <Button
-          variant={activeView === "tutors" ? "default" : "outline"}
-          onClick={() => setActiveView("tutors")}
-        >
-          Active Tutors ({tutors.length})
+          <Download className="w-4 h-4 mr-1" />
+          Export CSV
         </Button>
       </div>
 
