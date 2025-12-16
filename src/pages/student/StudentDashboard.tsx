@@ -13,6 +13,7 @@ import { StudyStreak } from "@/components/student/StudyStreak";
 import { Achievements } from "@/components/student/Achievements";
 import { ReferralCard } from "@/components/student/ReferralCard";
 import { TeamCard } from "@/components/student/TeamCard";
+import FavoriteTutors from "@/components/student/FavoriteTutors";
 import { TeamChallenges } from "@/components/student/TeamChallenges";
 import { TeamChat } from "@/components/student/TeamChat";
 import { SEO } from "@/components/seo/SEO";
@@ -799,9 +800,10 @@ const StudentDashboard = () => {
         </div>
 
         {/* Referral & Team Cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <ReferralCard />
           <TeamCard />
+          <FavoriteTutors />
         </div>
 
         {/* Team Challenges & Chat */}
