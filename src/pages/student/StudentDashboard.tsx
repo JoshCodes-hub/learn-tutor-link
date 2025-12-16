@@ -1,11 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
 import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   BookOpen, 
   Sparkles, 
@@ -26,7 +34,10 @@ import {
   History,
   Unlock,
   GraduationCap,
-  Star
+  Star,
+  Search,
+  Filter,
+  X
 } from "lucide-react";
 
 interface Stats {
@@ -54,6 +65,7 @@ interface Quiz {
   token_cost: number;
   tutor_id: string | null;
   course: {
+    id: string;
     code: string;
     name: string;
   };
@@ -82,6 +94,7 @@ const StudentDashboard = () => {
   });
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [courses, setCourses] = useState<{ id: string; code: string; name: string }[]>([]);
   const [purchasedQuizIds, setPurchasedQuizIds] = useState<Set<string>>(new Set());
   const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +102,11 @@ const StudentDashboard = () => {
   const [showPurchaseQuiz, setShowPurchaseQuiz] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [purchaseRequests, setPurchaseRequests] = useState<any[]>([]);
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -144,13 +162,23 @@ const StudentDashboard = () => {
           if (newWallet) setWallet(newWallet);
         }
 
+        // Fetch all courses for filter dropdown
+        const { data: coursesData } = await supabase
+          .from("courses")
+          .select("id, code, name")
+          .eq("is_active", true)
+          .order("code");
+
+        if (coursesData) {
+          setCourses(coursesData);
+        }
+
         // Fetch available quizzes with tutor profiles
         const { data: quizzesData } = await supabase
           .from("quizzes")
-          .select("*, courses(code, name)")
+          .select("*, courses(id, code, name)")
           .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(6);
+          .order("created_at", { ascending: false });
 
         if (quizzesData) {
           // Fetch tutor profiles for quizzes that have tutors
@@ -204,7 +232,7 @@ const StudentDashboard = () => {
 
           setQuizzes(quizzesData.map(q => ({
             ...q,
-            course: q.courses as { code: string; name: string },
+            course: q.courses as { id: string; code: string; name: string },
             tutor: q.tutor_id ? tutorProfiles[q.tutor_id] || null : null,
             rating: quizRatings[q.id] || null
           })));
@@ -242,6 +270,40 @@ const StudentDashboard = () => {
       fetchDashboardData();
     }
   }, [user]);
+
+  // Filtered quizzes based on search and filters
+  const filteredQuizzes = useMemo(() => {
+    return quizzes.filter((quiz) => {
+      // Search filter
+      const matchesSearch = searchQuery === "" || 
+        quiz.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        quiz.course?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        quiz.course?.code.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Course filter
+      const matchesCourse = selectedCourse === "all" || quiz.course?.code === selectedCourse;
+
+      // Type filter (free/premium/owned)
+      let matchesType = true;
+      if (selectedType === "free") {
+        matchesType = !quiz.is_premium;
+      } else if (selectedType === "premium") {
+        matchesType = quiz.is_premium && !purchasedQuizIds.has(quiz.id);
+      } else if (selectedType === "owned") {
+        matchesType = purchasedQuizIds.has(quiz.id);
+      }
+
+      return matchesSearch && matchesCourse && matchesType;
+    });
+  }, [quizzes, searchQuery, selectedCourse, selectedType, purchasedQuizIds]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedCourse("all");
+    setSelectedType("all");
+  };
+
+  const hasActiveFilters = searchQuery !== "" || selectedCourse !== "all" || selectedType !== "all";
 
   const calculateReadinessScore = () => {
     if (stats.totalAttempts === 0) return 0;
@@ -446,10 +508,61 @@ const StudentDashboard = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-xl font-bold text-foreground">Available Quizzes</h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/quizzes")}>
-              View All
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            <span className="text-sm text-muted-foreground">
+              {filteredQuizzes.length} of {quizzes.length} quizzes
+            </span>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="bg-card rounded-xl border border-border p-4 mb-4">
+            <div className="flex flex-col md:flex-row gap-3">
+              {/* Search Input */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search quizzes by title or course..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Course Filter */}
+              <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Course" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.code}>
+                      {course.code} - {course.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Type Filter */}
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger className="w-full md:w-[140px]">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="owned">My Quizzes</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <Button variant="ghost" size="icon" onClick={clearFilters} className="shrink-0">
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
 
           {quizzes.length === 0 ? (
@@ -458,9 +571,18 @@ const StudentDashboard = () => {
               <p className="text-foreground font-medium mb-2">No quizzes available yet</p>
               <p className="text-sm text-muted-foreground">Check back soon for new practice quizzes!</p>
             </div>
+          ) : filteredQuizzes.length === 0 ? (
+            <div className="bg-muted/30 rounded-xl p-8 text-center">
+              <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-foreground font-medium mb-2">No quizzes match your filters</p>
+              <p className="text-sm text-muted-foreground mb-4">Try adjusting your search or filters</p>
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear Filters
+              </Button>
+            </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {quizzes.map((quiz) => {
+              {filteredQuizzes.map((quiz) => {
                 const isPurchased = purchasedQuizIds.has(quiz.id);
                 const needsPurchase = quiz.is_premium && !isPurchased;
                 
