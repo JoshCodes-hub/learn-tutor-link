@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { RateQuizDialog } from "@/components/student/RateQuizDialog";
 import {
   BookOpen,
   Sparkles,
@@ -14,7 +15,8 @@ import {
   ArrowLeft,
   Loader2,
   RotateCcw,
-  Home
+  Home,
+  Star
 } from "lucide-react";
 
 interface AttemptData {
@@ -25,6 +27,7 @@ interface AttemptData {
   time_spent_seconds: number | null;
   mode: string;
   quiz: {
+    id: string;
     title: string;
     course: {
       code: string;
@@ -39,6 +42,8 @@ const QuizResults = () => {
   const { user, isLoading: authLoading } = useAuth();
   const [attempt, setAttempt] = useState<AttemptData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showRating, setShowRating] = useState(false);
+  const [hasRated, setHasRated] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,12 +53,12 @@ const QuizResults = () => {
 
   useEffect(() => {
     const fetchResults = async () => {
-      if (!attemptId || !user) return;
+      if (!attemptId || !user || !quizId) return;
 
       try {
         const { data, error } = await supabase
           .from("quiz_attempts")
-          .select("*, quizzes(title, courses(code, name))")
+          .select("*, quizzes(id, title, courses(code, name))")
           .eq("id", attemptId)
           .eq("user_id", user.id)
           .single();
@@ -63,10 +68,26 @@ const QuizResults = () => {
         setAttempt({
           ...data,
           quiz: {
+            id: data.quizzes.id,
             title: data.quizzes.title,
             course: data.quizzes.courses as { code: string; name: string }
           }
         });
+
+        // Check if user already rated this quiz
+        const { data: ratingData } = await supabase
+          .from("quiz_ratings")
+          .select("id")
+          .eq("quiz_id", quizId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        setHasRated(!!ratingData);
+
+        // Show rating prompt after a short delay if not already rated
+        if (!ratingData) {
+          setTimeout(() => setShowRating(true), 1500);
+        }
       } catch (error) {
         console.error("Error fetching results:", error);
         navigate("/dashboard");
@@ -76,7 +97,7 @@ const QuizResults = () => {
     };
 
     fetchResults();
-  }, [attemptId, user, navigate]);
+  }, [attemptId, user, quizId, navigate]);
 
   if (authLoading || isLoading) {
     return (
@@ -210,6 +231,18 @@ const QuizResults = () => {
               </div>
             </div>
 
+            {/* Rate Quiz Button */}
+            <div className="mb-6">
+              <Button
+                variant={hasRated ? "outline" : "secondary"}
+                className="w-full"
+                onClick={() => setShowRating(true)}
+              >
+                <Star className={`w-4 h-4 mr-2 ${hasRated ? "fill-accent text-accent" : ""}`} />
+                {hasRated ? "Update Your Rating" : "Rate This Quiz"}
+              </Button>
+            </div>
+
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
@@ -232,6 +265,19 @@ const QuizResults = () => {
           </div>
         </div>
       </main>
+
+      {/* Rating Dialog */}
+      {quizId && attempt && (
+        <RateQuizDialog
+          open={showRating}
+          onOpenChange={(open) => {
+            setShowRating(open);
+            if (!open) setHasRated(true);
+          }}
+          quizId={quizId}
+          quizTitle={attempt.quiz.title}
+        />
+      )}
     </div>
   );
 };

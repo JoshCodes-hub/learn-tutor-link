@@ -139,12 +139,32 @@ const TutorProfile = () => {
 
         const uniqueStudents = new Set(studentsData?.map((s) => s.user_id) || []);
 
+        // Get quiz IDs for this tutor
+        const quizIds = quizzesData?.map((q) => q.id) || [];
+
+        // Fetch ratings for tutor's quizzes
+        let averageRating = 0;
+        let totalRatings = 0;
+
+        if (quizIds.length > 0) {
+          const { data: ratingsData } = await supabase
+            .from("quiz_ratings")
+            .select("rating")
+            .in("quiz_id", quizIds);
+
+          if (ratingsData && ratingsData.length > 0) {
+            totalRatings = ratingsData.length;
+            const sum = ratingsData.reduce((acc, r) => acc + r.rating, 0);
+            averageRating = sum / totalRatings;
+          }
+        }
+
         setStats({
           totalQuizzes,
           totalStudents: uniqueStudents.size,
           totalQuestions: questionsCount || 0,
-          averageRating: 4.5, // Placeholder - implement ratings table later
-          totalRatings: 0,
+          averageRating,
+          totalRatings,
         });
       } catch (error) {
         console.error("Error fetching tutor data:", error);
