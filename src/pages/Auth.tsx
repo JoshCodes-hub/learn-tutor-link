@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { SEO } from "@/components/seo/SEO";
 
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -98,8 +99,15 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <>
+      <SEO
+        title={isSignUp ? "Sign Up" : "Sign In"}
+        description="Sign in or create an account to access AI-powered CBT exam preparation for FUTA students."
+        noindex={true}
+        url="https://overraprep.com/auth"
+      />
+      <main className="min-h-screen bg-gradient-hero flex items-center justify-center p-4" role="main">
+        <article className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <a href="/" className="inline-flex items-center gap-2 group">
@@ -298,8 +306,9 @@ const Auth = () => {
             ← Back to Home
           </a>
         </p>
-      </div>
-    </div>
+      </article>
+    </main>
+    </>
   );
 };
 

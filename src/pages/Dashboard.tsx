@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { Button } from "@/components/ui/button";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
+import { SEO } from "@/components/seo/SEO";
 import { 
   BookOpen, 
   Sparkles, 
@@ -103,9 +104,16 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
+    <>
+      <SEO
+        title="Dashboard"
+        description="Your OverraPrep AI dashboard - access your learning tools and track your progress."
+        noindex={true}
+        url="https://overraprep.com/dashboard"
+      />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2 group">
@@ -225,6 +233,7 @@ const Dashboard = () => {
         userName={profile?.full_name || undefined}
       />
     </div>
+    </>
   );
 };
 

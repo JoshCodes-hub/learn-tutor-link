@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
 import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
+import { SEO } from "@/components/seo/SEO";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -354,9 +355,16 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
+    <>
+      <SEO
+        title="Student Dashboard"
+        description="Track your exam preparation progress, practice quizzes, and improve your CBT performance."
+        noindex={true}
+        url="https://overraprep.com/student/dashboard"
+      />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2 group">
@@ -833,6 +841,7 @@ const StudentDashboard = () => {
         userName={profile?.full_name || undefined}
       />
     </div>
+    </>
   );
 };
 
