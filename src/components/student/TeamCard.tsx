@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Users, Copy, LogOut, UserPlus, Crown } from "lucide-react";
+import { Users, Copy, LogOut, UserPlus, Crown, BarChart3 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface Team {
@@ -27,6 +28,7 @@ interface TeamMember {
 }
 
 export const TeamCard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -341,15 +343,25 @@ export const TeamCard = () => {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={leaveTeam}
-          className="w-full text-destructive hover:text-destructive"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          {team.created_by === user?.id ? "Disband Team" : "Leave Team"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => navigate("/team/stats")}
+            className="flex-1"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            View Stats
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={leaveTeam}
+            className="text-destructive hover:text-destructive"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

@@ -688,6 +688,96 @@ export type Database = {
         }
         Relationships: []
       }
+      team_challenge_progress: {
+        Row: {
+          challenge_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          current_progress: number
+          id: string
+          reward_claimed: boolean
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          challenge_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          id?: string
+          reward_claimed?: boolean
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          challenge_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number
+          id?: string
+          reward_claimed?: boolean
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "team_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_challenge_progress_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_challenges: {
+        Row: {
+          created_at: string
+          description: string | null
+          ends_at: string
+          goal_type: string
+          goal_value: number
+          id: string
+          is_active: boolean
+          reward_tokens: number
+          starts_at: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          ends_at: string
+          goal_type: string
+          goal_value: number
+          id?: string
+          is_active?: boolean
+          reward_tokens?: number
+          starts_at: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          ends_at?: string
+          goal_type?: string
+          goal_value?: number
+          id?: string
+          is_active?: boolean
+          reward_tokens?: number
+          starts_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           id: string
