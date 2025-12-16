@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import QuizPractice from "./pages/quiz/QuizPractice";
 import CBTSimulation from "./pages/quiz/CBTSimulation";
 import QuizResults from "./pages/quiz/QuizResults";
+import EditProfile from "./pages/profile/EditProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/quiz/:quizId/practice" element={<QuizPractice />} />
             <Route path="/quiz/:quizId/simulation" element={<CBTSimulation />} />
             <Route path="/quiz/:quizId/results/:attemptId" element={<QuizResults />} />
+            <Route path="/profile/edit" element={<EditProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
