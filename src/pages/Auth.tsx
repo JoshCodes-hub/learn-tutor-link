@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookOpen, Sparkles, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { BookOpen, Sparkles, Mail, Lock, User, ArrowRight, Loader2, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ const signUpSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  referralCode: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -30,7 +31,9 @@ type SignInFormData = z.infer<typeof signInSchema>;
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
 const Auth = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams] = useSearchParams();
+  const referralCodeFromUrl = searchParams.get("ref") || "";
+  const [isSignUp, setIsSignUp] = useState(!!referralCodeFromUrl);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -49,7 +52,7 @@ const Auth = () => {
 
   const signUpForm = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "", referralCode: referralCodeFromUrl },
   });
 
   const handleSignIn = async (data: SignInFormData) => {
@@ -76,7 +79,7 @@ const Auth = () => {
 
   const handleSignUp = async (data: SignUpFormData) => {
     setIsSubmitting(true);
-    const { error } = await signUp(data.email, data.password, data.fullName);
+    const { error } = await signUp(data.email, data.password, data.fullName, data.referralCode);
     
     if (error) {
       let message = error.message;
@@ -89,9 +92,12 @@ const Auth = () => {
         description: message,
       });
     } else {
+      const welcomeMsg = data.referralCode 
+        ? "Welcome to OverraPrep AI! Complete your first quiz to earn bonus tokens."
+        : "Welcome to OverraPrep AI. You can now start practicing.";
       toast({
         title: "Account created!",
-        description: "Welcome to OverraPrep AI. You can now start practicing.",
+        description: welcomeMsg,
       });
       navigate("/dashboard");
     }
@@ -280,6 +286,23 @@ const Auth = () => {
                 </div>
                 {signUpForm.formState.errors.confirmPassword && (
                   <p className="text-sm text-destructive">{signUpForm.formState.errors.confirmPassword.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-referral" className="text-foreground font-medium flex items-center gap-2">
+                  <Gift className="w-4 h-4 text-primary" />
+                  Referral Code (Optional)
+                </Label>
+                <Input
+                  id="signup-referral"
+                  type="text"
+                  placeholder="REF-XXXXXX"
+                  className="h-12 font-mono uppercase"
+                  {...signUpForm.register("referralCode")}
+                />
+                {referralCodeFromUrl && (
+                  <p className="text-sm text-primary">🎁 Referral code applied! Complete your first quiz to earn bonus tokens.</p>
                 )}
               </div>
 
