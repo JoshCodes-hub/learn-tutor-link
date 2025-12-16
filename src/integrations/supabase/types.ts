@@ -264,6 +264,8 @@ export type Database = {
           full_name: string | null
           id: string
           profile_image_url: string | null
+          referral_code: string | null
+          referred_by: string | null
           tutor_code: string | null
           updated_at: string
         }
@@ -275,6 +277,8 @@ export type Database = {
           full_name?: string | null
           id: string
           profile_image_url?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           tutor_code?: string | null
           updated_at?: string
         }
@@ -286,10 +290,20 @@ export type Database = {
           full_name?: string | null
           id?: string
           profile_image_url?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           tutor_code?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       questions: {
         Row: {
@@ -575,6 +589,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referral_rewards: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          referee_id: string
+          referee_tokens: number
+          referrer_id: string
+          referrer_tokens: number
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referee_id: string
+          referee_tokens?: number
+          referrer_id: string
+          referrer_tokens?: number
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referee_id?: string
+          referee_tokens?: number
+          referrer_id?: string
+          referrer_tokens?: number
+          status?: string
+        }
+        Relationships: []
       }
       student_quiz_purchases: {
         Row: {
@@ -984,6 +1031,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
       generate_tutor_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }

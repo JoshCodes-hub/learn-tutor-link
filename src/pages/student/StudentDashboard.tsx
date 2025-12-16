@@ -11,6 +11,7 @@ import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { AIQuizRecommendations } from "@/components/student/AIQuizRecommendations";
 import { StudyStreak } from "@/components/student/StudyStreak";
 import { Achievements } from "@/components/student/Achievements";
+import { ReferralCard } from "@/components/student/ReferralCard";
 import { SEO } from "@/components/seo/SEO";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -567,7 +568,10 @@ const StudentDashboard = () => {
           <Achievements />
         </div>
 
-        {/* AI Quiz Recommendations */}
+        {/* Referral Card */}
+        <div className="mb-8">
+          <ReferralCard />
+        </div>
         {user && stats.totalAttempts > 0 && (
           <div className="mb-8">
             <AIQuizRecommendations
