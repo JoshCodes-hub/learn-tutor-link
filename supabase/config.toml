@@ -8,3 +8,9 @@ verify_jwt = true
 
 [functions.quiz-recommendations]
 verify_jwt = true
+
+[functions.streak-reminders]
+verify_jwt = false
+
+[functions.streak-milestone]
+verify_jwt = false
