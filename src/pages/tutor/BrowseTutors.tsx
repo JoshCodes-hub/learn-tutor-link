@@ -22,6 +22,7 @@ import {
   Brain,
   Loader2,
   ArrowLeft,
+  ArrowUpDown,
 } from "lucide-react";
 
 interface Tutor {
@@ -44,6 +45,7 @@ const BrowseTutors = () => {
   const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("rating");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -183,8 +185,24 @@ const BrowseTutors = () => {
       filtered = filtered.filter((t) => t.department === selectedDepartment);
     }
 
+    // Sort tutors
+    switch (sortBy) {
+      case "rating":
+        filtered.sort((a, b) => b.averageRating - a.averageRating);
+        break;
+      case "quizzes":
+        filtered.sort((a, b) => b.quizCount - a.quizCount);
+        break;
+      case "students":
+        filtered.sort((a, b) => b.studentCount - a.studentCount);
+        break;
+      case "name":
+        filtered.sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
+        break;
+    }
+
     setFilteredTutors(filtered);
-  }, [searchQuery, selectedDepartment, tutors]);
+  }, [searchQuery, selectedDepartment, sortBy, tutors]);
 
   if (isLoading) {
     return (
@@ -238,7 +256,7 @@ const BrowseTutors = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -249,7 +267,7 @@ const BrowseTutors = () => {
             />
           </div>
           <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
             <SelectContent>
@@ -259,6 +277,18 @@ const BrowseTutors = () => {
                   {dept}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full sm:w-[160px]">
+              <ArrowUpDown className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rating">Highest Rated</SelectItem>
+              <SelectItem value="quizzes">Most Quizzes</SelectItem>
+              <SelectItem value="students">Most Students</SelectItem>
+              <SelectItem value="name">Name (A-Z)</SelectItem>
             </SelectContent>
           </Select>
         </div>
