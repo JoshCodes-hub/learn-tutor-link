@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { sendNotification } from "@/hooks/useSendNotification";
+import { useAuditLog } from "@/hooks/useAuditLog";
 import {
   Table,
   TableBody,
@@ -41,6 +42,7 @@ interface WithdrawalRequest {
 export function WithdrawalManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { logAction } = useAuditLog();
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -99,11 +101,21 @@ export function WithdrawalManagement() {
 
       if (error) throw error;
 
+      // Log audit action
+      await logAction({
+        action: "approve",
+        tableName: "withdrawal_requests",
+        recordId: request.id,
+        oldData: { status: "pending" },
+        newData: { status: "approved" },
+      });
+
       // Send email notification
       if (request.tutor_email) {
         await sendNotification({
           type: "withdrawal_approved",
           to: request.tutor_email,
+          userId: request.tutor_id,
           data: {
             name: request.tutor_name,
             amount: request.amount.toLocaleString(),
@@ -210,11 +222,21 @@ export function WithdrawalManagement() {
 
       if (error) throw error;
 
+      // Log audit action
+      await logAction({
+        action: "reject",
+        tableName: "withdrawal_requests",
+        recordId: request.id,
+        oldData: { status: "pending" },
+        newData: { status: "rejected" },
+      });
+
       // Send email notification
       if (request.tutor_email) {
         await sendNotification({
           type: "withdrawal_rejected",
           to: request.tutor_email,
+          userId: request.tutor_id,
           data: {
             name: request.tutor_name,
             amount: request.amount.toLocaleString(),
