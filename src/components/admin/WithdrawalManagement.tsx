@@ -22,10 +22,11 @@ import {
   Search,
   Banknote,
   CreditCard,
-  Download,
 } from "lucide-react";
 import { format } from "date-fns";
 import { exportToCsv } from "@/lib/exportCsv";
+import { exportToPdf } from "@/lib/exportPdf";
+import { ExportButton } from "./ExportButton";
 
 interface WithdrawalRequest {
   id: string;
@@ -275,24 +276,29 @@ export function WithdrawalManagement() {
   const pendingCount = requests.filter((r) => r.status === "pending").length;
   const approvedCount = requests.filter((r) => r.status === "approved").length;
 
-  const handleExport = () => {
-    exportToCsv(
-      filteredRequests.map((r) => ({
-        ...r,
-        created_at: format(new Date(r.created_at), "yyyy-MM-dd HH:mm:ss"),
-      })),
-      "withdrawal-requests",
-      [
-        { key: "tutor_name", label: "Tutor Name" },
-        { key: "tutor_email", label: "Email" },
-        { key: "amount", label: "Amount (Tokens)" },
-        { key: "bank_name", label: "Bank" },
-        { key: "account_number", label: "Account Number" },
-        { key: "account_name", label: "Account Name" },
-        { key: "status", label: "Status" },
-        { key: "created_at", label: "Date" },
-      ]
-    );
+  const exportColumns = [
+    { key: "tutor_name", label: "Tutor Name" },
+    { key: "tutor_email", label: "Email" },
+    { key: "amount", label: "Amount (Tokens)" },
+    { key: "bank_name", label: "Bank" },
+    { key: "account_number", label: "Account Number" },
+    { key: "account_name", label: "Account Name" },
+    { key: "status", label: "Status" },
+    { key: "created_at", label: "Date" },
+  ];
+
+  const getExportData = () =>
+    filteredRequests.map((r) => ({
+      ...r,
+      created_at: format(new Date(r.created_at), "yyyy-MM-dd HH:mm:ss"),
+    }));
+
+  const handleExportCsv = () => {
+    exportToCsv(getExportData(), "withdrawal-requests", exportColumns);
+  };
+
+  const handleExportPdf = () => {
+    exportToPdf(getExportData(), "withdrawal-requests", "Withdrawal Requests Report", exportColumns);
   };
 
   if (isLoading) {
@@ -330,10 +336,11 @@ export function WithdrawalManagement() {
               className="pl-9"
             />
           </div>
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={filteredRequests.length === 0}>
-            <Download className="w-4 h-4 mr-1" />
-            Export CSV
-          </Button>
+          <ExportButton
+            onExportCsv={handleExportCsv}
+            onExportPdf={handleExportPdf}
+            disabled={filteredRequests.length === 0}
+          />
         </div>
       </div>
 

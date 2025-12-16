@@ -29,10 +29,11 @@ import {
   Eye,
   UserMinus,
   Clock,
-  Download,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { exportToCsv } from "@/lib/exportCsv";
+import { exportToPdf } from "@/lib/exportPdf";
+import { ExportButton } from "./ExportButton";
 
 interface TutorApplication {
   id: string;
@@ -243,45 +244,55 @@ export function TutorManagement() {
       t.profile.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleExportApplications = () => {
-    exportToCsv(
-      applications.map((a) => ({
-        ...a,
-        created_at: new Date(a.created_at).toLocaleDateString(),
-      })),
-      "tutor-applications",
-      [
-        { key: "full_name", label: "Name" },
-        { key: "email", label: "Email" },
-        { key: "qualifications", label: "Qualifications" },
-        { key: "experience", label: "Experience" },
-        { key: "courses_to_teach", label: "Courses" },
-        { key: "status", label: "Status" },
-        { key: "created_at", label: "Date" },
-      ]
-    );
+  const applicationColumns = [
+    { key: "full_name", label: "Name" },
+    { key: "email", label: "Email" },
+    { key: "qualifications", label: "Qualifications" },
+    { key: "experience", label: "Experience" },
+    { key: "courses_to_teach", label: "Courses" },
+    { key: "status", label: "Status" },
+    { key: "created_at", label: "Date" },
+  ];
+
+  const tutorColumns = [
+    { key: "full_name", label: "Name" },
+    { key: "email", label: "Email" },
+    { key: "department", label: "Department" },
+    { key: "courses_count", label: "Courses" },
+    { key: "questions_count", label: "Questions" },
+    { key: "total_earnings", label: "Earnings (Tokens)" },
+  ];
+
+  const getApplicationsData = () =>
+    applications.map((a) => ({
+      ...a,
+      created_at: new Date(a.created_at).toLocaleDateString(),
+    }));
+
+  const getTutorsData = () =>
+    filteredTutors.map((t) => ({
+      full_name: t.profile.full_name || "Unknown",
+      email: t.profile.email,
+      department: t.profile.department || "",
+      courses_count: t.courses_count,
+      questions_count: t.questions_count,
+      total_earnings: t.total_earnings,
+    }));
+
+  const handleExportApplicationsCsv = () => {
+    exportToCsv(getApplicationsData(), "tutor-applications", applicationColumns);
   };
 
-  const handleExportTutors = () => {
-    exportToCsv(
-      filteredTutors.map((t) => ({
-        full_name: t.profile.full_name || "Unknown",
-        email: t.profile.email,
-        department: t.profile.department || "",
-        courses_count: t.courses_count,
-        questions_count: t.questions_count,
-        total_earnings: t.total_earnings,
-      })),
-      "active-tutors",
-      [
-        { key: "full_name", label: "Name" },
-        { key: "email", label: "Email" },
-        { key: "department", label: "Department" },
-        { key: "courses_count", label: "Courses" },
-        { key: "questions_count", label: "Questions" },
-        { key: "total_earnings", label: "Earnings (Tokens)" },
-      ]
-    );
+  const handleExportApplicationsPdf = () => {
+    exportToPdf(getApplicationsData(), "tutor-applications", "Tutor Applications Report", applicationColumns);
+  };
+
+  const handleExportTutorsCsv = () => {
+    exportToCsv(getTutorsData(), "active-tutors", tutorColumns);
+  };
+
+  const handleExportTutorsPdf = () => {
+    exportToPdf(getTutorsData(), "active-tutors", "Active Tutors Report", tutorColumns);
   };
 
   if (isLoading) {
@@ -310,15 +321,11 @@ export function TutorManagement() {
             Active Tutors ({tutors.length})
           </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={activeView === "applications" ? handleExportApplications : handleExportTutors}
+        <ExportButton
+          onExportCsv={activeView === "applications" ? handleExportApplicationsCsv : handleExportTutorsCsv}
+          onExportPdf={activeView === "applications" ? handleExportApplicationsPdf : handleExportTutorsPdf}
           disabled={activeView === "applications" ? applications.length === 0 : tutors.length === 0}
-        >
-          <Download className="w-4 h-4 mr-1" />
-          Export CSV
-        </Button>
+        />
       </div>
 
       {activeView === "applications" ? (

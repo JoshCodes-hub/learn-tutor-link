@@ -21,10 +21,11 @@ import {
   Clock,
   Search,
   Coins,
-  Download,
 } from "lucide-react";
 import { format } from "date-fns";
 import { exportToCsv } from "@/lib/exportCsv";
+import { exportToPdf } from "@/lib/exportPdf";
+import { ExportButton } from "./ExportButton";
 
 interface PurchaseRequest {
   id: string;
@@ -230,24 +231,29 @@ export function TokenPurchaseManagement() {
 
   const pendingCount = requests.filter((r) => r.status === "pending").length;
 
-  const handleExport = () => {
-    exportToCsv(
-      filteredRequests.map((r) => ({
-        ...r,
-        created_at: format(new Date(r.created_at), "yyyy-MM-dd HH:mm:ss"),
-      })),
-      "token-purchases",
-      [
-        { key: "user_name", label: "User Name" },
-        { key: "user_email", label: "Email" },
-        { key: "tokens_requested", label: "Tokens" },
-        { key: "amount_paid", label: "Amount Paid (₦)" },
-        { key: "payment_reference", label: "Reference" },
-        { key: "payment_method", label: "Method" },
-        { key: "status", label: "Status" },
-        { key: "created_at", label: "Date" },
-      ]
-    );
+  const exportColumns = [
+    { key: "user_name", label: "User Name" },
+    { key: "user_email", label: "Email" },
+    { key: "tokens_requested", label: "Tokens" },
+    { key: "amount_paid", label: "Amount Paid (₦)" },
+    { key: "payment_reference", label: "Reference" },
+    { key: "payment_method", label: "Method" },
+    { key: "status", label: "Status" },
+    { key: "created_at", label: "Date" },
+  ];
+
+  const getExportData = () =>
+    filteredRequests.map((r) => ({
+      ...r,
+      created_at: format(new Date(r.created_at), "yyyy-MM-dd HH:mm:ss"),
+    }));
+
+  const handleExportCsv = () => {
+    exportToCsv(getExportData(), "token-purchases", exportColumns);
+  };
+
+  const handleExportPdf = () => {
+    exportToPdf(getExportData(), "token-purchases", "Token Purchase Requests Report", exportColumns);
   };
 
   if (isLoading) {
@@ -282,10 +288,11 @@ export function TokenPurchaseManagement() {
               className="pl-9"
             />
           </div>
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={filteredRequests.length === 0}>
-            <Download className="w-4 h-4 mr-1" />
-            Export CSV
-          </Button>
+          <ExportButton
+            onExportCsv={handleExportCsv}
+            onExportPdf={handleExportPdf}
+            disabled={filteredRequests.length === 0}
+          />
         </div>
       </div>
 

@@ -1,7 +1,12 @@
-export function exportToCsv<T extends Record<string, unknown>>(
-  data: T[],
+interface Column {
+  key: string;
+  label: string;
+}
+
+export function exportToCsv(
+  data: Record<string, unknown>[],
   filename: string,
-  columns?: { key: keyof T; label: string }[]
+  columns?: Column[]
 ) {
   if (data.length === 0) return;
 
@@ -11,7 +16,7 @@ export function exportToCsv<T extends Record<string, unknown>>(
   
   const keys = columns 
     ? columns.map(c => c.key) 
-    : Object.keys(data[0]) as (keyof T)[];
+    : Object.keys(data[0]);
 
   const csvContent = [
     headers.join(","),
