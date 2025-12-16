@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, BookOpen, Sparkles, GraduationCap } from "lucide-react";
+import { Menu, X, BookOpen, Sparkles, GraduationCap, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import TutorApplicationDialog from "@/components/landing/TutorApplicationDialog";
 
@@ -14,8 +14,8 @@ const Navbar = () => {
   const navLinks = [
     { name: "Features", href: "#features" },
     { name: "How It Works", href: "#how-it-works" },
+    { name: "Tutors", href: "/tutors", isRoute: true },
     { name: "For Tutors", href: "#tutors" },
-    { name: "Pricing", href: "#pricing" },
   ];
 
   // Don't show "Become a Tutor" if user is already a tutor or admin
@@ -45,13 +45,23 @@ const Navbar = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200"
-                >
-                  {link.name}
-                </a>
+                link.isRoute ? (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200"
+                  >
+                    {link.name}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200"
+                  >
+                    {link.name}
+                  </a>
+                )
               ))}
             </div>
 
@@ -100,14 +110,25 @@ const Navbar = () => {
             <div className="md:hidden py-4 border-t border-border animate-fade-in">
               <div className="flex flex-col gap-4">
                 {navLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {link.name}
-                  </a>
+                  link.isRoute ? (
+                    <Link
+                      key={link.name}
+                      to={link.href}
+                      className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {link.name}
+                    </Link>
+                  ) : (
+                    <a
+                      key={link.name}
+                      href={link.href}
+                      className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {link.name}
+                    </a>
+                  )
                 ))}
                 <div className="flex flex-col gap-2 pt-4 border-t border-border">
                   {showTutorButton && (

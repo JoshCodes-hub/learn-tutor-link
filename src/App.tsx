@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import TutorDashboard from "./pages/tutor/TutorDashboard";
 import TutorProfile from "./pages/tutor/TutorProfile";
+import BrowseTutors from "./pages/tutor/BrowseTutors";
 import ApplyTutor from "./pages/ApplyTutor";
 import TutorApplications from "./pages/admin/TutorApplications";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/student/dashboard" element={<StudentDashboard />} />
             <Route path="/tutor/dashboard" element={<TutorDashboard />} />
             <Route path="/tutor/:tutorId" element={<TutorProfile />} />
+            <Route path="/tutors" element={<BrowseTutors />} />
             <Route path="/apply-tutor" element={<ApplyTutor />} />
             <Route path="/admin/applications" element={<TutorApplications />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
