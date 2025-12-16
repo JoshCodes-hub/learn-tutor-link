@@ -68,6 +68,9 @@ interface TutorProfile {
   full_name: string | null;
   profile_image_url: string | null;
   tutor_code: string | null;
+  total_quizzes?: number;
+  avg_rating?: number;
+  total_ratings?: number;
 }
 
 interface Quiz {
@@ -208,9 +211,63 @@ const StudentDashboard = () => {
               .select("id, full_name, profile_image_url, tutor_code")
               .in("id", tutorIds);
             
+            // Fetch tutor quiz counts
+            const { data: tutorQuizCounts } = await supabase
+              .from("quizzes")
+              .select("tutor_id")
+              .in("tutor_id", tutorIds)
+              .eq("is_active", true);
+
+            // Fetch all ratings for tutors' quizzes
+            const { data: allTutorQuizzes } = await supabase
+              .from("quizzes")
+              .select("id, tutor_id")
+              .in("tutor_id", tutorIds)
+              .eq("is_active", true);
+
+            let tutorRatings: Record<string, { sum: number; count: number }> = {};
+            if (allTutorQuizzes && allTutorQuizzes.length > 0) {
+              const allQuizIds = allTutorQuizzes.map(q => q.id);
+              const { data: tutorQuizRatings } = await supabase
+                .from("quiz_ratings")
+                .select("quiz_id, rating")
+                .in("quiz_id", allQuizIds);
+
+              if (tutorQuizRatings) {
+                // Map quiz_id to tutor_id
+                const quizToTutor = allTutorQuizzes.reduce((acc, q) => {
+                  acc[q.id] = q.tutor_id;
+                  return acc;
+                }, {} as Record<string, string>);
+
+                // Aggregate ratings by tutor
+                for (const r of tutorQuizRatings) {
+                  const tutorId = quizToTutor[r.quiz_id];
+                  if (tutorId) {
+                    if (!tutorRatings[tutorId]) {
+                      tutorRatings[tutorId] = { sum: 0, count: 0 };
+                    }
+                    tutorRatings[tutorId].sum += r.rating;
+                    tutorRatings[tutorId].count += 1;
+                  }
+                }
+              }
+            }
+
+            // Count quizzes per tutor
+            const quizCountByTutor = tutorQuizCounts?.reduce((acc, q) => {
+              acc[q.tutor_id] = (acc[q.tutor_id] || 0) + 1;
+              return acc;
+            }, {} as Record<string, number>) || {};
+            
             if (profiles) {
               tutorProfiles = profiles.reduce((acc, p) => {
-                acc[p.id] = p;
+                acc[p.id] = {
+                  ...p,
+                  total_quizzes: quizCountByTutor[p.id] || 0,
+                  avg_rating: tutorRatings[p.id] ? tutorRatings[p.id].sum / tutorRatings[p.id].count : undefined,
+                  total_ratings: tutorRatings[p.id]?.count || 0
+                };
                 return acc;
               }, {} as Record<string, TutorProfile>);
             }
@@ -384,9 +441,60 @@ const StudentDashboard = () => {
             .select("id, full_name, profile_image_url, tutor_code")
             .in("id", tutorIds);
           
+          // Fetch tutor quiz counts
+          const { data: tutorQuizCounts } = await supabase
+            .from("quizzes")
+            .select("tutor_id")
+            .in("tutor_id", tutorIds)
+            .eq("is_active", true);
+
+          // Fetch all ratings for tutors' quizzes
+          const { data: allTutorQuizzes } = await supabase
+            .from("quizzes")
+            .select("id, tutor_id")
+            .in("tutor_id", tutorIds)
+            .eq("is_active", true);
+
+          let tutorRatings: Record<string, { sum: number; count: number }> = {};
+          if (allTutorQuizzes && allTutorQuizzes.length > 0) {
+            const allQuizIds = allTutorQuizzes.map(q => q.id);
+            const { data: tutorQuizRatings } = await supabase
+              .from("quiz_ratings")
+              .select("quiz_id, rating")
+              .in("quiz_id", allQuizIds);
+
+            if (tutorQuizRatings) {
+              const quizToTutor = allTutorQuizzes.reduce((acc, q) => {
+                acc[q.id] = q.tutor_id;
+                return acc;
+              }, {} as Record<string, string>);
+
+              for (const r of tutorQuizRatings) {
+                const tutorId = quizToTutor[r.quiz_id];
+                if (tutorId) {
+                  if (!tutorRatings[tutorId]) {
+                    tutorRatings[tutorId] = { sum: 0, count: 0 };
+                  }
+                  tutorRatings[tutorId].sum += r.rating;
+                  tutorRatings[tutorId].count += 1;
+                }
+              }
+            }
+          }
+
+          const quizCountByTutor = tutorQuizCounts?.reduce((acc, q) => {
+            acc[q.tutor_id] = (acc[q.tutor_id] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>) || {};
+          
           if (profiles) {
             tutorProfiles = profiles.reduce((acc, p) => {
-              acc[p.id] = p;
+              acc[p.id] = {
+                ...p,
+                total_quizzes: quizCountByTutor[p.id] || 0,
+                avg_rating: tutorRatings[p.id] ? tutorRatings[p.id].sum / tutorRatings[p.id].count : undefined,
+                total_ratings: tutorRatings[p.id]?.count || 0
+              };
               return acc;
             }, {} as Record<string, TutorProfile>);
           }
@@ -863,16 +971,35 @@ const StudentDashboard = () => {
                       </p>
                     )}
 
-                    {/* Tutor Name Display */}
+                    {/* Tutor Name & Stats Display */}
                     {quiz.tutor && (
                       <Link
                         to={`/tutor/${quiz.tutor.id}`}
-                        className="flex items-center gap-2 mb-3 text-sm text-muted-foreground hover:text-primary transition-colors"
+                        className="flex items-center justify-between mb-3 p-2 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <span>by <span className="font-medium text-foreground">{quiz.tutor.full_name || 'Tutor'}</span></span>
-                        {quiz.tutor.tutor_code && (
-                          <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{quiz.tutor.tutor_code}</span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">by <span className="font-medium text-foreground">{quiz.tutor.full_name || 'Tutor'}</span></span>
+                          {quiz.tutor.tutor_code && (
+                            <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{quiz.tutor.tutor_code}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {quiz.tutor.total_quizzes !== undefined && quiz.tutor.total_quizzes > 0 && (
+                            <span className="flex items-center gap-1">
+                              <BookOpen className="w-3 h-3" />
+                              {quiz.tutor.total_quizzes}
+                            </span>
+                          )}
+                          {quiz.tutor.avg_rating !== undefined && (
+                            <span className="flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-accent text-accent" />
+                              {quiz.tutor.avg_rating.toFixed(1)}
+                              {quiz.tutor.total_ratings !== undefined && quiz.tutor.total_ratings > 0 && (
+                                <span className="text-muted-foreground">({quiz.tutor.total_ratings})</span>
+                              )}
+                            </span>
+                          )}
+                        </div>
                       </Link>
                     )}
 
