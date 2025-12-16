@@ -1,0 +1,266 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+interface EmailRequest {
+  type: "purchase_confirmation" | "application_approved" | "application_rejected" | "withdrawal_approved" | "withdrawal_rejected";
+  to: string;
+  data: Record<string, any>;
+}
+
+const getEmailContent = (type: string, data: Record<string, any>) => {
+  switch (type) {
+    case "purchase_confirmation":
+      return {
+        subject: "Token Purchase Confirmed - OverraPrep AI",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #8B5CF6; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">FUTA Exam Preparation Platform</p>
+            </div>
+            
+            <h2 style="color: #333;">Purchase Confirmed! 🎉</h2>
+            
+            <p>Hi there,</p>
+            
+            <p>Great news! Your token purchase has been approved and credited to your wallet.</p>
+            
+            <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>Tokens Purchased:</strong> ${data.tokens} tokens</p>
+              <p style="margin: 0 0 10px 0;"><strong>Amount Paid:</strong> ₦${data.amount}</p>
+              <p style="margin: 0;"><strong>Payment Reference:</strong> ${data.reference}</p>
+            </div>
+            
+            <p>You can now use these tokens to access premium quizzes and boost your exam preparation!</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${data.dashboardUrl}" style="background: #8B5CF6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">Go to Dashboard</a>
+            </div>
+            
+            <p style="color: #666; font-size: 14px;">If you have any questions, feel free to reach out to our support team.</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} OverraPrep AI - FUTA. All rights reserved.
+            </p>
+          </div>
+        `,
+      };
+
+    case "application_approved":
+      return {
+        subject: "Congratulations! Your Tutor Application is Approved - OverraPrep AI",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #8B5CF6; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">FUTA Exam Preparation Platform</p>
+            </div>
+            
+            <h2 style="color: #22c55e;">🎉 Application Approved!</h2>
+            
+            <p>Hi ${data.name},</p>
+            
+            <p>Congratulations! We're thrilled to welcome you to the OverraPrep AI tutor community.</p>
+            
+            <p>Your application has been reviewed and approved. You now have full access to the tutor dashboard where you can:</p>
+            
+            <ul style="color: #333; line-height: 1.8;">
+              <li>Create courses and topics</li>
+              <li>Upload quiz questions</li>
+              <li>Set prices for premium content</li>
+              <li>Track your earnings and analytics</li>
+            </ul>
+            
+            ${data.tutorCode ? `
+            <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+              <p style="margin: 0 0 10px 0; color: #666;">Your Unique Tutor Code</p>
+              <p style="margin: 0; font-size: 24px; font-weight: bold; color: #22c55e;">${data.tutorCode}</p>
+            </div>
+            ` : ''}
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${data.dashboardUrl}" style="background: #8B5CF6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">Access Tutor Dashboard</a>
+            </div>
+            
+            <p>We're excited to see the valuable content you'll create for our students!</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} OverraPrep AI - FUTA. All rights reserved.
+            </p>
+          </div>
+        `,
+      };
+
+    case "application_rejected":
+      return {
+        subject: "Update on Your Tutor Application - OverraPrep AI",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #8B5CF6; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">FUTA Exam Preparation Platform</p>
+            </div>
+            
+            <h2 style="color: #333;">Application Update</h2>
+            
+            <p>Hi ${data.name},</p>
+            
+            <p>Thank you for your interest in becoming a tutor on OverraPrep AI. After careful review, we're unable to approve your application at this time.</p>
+            
+            ${data.adminNotes ? `
+            <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0; font-weight: bold;">Feedback:</p>
+              <p style="margin: 0; color: #666;">${data.adminNotes}</p>
+            </div>
+            ` : ''}
+            
+            <p>This doesn't mean the door is closed! You're welcome to reapply in the future with updated qualifications or additional experience.</p>
+            
+            <p>In the meantime, you can continue using OverraPrep AI as a student to prepare for your exams.</p>
+            
+            <p style="color: #666;">Best regards,<br>The OverraPrep AI Team</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} OverraPrep AI - FUTA. All rights reserved.
+            </p>
+          </div>
+        `,
+      };
+
+    case "withdrawal_approved":
+      return {
+        subject: "Withdrawal Request Approved - OverraPrep AI",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #8B5CF6; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">FUTA Exam Preparation Platform</p>
+            </div>
+            
+            <h2 style="color: #22c55e;">Withdrawal Approved! 💰</h2>
+            
+            <p>Hi ${data.name},</p>
+            
+            <p>Your withdrawal request has been approved and is being processed.</p>
+            
+            <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>Amount:</strong> ₦${data.amount}</p>
+              <p style="margin: 0 0 10px 0;"><strong>Bank:</strong> ${data.bankName}</p>
+              <p style="margin: 0;"><strong>Account:</strong> ${data.accountNumber}</p>
+            </div>
+            
+            <p>The funds should reflect in your account within 1-3 business days.</p>
+            
+            <p>Thank you for being a valued tutor on OverraPrep AI!</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} OverraPrep AI - FUTA. All rights reserved.
+            </p>
+          </div>
+        `,
+      };
+
+    case "withdrawal_rejected":
+      return {
+        subject: "Withdrawal Request Update - OverraPrep AI",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #8B5CF6; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">FUTA Exam Preparation Platform</p>
+            </div>
+            
+            <h2 style="color: #333;">Withdrawal Request Update</h2>
+            
+            <p>Hi ${data.name},</p>
+            
+            <p>Unfortunately, your withdrawal request could not be processed at this time.</p>
+            
+            <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>Amount Requested:</strong> ₦${data.amount}</p>
+              ${data.adminNotes ? `<p style="margin: 0;"><strong>Reason:</strong> ${data.adminNotes}</p>` : ''}
+            </div>
+            
+            <p>Please review the feedback and submit a new request if applicable. If you have questions, please contact support.</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} OverraPrep AI - FUTA. All rights reserved.
+            </p>
+          </div>
+        `,
+      };
+
+    default:
+      throw new Error(`Unknown email type: ${type}`);
+  }
+};
+
+const handler = async (req: Request): Promise<Response> => {
+  console.log("send-notification function called");
+
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { type, to, data }: EmailRequest = await req.json();
+    console.log(`Sending ${type} email to ${to}`);
+
+    const { subject, html } = getEmailContent(type, data);
+
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "OverraPrep AI <onboarding@resend.dev>",
+        to: [to],
+        subject,
+        html,
+      }),
+    });
+
+    const emailResponse = await res.json();
+
+    if (!res.ok) {
+      console.error("Resend API error:", emailResponse);
+      throw new Error(emailResponse.message || "Failed to send email");
+    }
+
+    console.log("Email sent successfully:", emailResponse);
+
+    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  } catch (error: any) {
+    console.error("Error sending notification:", error);
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  }
+};
+
+serve(handler);

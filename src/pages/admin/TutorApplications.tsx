@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { sendNotification } from "@/hooks/useSendNotification";
 
 interface TutorApplication {
   id: string;
@@ -132,6 +133,24 @@ const TutorApplications = () => {
         .eq("id", application.user_id);
     }
 
+    // Get tutor code for the email
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tutor_code")
+      .eq("id", application.user_id)
+      .single();
+
+    // Send approval email notification
+    await sendNotification({
+      type: "application_approved",
+      to: application.email,
+      data: {
+        name: application.full_name,
+        tutorCode: profile?.tutor_code,
+        dashboardUrl: `${window.location.origin}/dashboard`,
+      },
+    });
+
     // Update local state
     setApplications(apps =>
       apps.map(app =>
@@ -143,7 +162,7 @@ const TutorApplications = () => {
 
     toast({
       title: "Application Approved",
-      description: `${application.full_name} is now a tutor.`,
+      description: `${application.full_name} is now a tutor. Email notification sent.`,
     });
     
     setProcessingId(null);
@@ -178,6 +197,16 @@ const TutorApplications = () => {
         description: "Failed to reject application.",
       });
     } else {
+      // Send rejection email notification
+      await sendNotification({
+        type: "application_rejected",
+        to: application.email,
+        data: {
+          name: application.full_name,
+          adminNotes: adminNotes[application.id],
+        },
+      });
+
       setApplications(apps =>
         apps.map(app =>
           app.id === application.id
@@ -187,7 +216,7 @@ const TutorApplications = () => {
       );
       toast({
         title: "Application Rejected",
-        description: "The applicant has been notified.",
+        description: "Email notification sent to the applicant.",
       });
     }
     
