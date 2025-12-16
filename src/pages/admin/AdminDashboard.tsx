@@ -20,6 +20,7 @@ import {
   Wallet,
   Banknote,
   Shield,
+  Target,
 } from "lucide-react";
 import { TutorManagement } from "@/components/admin/TutorManagement";
 import { CourseModeration } from "@/components/admin/CourseModeration";
@@ -29,6 +30,7 @@ import { PlatformAnalytics } from "@/components/admin/PlatformAnalytics";
 import { TokenPurchaseManagement } from "@/components/admin/TokenPurchaseManagement";
 import { WithdrawalManagement } from "@/components/admin/WithdrawalManagement";
 import { AuditLogs } from "@/components/admin/AuditLogs";
+import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
 
 interface DashboardStats {
   totalStudents: number;
@@ -311,6 +313,11 @@ const AdminDashboard = () => {
                 <span className="hidden sm:inline">Settings</span>
                 <span className="sm:hidden">⚙️</span>
               </TabsTrigger>
+              <TabsTrigger value="challenges" className="flex items-center gap-2 text-xs md:text-sm">
+                <Target className="w-4 h-4" />
+                <span className="hidden sm:inline">Challenges</span>
+                <span className="sm:hidden">🏆</span>
+              </TabsTrigger>
               <TabsTrigger value="audit" className="flex items-center gap-2 text-xs md:text-sm">
                 <Shield className="w-4 h-4" />
                 <span className="hidden sm:inline">Audit Logs</span>
@@ -345,6 +352,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="settings">
             <PlatformSettings />
+          </TabsContent>
+
+          <TabsContent value="challenges">
+            <ChallengeManagement />
           </TabsContent>
 
           <TabsContent value="audit">

@@ -14,6 +14,7 @@ import { Achievements } from "@/components/student/Achievements";
 import { ReferralCard } from "@/components/student/ReferralCard";
 import { TeamCard } from "@/components/student/TeamCard";
 import { TeamChallenges } from "@/components/student/TeamChallenges";
+import { TeamChat } from "@/components/student/TeamChat";
 import { SEO } from "@/components/seo/SEO";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -576,9 +577,10 @@ const StudentDashboard = () => {
           <TeamCard />
         </div>
 
-        {/* Team Challenges */}
-        <div className="mb-8">
+        {/* Team Challenges & Chat */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <TeamChallenges />
+          <TeamChat />
         </div>
         {user && stats.totalAttempts > 0 && (
           <div className="mb-8">
