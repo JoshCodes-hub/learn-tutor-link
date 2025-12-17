@@ -9,8 +9,6 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  BookOpen, 
-  Sparkles, 
   ArrowLeft, 
   Users, 
   Trophy, 
@@ -21,6 +19,7 @@ import {
   Calendar,
   BarChart3
 } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 interface TeamMemberStats {
   user_id: string;
@@ -207,12 +206,11 @@ const TeamStatsPage = () => {
               <div className="flex items-center justify-between h-16">
                 <Link to="/student/dashboard" className="flex items-center gap-2">
                   <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-                  <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-md">
-                      <BookOpen className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <Sparkles className="w-4 h-4 text-accent absolute -top-1 -right-1" />
-                  </div>
+                  <img 
+                    src={logo} 
+                    alt="OverraPrep AI FUTA" 
+                    className="h-10 w-auto object-contain"
+                  />
                   <span className="font-display font-bold text-lg text-foreground">Team Stats</span>
                 </Link>
               </div>
@@ -244,12 +242,11 @@ const TeamStatsPage = () => {
             <div className="flex items-center justify-between h-16">
               <Link to="/student/dashboard" className="flex items-center gap-2">
                 <ArrowLeft className="w-5 h-5 text-muted-foreground" />
-                <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-md">
-                    <BookOpen className="w-5 h-5 text-primary-foreground" />
-                  </div>
-                  <Sparkles className="w-4 h-4 text-accent absolute -top-1 -right-1" />
-                </div>
+                <img 
+                  src={logo} 
+                  alt="OverraPrep AI FUTA" 
+                  className="h-10 w-auto object-contain"
+                />
                 <span className="font-display font-bold text-lg text-foreground">{team.name}</span>
               </Link>
             </div>

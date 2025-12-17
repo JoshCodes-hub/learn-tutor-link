@@ -27,8 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { 
-  BookOpen, 
-  Sparkles, 
   LogOut, 
   User, 
   Brain,
@@ -53,8 +51,10 @@ import {
   Trophy,
   MessageSquare,
   Flame,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 interface Stats {
   totalAttempts: number;
@@ -632,19 +632,12 @@ const StudentDashboard = () => {
         <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="relative">
-                <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-md">
-                  <BookOpen className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <Sparkles className="w-4 h-4 text-accent absolute -top-1 -right-1 animate-pulse-subtle" />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-display font-bold text-lg text-foreground leading-tight">
-                  OverraPrep AI
-                </span>
-                <span className="text-xs text-muted-foreground font-medium">FUTA</span>
-              </div>
+            <Link to="/" className="flex items-center group">
+              <img 
+                src={logo} 
+                alt="OverraPrep AI FUTA" 
+                className="h-10 w-auto object-contain"
+              />
             </Link>
 
             <div className="flex items-center gap-2 sm:gap-4">
@@ -1037,7 +1030,7 @@ const StudentDashboard = () => {
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           {quiz.tutor?.total_quizzes !== undefined && quiz.tutor.total_quizzes > 0 && (
                             <span className="flex items-center gap-1">
-                              <BookOpen className="w-3 h-3" />
+                              <FileText className="w-3 h-3" />
                               {quiz.tutor.total_quizzes}
                             </span>
                           )}

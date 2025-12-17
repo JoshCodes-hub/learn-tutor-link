@@ -5,8 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { RateQuizDialog } from "@/components/student/RateQuizDialog";
 import {
-  BookOpen,
-  Sparkles,
   Trophy,
   Target,
   Clock,
@@ -148,13 +146,12 @@ const QuizResults = () => {
               Back to Dashboard
             </button>
 
-            <a href="/" className="flex items-center gap-2 group">
-              <div className="relative">
-                <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-md">
-                  <BookOpen className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <Sparkles className="w-4 h-4 text-accent absolute -top-1 -right-1 animate-pulse-subtle" />
-              </div>
+            <a href="/" className="flex items-center group">
+              <img 
+                src={logo} 
+                alt="OverraPrep AI FUTA" 
+                className="h-10 w-auto object-contain"
+              />
             </a>
           </div>
         </div>
