@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookOpen, Sparkles, Mail, Lock, User, ArrowRight, Loader2, Gift } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2, Gift } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,19 +117,12 @@ const Auth = () => {
         <article className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <a href="/" className="inline-flex items-center gap-2 group">
-            <div className="relative">
-              <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-md group-hover:shadow-glow transition-shadow duration-300">
-                <BookOpen className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <Sparkles className="w-4 h-4 text-accent absolute -top-1 -right-1 animate-pulse-subtle" />
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="font-display font-bold text-xl text-foreground leading-tight">
-                OverraPrep AI
-              </span>
-              <span className="text-xs text-muted-foreground font-medium">FUTA</span>
-            </div>
+          <a href="/" className="inline-flex items-center group">
+            <img 
+              src={logo} 
+              alt="OverraPrep AI FUTA" 
+              className="h-12 w-auto object-contain"
+            />
           </a>
         </div>
 
