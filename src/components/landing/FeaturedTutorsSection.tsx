@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TutorAvatar from "@/components/tutor/TutorAvatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Star, Users, BookOpen, ArrowRight, Loader2 } from "lucide-react";
 
 interface FeaturedTutor {
@@ -161,12 +163,12 @@ const FeaturedTutorsSection = () => {
               onClick={() => navigate(`/tutor/${tutor.id}`)}
             >
               <CardContent className="p-6 text-center">
-                <Avatar className="w-20 h-20 mx-auto mb-4 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
-                  <AvatarImage src={tutor.profile_image_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xl">
-                    {getInitials(tutor.full_name)}
-                  </AvatarFallback>
-                </Avatar>
+                <TutorAvatar
+                  src={tutor.profile_image_url}
+                  name={tutor.full_name}
+                  className="w-20 h-20 mx-auto mb-4 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all"
+                  fallbackClassName="text-xl"
+                />
 
                 <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors">
                   {tutor.full_name || "Tutor"}
