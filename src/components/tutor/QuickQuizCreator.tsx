@@ -83,6 +83,7 @@ const QUIZ_TEMPLATES = [
   { name: "Quick 5", questions: 5, duration: 10, icon: Zap, description: "5 questions in 10 mins" },
   { name: "Standard", questions: 10, duration: 20, icon: BookOpen, description: "10 questions in 20 mins" },
   { name: "Full Test", questions: 20, duration: 40, icon: Clock, description: "20 questions in 40 mins" },
+  { name: "Exam Sim", questions: 50, duration: 60, icon: HelpCircle, description: "50 questions in 60 mins", isSimulation: true },
 ];
 
 export function QuickQuizCreator({
@@ -102,6 +103,7 @@ export function QuickQuizCreator({
   const [topics, setTopics] = useState<Topic[]>([]);
   const [durationMinutes, setDurationMinutes] = useState(20);
   const [targetQuestionCount, setTargetQuestionCount] = useState(10);
+  const [isSimulation, setIsSimulation] = useState(false);
   
   // Questions
   const [questions, setQuestions] = useState<Question[]>([{ ...emptyQuestion }]);
@@ -119,6 +121,7 @@ export function QuickQuizCreator({
       setQuestions([{ ...emptyQuestion }]);
       setCurrentIndex(0);
       setUseExisting(false);
+      setIsSimulation(false);
     }
   }, [open]);
 
@@ -159,6 +162,9 @@ export function QuickQuizCreator({
   const applyTemplate = (template: typeof QUIZ_TEMPLATES[0]) => {
     setTargetQuestionCount(template.questions);
     setDurationMinutes(template.duration);
+    if ('isSimulation' in template) {
+      setIsSimulation(template.isSimulation as boolean);
+    }
     toast.success(`Applied "${template.name}" template`);
   };
 
@@ -248,6 +254,7 @@ export function QuickQuizCreator({
           question_count: questionCount,
           is_premium: false,
           token_cost: 0,
+          is_simulation: isSimulation,
         })
         .select()
         .single();
@@ -408,6 +415,34 @@ export function QuickQuizCreator({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
+            </div>
+
+            {/* Quiz Type Toggle */}
+            <div className="flex items-center justify-between p-4 rounded-lg bg-accent/10 border border-accent/20">
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-accent" />
+                <div>
+                  <p className="font-medium text-sm">Exam Simulation Mode</p>
+                  <p className="text-xs text-muted-foreground">
+                    CBT-style timed exam with strict timing
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSimulation(!isSimulation)}
+                className={cn(
+                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                  isSimulation ? "bg-accent" : "bg-muted"
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                    isSimulation ? "translate-x-6" : "translate-x-1"
+                  )}
+                />
+              </button>
             </div>
 
             {/* Existing Questions Notice */}
@@ -653,6 +688,12 @@ export function QuickQuizCreator({
                   <p className="text-muted-foreground">Source</p>
                   <p className="font-medium">
                     {useExisting ? "Existing questions" : "New questions"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Quiz Type</p>
+                  <p className={cn("font-medium", isSimulation && "text-accent")}>
+                    {isSimulation ? "Exam Simulation" : "Practice Quiz"}
                   </p>
                 </div>
               </div>

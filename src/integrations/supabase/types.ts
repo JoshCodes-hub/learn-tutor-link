@@ -570,6 +570,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_premium: boolean
+          is_simulation: boolean
           question_count: number
           title: string
           token_cost: number
@@ -583,6 +584,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_premium?: boolean
+          is_simulation?: boolean
           question_count?: number
           title: string
           token_cost?: number
@@ -596,6 +598,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_premium?: boolean
+          is_simulation?: boolean
           question_count?: number
           title?: string
           token_cost?: number

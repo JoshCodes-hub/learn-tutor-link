@@ -22,8 +22,9 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Camera, User } from "lucide-react";
+import { Loader2, Camera, User, Clock, BookOpen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface Course {
   id: string;
@@ -55,6 +56,7 @@ export function CreateQuizDialog({
   const [questionCount, setQuestionCount] = useState("20");
   const [isPremium, setIsPremium] = useState(false);
   const [tokenCost, setTokenCost] = useState("10");
+  const [isSimulation, setIsSimulation] = useState(false);
   const [availableQuestions, setAvailableQuestions] = useState(0);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [tutorName, setTutorName] = useState<string | null>(null);
@@ -180,6 +182,7 @@ export function CreateQuizDialog({
           question_count: qCount,
           is_premium: isPremium,
           token_cost: isPremium ? parseInt(tokenCost) : 0,
+          is_simulation: isSimulation,
         })
         .select()
         .single();
@@ -231,6 +234,7 @@ export function CreateQuizDialog({
     setQuestionCount("20");
     setIsPremium(false);
     setTokenCost("10");
+    setIsSimulation(false);
   };
 
   return (
@@ -239,9 +243,44 @@ export function CreateQuizDialog({
         <DialogHeader>
           <DialogTitle>Create New Quiz</DialogTitle>
           <DialogDescription>
-            Create a quiz from your uploaded questions.
+            Create a quiz from your uploaded questions. Choose between practice mode or exam simulation.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Quiz Type Selection */}
+        <div className="space-y-3">
+          <Label className="text-base font-semibold">Quiz Type</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setIsSimulation(false)}
+              className={cn(
+                "p-4 rounded-lg border-2 text-left transition-all hover:border-primary/50",
+                !isSimulation
+                  ? "border-primary bg-primary/5"
+                  : "border-border"
+              )}
+            >
+              <BookOpen className="w-5 h-5 text-primary mb-2" />
+              <p className="font-medium text-sm">Practice Quiz</p>
+              <p className="text-xs text-muted-foreground">Students can practice at their own pace</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsSimulation(true)}
+              className={cn(
+                "p-4 rounded-lg border-2 text-left transition-all hover:border-primary/50",
+                isSimulation
+                  ? "border-primary bg-primary/5"
+                  : "border-border"
+              )}
+            >
+              <Clock className="w-5 h-5 text-accent mb-2" />
+              <p className="font-medium text-sm">Exam Simulation</p>
+              <p className="text-xs text-muted-foreground">Timed CBT-style exam experience</p>
+            </button>
+          </div>
+        </div>
 
         {/* Tutor Profile Section */}
         <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg border border-border">
