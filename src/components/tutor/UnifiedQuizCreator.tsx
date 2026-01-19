@@ -148,12 +148,11 @@ export function UnifiedQuizCreator({
         }
       }
 
-      // Check existing questions
+      // Check existing questions (all questions are auto-approved)
       const { count } = await supabase
         .from("questions")
         .select("*", { count: "exact", head: true })
-        .eq("course_id", selectedCourseId)
-        .eq("is_approved", true);
+        .eq("course_id", selectedCourseId);
 
       setExistingQuestionCount(count || 0);
     };
@@ -332,13 +331,12 @@ export function UnifiedQuizCreator({
 
       if (quizError) throw quizError;
 
-      // Link questions to quiz
+      // Link questions to quiz (all questions are auto-approved)
       if (quiz) {
         const { data: availableQuestions, error: fetchError } = await supabase
           .from("questions")
           .select("id")
           .eq("course_id", finalCourseId)
-          .eq("is_approved", true)
           .limit(finalQuestionCount);
 
         if (fetchError) throw fetchError;
@@ -610,16 +608,16 @@ export function UnifiedQuizCreator({
             )}
 
             {/* Existing Questions Notice */}
-            {!createNewCourse && existingQuestionCount > 0 && (
+            {!createNewCourse && selectedCourseId && existingQuestionCount > 0 && (
               <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary mt-0.5" />
                   <div className="flex-1">
                     <p className="font-medium text-sm">
-                      {existingQuestionCount} questions available
+                      {existingQuestionCount} existing questions in this course
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Use existing questions or add new ones
+                      Reuse existing questions or add new ones
                     </p>
                     <Button
                       type="button"
