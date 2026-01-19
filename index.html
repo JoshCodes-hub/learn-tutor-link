@@ -2,13 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>OverraPrep AI – FUTA | AI-Powered CBT Exam Preparation</title>
     <meta name="description" content="Ace your FUTA CBT exams with AI-powered practice questions, instant explanations, and personalized learning paths. Join thousands of students preparing smarter." />
     <meta name="author" content="OverraPrep AI" />
     <meta name="keywords" content="FUTA, CBT, exam preparation, past questions, AI tutoring, online learning, Nigeria university, Federal University of Technology Akure" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0f9b8e" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="OverraPrep" />
+    <meta name="application-name" content="OverraPrep AI" />
+    <meta name="msapplication-TileColor" content="#0f9b8e" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/pwa-192x192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:title" content="OverraPrep AI – FUTA | AI-Powered CBT Exam Preparation" />
@@ -35,6 +53,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://hrzpnvnpzhryffhsjeuo.supabase.co" />
+    
+    <!-- Splash screens for iOS -->
+    <style>
+      /* Prevent pull-to-refresh on iOS */
+      html, body {
+        overscroll-behavior-y: none;
+      }
+    </style>
   </head>
 
   <body>
