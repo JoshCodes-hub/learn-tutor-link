@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock } from "lucide-react";
 
 interface Quiz {
   id: string;
@@ -25,6 +25,7 @@ interface Quiz {
   question_count: number;
   duration_minutes: number;
   is_active: boolean;
+  is_simulation?: boolean;
 }
 
 interface EditQuizDialogProps {
@@ -47,6 +48,7 @@ export function EditQuizDialog({
   const [isPremium, setIsPremium] = useState(false);
   const [tokenCost, setTokenCost] = useState("10");
   const [isActive, setIsActive] = useState(true);
+  const [isSimulation, setIsSimulation] = useState(false);
 
   useEffect(() => {
     if (quiz) {
@@ -56,6 +58,7 @@ export function EditQuizDialog({
       setIsPremium(quiz.is_premium);
       setTokenCost(quiz.token_cost.toString());
       setIsActive(quiz.is_active);
+      setIsSimulation(quiz.is_simulation || false);
     }
   }, [quiz]);
 
@@ -80,6 +83,7 @@ export function EditQuizDialog({
           is_premium: isPremium,
           token_cost: isPremium ? parseInt(tokenCost) : 0,
           is_active: isActive,
+          is_simulation: isSimulation,
         })
         .eq("id", quiz.id);
 
@@ -137,6 +141,23 @@ export function EditQuizDialog({
               max="180"
               value={durationMinutes}
               onChange={(e) => setDurationMinutes(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-accent/10 rounded-lg border border-accent/20">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-accent" />
+              <div>
+                <Label htmlFor="simulation">Exam Simulation</Label>
+                <p className="text-sm text-muted-foreground">
+                  CBT-style timed exam mode
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="simulation"
+              checked={isSimulation}
+              onCheckedChange={setIsSimulation}
             />
           </div>
 
