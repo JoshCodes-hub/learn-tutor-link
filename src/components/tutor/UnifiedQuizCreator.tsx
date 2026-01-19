@@ -30,12 +30,14 @@ import {
   GraduationCap,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2
+  CheckCircle2,
+  FileSpreadsheet
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { BulkQuestionImport } from "./BulkQuestionImport";
 
 interface Question {
   question_text: string;
@@ -102,6 +104,7 @@ export function UnifiedQuizCreator({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [existingQuestionCount, setExistingQuestionCount] = useState(0);
   const [useExistingQuestions, setUseExistingQuestions] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
 
   // Fetch existing courses
   useEffect(() => {
@@ -180,8 +183,22 @@ export function UnifiedQuizCreator({
       setQuestions([{ ...emptyQuestion }]);
       setCurrentIndex(0);
       setUseExistingQuestions(false);
+      setShowBulkImport(false);
     }
   }, [open]);
+
+  const handleBulkImport = (importedQuestions: Question[]) => {
+    setQuestions(prev => {
+      // If only one empty question, replace it
+      if (prev.length === 1 && !isQuestionComplete(prev[0])) {
+        return importedQuestions;
+      }
+      // Otherwise append to existing
+      return [...prev, ...importedQuestions];
+    });
+    setCurrentIndex(questions.length === 1 && !isQuestionComplete(questions[0]) ? 0 : questions.length);
+    setShowBulkImport(false);
+  };
 
   const updateQuestion = (field: keyof Question, value: string) => {
     const newQuestions = [...questions];
@@ -648,44 +665,66 @@ export function UnifiedQuizCreator({
 
         {step === "questions" && (
           <div className="space-y-4">
-            {/* Progress */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {completedQuestions} of {targetCount} questions
-                </span>
-                <span className="font-medium">{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
+            {/* Show Bulk Import Panel */}
+            {showBulkImport ? (
+              <BulkQuestionImport 
+                onImport={handleBulkImport}
+                onClose={() => setShowBulkImport(false)}
+              />
+            ) : (
+              <>
+                {/* Bulk Import Button */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowBulkImport(true)}
+                    className="flex-1"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                    Import from File (CSV/Excel)
+                  </Button>
+                </div>
 
-            {/* Question Pills */}
-            <div className="flex flex-wrap gap-2">
-              {questions.map((q, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setCurrentIndex(i)}
-                  className={cn(
-                    "w-8 h-8 rounded-full text-sm font-medium transition-all",
-                    currentIndex === i
-                      ? "bg-primary text-primary-foreground"
-                      : isQuestionComplete(q)
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={addQuestion}
-                className="w-8 h-8 rounded-full bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary transition-all flex items-center justify-center"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
+                {/* Progress */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {completedQuestions} of {targetCount} questions
+                    </span>
+                    <span className="font-medium">{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                </div>
+
+                {/* Question Pills */}
+                <div className="flex flex-wrap gap-2">
+                  {questions.map((q, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setCurrentIndex(i)}
+                      className={cn(
+                        "w-8 h-8 rounded-full text-sm font-medium transition-all",
+                        currentIndex === i
+                          ? "bg-primary text-primary-foreground"
+                          : isQuestionComplete(q)
+                          ? "bg-primary/20 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addQuestion}
+                    className="w-8 h-8 rounded-full bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary transition-all flex items-center justify-center"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
 
             {/* Current Question Form */}
             <div className="space-y-4 p-4 rounded-lg border bg-card">
@@ -789,6 +828,8 @@ export function UnifiedQuizCreator({
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
+              </>
+            )}
           </div>
         )}
 
