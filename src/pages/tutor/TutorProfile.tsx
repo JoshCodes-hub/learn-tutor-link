@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TutorAvatar from "@/components/tutor/TutorAvatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import logo from "@/assets/logo.png";
 import {
   BookOpen,
   Sparkles,
@@ -20,10 +23,10 @@ import {
   Coins,
   MessageSquare,
   Quote,
+  Heart,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useFavoriteTutors } from "@/hooks/useFavoriteTutors";
-import { Heart } from "lucide-react";
 
 interface TutorData {
   id: string;
@@ -305,12 +308,12 @@ const TutorProfile = () => {
         {/* Profile Header */}
         <div className="bg-card rounded-2xl border border-border p-6 md:p-8 mb-8">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-primary/20">
-              <AvatarImage src={tutor.profile_image_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl md:text-3xl font-bold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <TutorAvatar
+              src={tutor.profile_image_url}
+              name={tutor.full_name}
+              className="w-24 h-24 md:w-32 md:h-32 border-4 border-primary/20"
+              fallbackClassName="text-2xl md:text-3xl"
+            />
 
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">

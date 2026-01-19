@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TutorAvatar from "@/components/tutor/TutorAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SEO } from "@/components/seo/SEO";
+import { Skeleton } from "@/components/ui/skeleton";
+import logo from "@/assets/logo.png";
 import {
   Select,
   SelectContent,
@@ -337,12 +340,12 @@ const BrowseTutors = () => {
                     className="bg-card rounded-xl border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300 group"
                   >
                     <div className="flex items-start gap-4 mb-4">
-                      <Avatar className="w-16 h-16 border-2 border-primary/20 group-hover:border-primary/50 transition-colors">
-                        <AvatarImage src={tutor.profile_image_url || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
+                      <TutorAvatar
+                        src={tutor.profile_image_url}
+                        name={tutor.full_name}
+                        className="w-16 h-16 border-2 border-primary/20 group-hover:border-primary/50 transition-colors"
+                        fallbackClassName="text-lg"
+                      />
 
                       <div className="flex-1 min-w-0">
                         <h3 className="font-display font-semibold text-foreground group-hover:text-primary transition-colors truncate">

@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { RateQuizDialog } from "@/components/student/RateQuizDialog";
+import logo from "@/assets/logo.png";
 import {
   Trophy,
   Target,

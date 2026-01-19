@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useFavoriteTutorsList } from "@/hooks/useFavoriteTutors";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TutorAvatar from "@/components/tutor/TutorAvatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, BookOpen, Heart, Loader2 } from "lucide-react";
@@ -60,25 +60,18 @@ const FavoriteTutors = () => {
       <CardContent>
         <div className="space-y-3">
           {favorites.slice(0, 5).map((tutor) => {
-            const initials = tutor.full_name
-              ?.split(" ")
-              .map((n: string) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2) || "T";
-
             return (
               <Link
                 key={tutor.id}
                 to={`/tutor/${tutor.id}`}
                 className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
               >
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={tutor.profile_image_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <TutorAvatar
+                  src={tutor.profile_image_url}
+                  name={tutor.full_name}
+                  className="h-10 w-10"
+                  fallbackClassName="text-sm"
+                />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground truncate">
                     {tutor.full_name || "Tutor"}
