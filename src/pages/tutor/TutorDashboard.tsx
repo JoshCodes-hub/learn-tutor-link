@@ -30,6 +30,7 @@ import { DeleteQuizDialog } from "@/components/tutor/DeleteQuizDialog";
 import { UploadQuestionsDialog } from "@/components/tutor/UploadQuestionsDialog";
 import { WithdrawalRequestDialog } from "@/components/tutor/WithdrawalRequestDialog";
 import { QuickQuizCreator } from "@/components/tutor/QuickQuizCreator";
+import { UnifiedQuizCreator } from "@/components/tutor/UnifiedQuizCreator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,6 +93,7 @@ const TutorDashboard = () => {
   const [showUploadQuestions, setShowUploadQuestions] = useState(false);
   const [showWithdrawal, setShowWithdrawal] = useState(false);
   const [showQuickQuizCreator, setShowQuickQuizCreator] = useState(false);
+  const [showUnifiedQuizCreator, setShowUnifiedQuizCreator] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
@@ -294,40 +296,34 @@ const TutorDashboard = () => {
           </p>
         </div>
 
-        {/* Quick Quiz Creator Banner */}
-        {courses.length > 0 && (
-          <div className="mb-6 p-5 rounded-xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">Quick Quiz Creator</h3>
-                  <p className="text-sm text-muted-foreground">Create a quiz in under 2 minutes with our streamlined flow</p>
-                </div>
+        {/* Create Quiz/Exam Banner */}
+        <div className="mb-6 p-5 rounded-xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <GraduationCap className="w-6 h-6 text-primary" />
               </div>
-              <Button onClick={() => setShowQuickQuizCreator(true)} className="shrink-0">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Create Quiz Fast
-              </Button>
+              <div>
+                <h3 className="font-semibold text-foreground">Create Quiz or Exam</h3>
+                <p className="text-sm text-muted-foreground">Set up quizzes with questions, time limits, and more</p>
+              </div>
             </div>
+            <Button onClick={() => setShowUnifiedQuizCreator(true)} className="shrink-0">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Quiz or Exam
+            </Button>
           </div>
-        )}
+        </div>
 
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-3 mb-8">
-          <Button onClick={() => setShowCreateCourse(true)}>
+          <Button onClick={() => setShowUnifiedQuizCreator(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Create Course
+            Create Quiz or Exam
           </Button>
-          <Button variant="secondary" onClick={() => setShowQuickQuizCreator(true)} disabled={courses.length === 0}>
-            <Sparkles className="w-4 h-4 mr-2" />
-            Quick Quiz
-          </Button>
-          <Button variant="outline" onClick={() => setShowCreateQuiz(true)} disabled={courses.length === 0}>
-            <FileText className="w-4 h-4 mr-2" />
-            Advanced Quiz
+          <Button variant="outline" onClick={() => setShowCreateCourse(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Course
           </Button>
           <Button variant="outline" onClick={() => setShowUploadQuestions(true)} disabled={courses.length === 0}>
             <Plus className="w-4 h-4 mr-2" />
@@ -624,7 +620,13 @@ const TutorDashboard = () => {
           window.location.reload();
         }}
       />
-
+      <UnifiedQuizCreator
+        open={showUnifiedQuizCreator}
+        onOpenChange={setShowUnifiedQuizCreator}
+        onSuccess={() => {
+          window.location.reload();
+        }}
+      />
       <OnboardingDialog
         isOpen={showOnboarding}
         onComplete={completeOnboarding}
