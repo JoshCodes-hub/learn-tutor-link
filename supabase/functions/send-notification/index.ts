@@ -391,35 +391,58 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    const { subject, html } = getEmailContent(type, data);
+    // Try to send email, but don't fail if it doesn't work (in-app notification is primary)
+    let emailSent = false;
+    let emailError = null;
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "OverraPrep AI <onboarding@resend.dev>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
+    if (RESEND_API_KEY) {
+      try {
+        const { subject, html } = getEmailContent(type, data);
 
-    const emailResponse = await res.json();
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            from: "OverraPrep AI <onboarding@resend.dev>",
+            to: [to],
+            subject,
+            html,
+          }),
+        });
 
-    if (!res.ok) {
-      console.error("Resend API error:", emailResponse);
-      throw new Error(emailResponse.message || "Failed to send email");
+        const emailResponse = await res.json();
+
+        if (!res.ok) {
+          console.warn("Resend API error (non-fatal):", emailResponse);
+          emailError = emailResponse.message || "Failed to send email";
+        } else {
+          console.log("Email sent successfully:", emailResponse);
+          emailSent = true;
+        }
+      } catch (err: any) {
+        console.warn("Email sending failed (non-fatal):", err.message);
+        emailError = err.message;
+      }
+    } else {
+      console.warn("RESEND_API_KEY not configured, skipping email");
+      emailError = "Email not configured";
     }
 
-    console.log("Email sent successfully:", emailResponse);
-
-    return new Response(JSON.stringify({ success: true, data: emailResponse }), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        emailSent,
+        emailError,
+        message: emailSent ? "Notification sent with email" : "In-app notification sent (email skipped)"
+      }), 
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
   } catch (error: any) {
     console.error("Error sending notification:", error);
     return new Response(
