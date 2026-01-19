@@ -953,9 +953,6 @@ const StudentDashboard = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredQuizzes.map((quiz) => {
-                const isPurchased = purchasedQuizIds.has(quiz.id);
-                const needsPurchase = quiz.is_premium && !isPurchased;
-                
                 return (
                   <div
                     key={quiz.id}
@@ -967,19 +964,9 @@ const StudentDashboard = () => {
                           <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded">
                             {quiz.course?.code}
                           </span>
-                          {quiz.is_premium && (
-                            isPurchased ? (
-                              <span className="text-xs font-medium bg-success/10 text-success px-2 py-0.5 rounded flex items-center gap-1">
-                                <Unlock className="w-3 h-3" />
-                                Owned
-                              </span>
-                            ) : (
-                              <span className="text-xs font-medium bg-accent/10 text-accent px-2 py-0.5 rounded flex items-center gap-1">
-                                <Lock className="w-3 h-3" />
-                                {quiz.token_cost} tokens
-                              </span>
-                            )
-                          )}
+                          <span className="text-xs font-medium bg-success/10 text-success px-2 py-0.5 rounded flex items-center gap-1">
+                            Free
+                          </span>
                         </div>
                         <h3 className="font-display font-semibold text-foreground">{quiz.title}</h3>
                       </div>
@@ -1065,41 +1052,26 @@ const StudentDashboard = () => {
                       )}
                     </div>
 
-                    {needsPurchase ? (
+                    <div className="flex gap-2">
                       <Button
-                        variant="accent"
+                        variant="default"
                         size="sm"
-                        className="w-full"
-                        onClick={() => {
-                          setSelectedQuiz(quiz);
-                          setShowPurchaseQuiz(true);
-                        }}
+                        className="flex-1"
+                        onClick={() => navigate(`/quiz/${quiz.id}/practice`)}
                       >
-                        <Lock className="w-4 h-4 mr-1" />
-                        Unlock for {quiz.token_cost} tokens
+                        <Play className="w-4 h-4 mr-1" />
+                        Practice
                       </Button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => navigate(`/quiz/${quiz.id}/practice`)}
-                        >
-                          <Play className="w-4 h-4 mr-1" />
-                          Practice
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => navigate(`/quiz/${quiz.id}/simulation`)}
-                        >
-                          <Target className="w-4 h-4 mr-1" />
-                          CBT Mode
-                        </Button>
-                      </div>
-                    )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => navigate(`/quiz/${quiz.id}/simulation`)}
+                      >
+                        <Target className="w-4 h-4 mr-1" />
+                        CBT Mode
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
