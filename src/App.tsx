@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 // Eager load landing page for best LCP
 import Index from "./pages/Index";
@@ -43,6 +44,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <InstallPrompt />
       <BrowserRouter>
         <AuthProvider>
           <Suspense fallback={<LoadingSpinner />}>
