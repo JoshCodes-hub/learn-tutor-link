@@ -31,6 +31,7 @@ import { UploadQuestionsDialog } from "@/components/tutor/UploadQuestionsDialog"
 import { WithdrawalRequestDialog } from "@/components/tutor/WithdrawalRequestDialog";
 import { QuickQuizCreator } from "@/components/tutor/QuickQuizCreator";
 import { UnifiedQuizCreator } from "@/components/tutor/UnifiedQuizCreator";
+import QuestionReports from "@/components/tutor/QuestionReports";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -554,6 +555,11 @@ const TutorDashboard = () => {
               </table>
             </div>
           )}
+        </div>
+
+        {/* Question Reports Section */}
+        <div className="mb-8">
+          <QuestionReports />
         </div>
       </main>
 

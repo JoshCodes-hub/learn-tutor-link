@@ -15,6 +15,7 @@ import {
   Bookmark,
   BookmarkCheck
 } from "lucide-react";
+import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 
 interface Question {
   id: string;
@@ -52,6 +53,7 @@ const CBTSimulation = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
 
@@ -290,6 +292,14 @@ const CBTSimulation = () => {
                     <Flag className="w-4 h-4 mr-1" />
                     {flagged.has(currentQuestion?.id) ? "Flagged" : "Flag"}
                   </Button>
+                  {/* Report Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowReportDialog(true)}
+                  >
+                    <AlertTriangle className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
 
@@ -421,6 +431,16 @@ const CBTSimulation = () => {
           </div>
         </div>
       </div>
+
+      {/* Report Question Dialog */}
+      {currentQuestion && (
+        <ReportQuestionDialog
+          open={showReportDialog}
+          onOpenChange={setShowReportDialog}
+          questionId={currentQuestion.id}
+          questionText={currentQuestion.question_text}
+        />
+      )}
     </div>
   );
 };
