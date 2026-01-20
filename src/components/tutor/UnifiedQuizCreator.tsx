@@ -670,6 +670,8 @@ export function UnifiedQuizCreator({
               <BulkQuestionImport 
                 onImport={handleBulkImport}
                 onClose={() => setShowBulkImport(false)}
+                courseId={selectedCourseId}
+                tutorId={user?.id}
               />
             ) : (
               <>
