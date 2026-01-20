@@ -18,8 +18,10 @@ import {
   Lightbulb,
   Clock,
   Bookmark,
-  BookmarkCheck
+  BookmarkCheck,
+  AlertTriangle
 } from "lucide-react";
+import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 
 interface Question {
   id: string;
@@ -64,6 +66,7 @@ const QuizPractice = () => {
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [showReportDialog, setShowReportDialog] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -400,24 +403,37 @@ const QuizPractice = () => {
               </div>
               
               {/* Bookmark Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => currentQuestion && toggleBookmark(currentQuestion.id)}
-                className={isBookmarked(currentQuestion?.id || "") ? "text-primary" : "text-muted-foreground"}
-              >
-                {isBookmarked(currentQuestion?.id || "") ? (
-                  <>
-                    <BookmarkCheck className="w-4 h-4 mr-1" />
-                    Bookmarked
-                  </>
-                ) : (
-                  <>
-                    <Bookmark className="w-4 h-4 mr-1" />
-                    Bookmark
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => currentQuestion && toggleBookmark(currentQuestion.id)}
+                  className={isBookmarked(currentQuestion?.id || "") ? "text-primary" : "text-muted-foreground"}
+                >
+                  {isBookmarked(currentQuestion?.id || "") ? (
+                    <>
+                      <BookmarkCheck className="w-4 h-4 mr-1" />
+                      Bookmarked
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="w-4 h-4 mr-1" />
+                      Bookmark
+                    </>
+                  )}
+                </Button>
+                
+                {/* Report Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowReportDialog(true)}
+                  className="text-muted-foreground hover:text-accent"
+                >
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  Report
+                </Button>
+              </div>
             </div>
             
             {currentQuestion?.explanation && (
@@ -490,6 +506,16 @@ const QuizPractice = () => {
           <div className="hidden sm:block w-24" /> {/* Spacer for alignment on desktop */}
         </div>
       </main>
+
+      {/* Report Question Dialog */}
+      {currentQuestion && (
+        <ReportQuestionDialog
+          open={showReportDialog}
+          onOpenChange={setShowReportDialog}
+          questionId={currentQuestion.id}
+          questionText={currentQuestion.question_text}
+        />
+      )}
     </div>
   );
 };
