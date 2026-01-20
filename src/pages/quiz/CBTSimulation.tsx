@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useBookmarkedQuestions } from "@/hooks/useBookmarkedQuestions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +11,9 @@ import {
   Loader2,
   Clock,
   AlertTriangle,
-  Flag
+  Flag,
+  Bookmark,
+  BookmarkCheck
 } from "lucide-react";
 
 interface Question {
@@ -38,6 +41,7 @@ const CBTSimulation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
+  const { isBookmarked, toggleBookmark } = useBookmarkedQuestions();
   
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -264,14 +268,29 @@ const CBTSimulation = () => {
                 <span className="text-sm font-medium text-muted-foreground">
                   Question {currentIndex + 1} of {questions.length}
                 </span>
-                <Button
-                  variant={flagged.has(currentQuestion?.id) ? "destructive" : "outline"}
-                  size="sm"
-                  onClick={() => currentQuestion && toggleFlag(currentQuestion.id)}
-                >
-                  <Flag className="w-4 h-4 mr-1" />
-                  {flagged.has(currentQuestion?.id) ? "Flagged" : "Flag"}
-                </Button>
+                <div className="flex items-center gap-2">
+                  {/* Bookmark Button */}
+                  <Button
+                    variant={isBookmarked(currentQuestion?.id || "") ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => currentQuestion && toggleBookmark(currentQuestion.id)}
+                  >
+                    {isBookmarked(currentQuestion?.id || "") ? (
+                      <BookmarkCheck className="w-4 h-4" />
+                    ) : (
+                      <Bookmark className="w-4 h-4" />
+                    )}
+                  </Button>
+                  {/* Flag Button */}
+                  <Button
+                    variant={flagged.has(currentQuestion?.id) ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={() => currentQuestion && toggleFlag(currentQuestion.id)}
+                  >
+                    <Flag className="w-4 h-4 mr-1" />
+                    {flagged.has(currentQuestion?.id) ? "Flagged" : "Flag"}
+                  </Button>
+                </div>
               </div>
 
               <h2 className="font-display text-xl font-semibold text-foreground mb-6 leading-relaxed">
