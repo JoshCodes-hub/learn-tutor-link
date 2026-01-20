@@ -51,6 +51,7 @@ const ReportQuestionDialog = ({
     setIsSubmitting(true);
 
     try {
+      // Insert the report
       const { error } = await supabase.from("question_reports").insert({
         question_id: questionId,
         reporter_id: user.id,
@@ -59,6 +60,42 @@ const ReportQuestionDialog = ({
       });
 
       if (error) throw error;
+
+      // Get the question details and tutor info for notification
+      const { data: questionData } = await supabase
+        .from("questions")
+        .select("tutor_id, question_text")
+        .eq("id", questionId)
+        .single();
+
+      if (questionData?.tutor_id) {
+        // Get tutor's profile for email
+        const { data: tutorProfile } = await supabase
+          .from("profiles")
+          .select("email, full_name")
+          .eq("id", questionData.tutor_id)
+          .single();
+
+        if (tutorProfile) {
+          const reasonLabel = REPORT_REASONS.find(r => r.value === reason)?.label || reason;
+          
+          // Send email notification to tutor
+          await supabase.functions.invoke("send-notification", {
+            body: {
+              type: "question_reported",
+              to: tutorProfile.email,
+              userId: questionData.tutor_id,
+              data: {
+                tutorName: tutorProfile.full_name || "Tutor",
+                questionText: questionData.question_text,
+                reason: reasonLabel,
+                description: description.trim() || null,
+                dashboardUrl: `${window.location.origin}/tutor/dashboard`,
+              },
+            },
+          });
+        }
+      }
 
       toast.success("Report submitted successfully", {
         description: "The tutor will review your feedback.",

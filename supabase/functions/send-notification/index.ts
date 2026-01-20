@@ -11,7 +11,7 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  type: "purchase_confirmation" | "application_approved" | "application_rejected" | "withdrawal_approved" | "withdrawal_rejected" | "quiz_purchased" | "welcome";
+  type: "purchase_confirmation" | "application_approved" | "application_rejected" | "withdrawal_approved" | "withdrawal_rejected" | "quiz_purchased" | "welcome" | "question_reported";
   to: string;
   data: Record<string, any>;
   userId?: string;
@@ -65,6 +65,13 @@ const getNotificationContent = (type: string, data: Record<string, any>): { titl
         message: `You've received 50 free tokens to get started. Begin your exam preparation journey today!`,
         notificationType: "info",
         link: "/dashboard",
+      };
+    case "question_reported":
+      return {
+        title: "New Question Report",
+        message: `A student has reported an issue with one of your questions: ${data.reason}`,
+        notificationType: "warning",
+        link: "/tutor/dashboard",
       };
     default:
       return {
@@ -343,6 +350,44 @@ const getEmailContent = (type: string, data: Record<string, any>) => {
             </div>
             
             <p style="color: #666;">Best of luck with your exams!<br>The OverraPrep AI Team</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} OverraPrep AI - FUTA. All rights reserved.
+            </p>
+          </div>
+        `,
+      };
+
+    case "question_reported":
+      return {
+        subject: "New Question Report - OverraPrep AI",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #8B5CF6; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">FUTA Exam Preparation Platform</p>
+            </div>
+            
+            <h2 style="color: #f59e0b;">⚠️ New Question Report</h2>
+            
+            <p>Hi ${data.tutorName},</p>
+            
+            <p>A student has reported an issue with one of your questions. Please review it at your earliest convenience.</p>
+            
+            <div style="background: #fef3cd; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>Question:</strong></p>
+              <p style="margin: 0 0 15px 0; color: #333; font-style: italic;">"${data.questionText.substring(0, 150)}${data.questionText.length > 150 ? '...' : ''}"</p>
+              <p style="margin: 0 0 10px 0;"><strong>Reason:</strong> ${data.reason}</p>
+              ${data.description ? `<p style="margin: 0;"><strong>Details:</strong> ${data.description}</p>` : ''}
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${data.dashboardUrl}" style="background: #8B5CF6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">Review Report</a>
+            </div>
+            
+            <p style="color: #666; font-size: 14px;">Addressing student feedback helps maintain the quality of your content and improves the learning experience.</p>
             
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             
