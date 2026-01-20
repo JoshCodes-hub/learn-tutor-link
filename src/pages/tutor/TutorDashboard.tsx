@@ -33,6 +33,7 @@ import { QuickQuizCreator } from "@/components/tutor/QuickQuizCreator";
 import { UnifiedQuizCreator } from "@/components/tutor/UnifiedQuizCreator";
 import QuestionReports from "@/components/tutor/QuestionReports";
 import TutorAnalytics from "@/components/tutor/TutorAnalytics";
+import QuizManagement from "@/components/tutor/QuizManagement";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -444,118 +445,9 @@ const TutorDashboard = () => {
           )}
         </div>
 
-        {/* Quizzes Section */}
+        {/* Quiz Management Section */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-xl font-bold text-foreground">Your Quizzes</h2>
-            <Button variant="ghost" size="sm" onClick={() => setShowCreateQuiz(true)}>
-              <Plus className="w-4 h-4 mr-1" />
-              Create Quiz
-            </Button>
-          </div>
-
-          {quizzes.length === 0 ? (
-            <div className="bg-muted/30 rounded-xl p-8 text-center">
-              <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-foreground font-medium mb-2">No quizzes yet</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create a quiz from your uploaded questions.
-              </p>
-              <Button onClick={() => setShowCreateQuiz(true)} disabled={courses.length === 0}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Quiz
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-              <table className="w-full min-w-[800px]">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Quiz</th>
-                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Course</th>
-                    <th className="text-center py-3 px-4 font-medium text-muted-foreground">Questions</th>
-                    <th className="text-center py-3 px-4 font-medium text-muted-foreground">Price</th>
-                    <th className="text-center py-3 px-4 font-medium text-muted-foreground">Attempts</th>
-                    <th className="text-center py-3 px-4 font-medium text-muted-foreground">Earnings</th>
-                    <th className="text-center py-3 px-4 font-medium text-muted-foreground">Status</th>
-                    <th className="text-center py-3 px-4 font-medium text-muted-foreground">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {quizzes.map((quiz) => (
-                    <tr key={quiz.id} className="border-b border-border hover:bg-muted/30">
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="font-medium text-foreground">{quiz.title}</p>
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {quiz.description || "No description"}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-xs font-medium bg-primary/10 text-primary px-2 py-0.5 rounded">
-                          {quiz.course?.code}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">{quiz.question_count}</td>
-                      <td className="py-3 px-4 text-center">
-                        {quiz.is_premium ? (
-                          <span className="text-accent font-medium">{quiz.token_cost} tokens</span>
-                        ) : (
-                          <span className="text-muted-foreground">Free</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center font-medium">{quiz.attempts_count}</td>
-                      <td className="py-3 px-4 text-center font-medium text-accent">
-                        {quiz.is_premium ? quiz.attempts_count * quiz.token_cost : 0}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span
-                          className={`text-xs font-medium px-2 py-1 rounded-full ${
-                            quiz.is_active
-                              ? "bg-success/10 text-success"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {quiz.is_active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedQuiz(quiz);
-                                setShowEditQuiz(true);
-                              }}
-                            >
-                              <Pencil className="w-4 h-4 mr-2" />
-                              Edit Quiz
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => {
-                                setSelectedQuiz(quiz);
-                                setShowDeleteQuiz(true);
-                              }}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete Quiz
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <QuizManagement />
         </div>
 
         {/* Analytics Dashboard */}
