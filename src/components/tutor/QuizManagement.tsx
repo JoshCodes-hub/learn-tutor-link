@@ -682,42 +682,46 @@ const QuizManagement = () => {
 
           {/* Bulk Actions Bar */}
           {selectedQuizzes.size > 0 && (
-            <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg border border-primary/20">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-primary/10 rounded-lg border border-primary/20">
               <span className="text-sm font-medium">
                 {selectedQuizzes.size} selected
               </span>
-              <div className="flex gap-2 ml-auto">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:ml-auto">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleBulkActivate}
                   disabled={isBulkActioning}
+                  className="flex-1 sm:flex-none"
                 >
                   <CheckCircle className="w-4 h-4 mr-1" />
-                  Activate
+                  <span className="hidden xs:inline">Activate</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleBulkDeactivate}
                   disabled={isBulkActioning}
+                  className="flex-1 sm:flex-none"
                 >
                   <EyeOff className="w-4 h-4 mr-1" />
-                  Deactivate
+                  <span className="hidden xs:inline">Deactivate</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   onClick={() => setShowBulkDeleteConfirm(true)}
                   disabled={isBulkActioning}
+                  className="flex-1 sm:flex-none"
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
-                  Delete
+                  <span className="hidden xs:inline">Delete</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => setSelectedQuizzes(new Set())}
+                  className="flex-1 sm:flex-none"
                 >
                   Cancel
                 </Button>
@@ -748,103 +752,108 @@ const QuizManagement = () => {
               {filteredQuizzes.map((quiz) => (
                 <div
                   key={quiz.id}
-                  className={`flex items-center gap-3 p-4 rounded-lg border transition-colors ${
+                  className={`flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 rounded-lg border transition-colors ${
                     selectedQuizzes.has(quiz.id)
                       ? "bg-primary/5 border-primary/30"
                       : "bg-muted/30 border-border hover:border-primary/30"
                   }`}
                 >
-                  <Checkbox
-                    checked={selectedQuizzes.has(quiz.id)}
-                    onCheckedChange={(checked) => handleSelectQuiz(quiz.id, checked as boolean)}
-                  />
+                  <div className="flex items-start sm:items-center gap-3 w-full sm:w-auto">
+                    <Checkbox
+                      checked={selectedQuizzes.has(quiz.id)}
+                      onCheckedChange={(checked) => handleSelectQuiz(quiz.id, checked as boolean)}
+                      className="mt-1 sm:mt-0"
+                    />
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h4 className="font-medium truncate">{quiz.title}</h4>
-                      {quiz.is_simulation && (
-                        <Badge variant="secondary" className="shrink-0">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Simulation
-                        </Badge>
-                      )}
-                      {quiz.is_premium && (
-                        <Badge className="shrink-0 bg-accent text-accent-foreground">
-                          <Coins className="w-3 h-3 mr-1" />
-                          {quiz.token_cost}
-                        </Badge>
-                      )}
-                      <Badge variant={quiz.is_active ? "default" : "outline"} className="shrink-0">
-                        {quiz.is_active ? "Active" : "Inactive"}
-                      </Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start sm:items-center gap-2 mb-1 flex-wrap">
+                        <h4 className="font-medium text-sm sm:text-base break-words">{quiz.title}</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {quiz.is_simulation && (
+                            <Badge variant="secondary" className="shrink-0 text-xs">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Simulation
+                            </Badge>
+                          )}
+                          {quiz.is_premium && (
+                            <Badge className="shrink-0 text-xs bg-accent text-accent-foreground">
+                              <Coins className="w-3 h-3 mr-1" />
+                              {quiz.token_cost}
+                            </Badge>
+                          )}
+                          <Badge variant={quiz.is_active ? "default" : "outline"} className="shrink-0 text-xs">
+                            {quiz.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          {quiz.course.code}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          {quiz.question_count} Q
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          {quiz.duration_minutes} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          {quiz.attempts_count} attempts
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="w-3.5 h-3.5" />
-                        {quiz.course.code}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FileText className="w-3.5 h-3.5" />
-                        {quiz.question_count} questions
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        {quiz.duration_minutes} min
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5" />
-                        {quiz.attempts_count} attempts
-                      </span>
-                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="shrink-0">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleManageQuestions(quiz)}>
+                          <Settings className="w-4 h-4 mr-2" />
+                          Manage Questions
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditQuiz(quiz)}>
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Edit Quiz
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setDuplicatingQuiz(quiz);
+                            setDuplicateTitle(`${quiz.title} (Copy)`);
+                          }}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleToggleActive(quiz)}>
+                          {quiz.is_active ? (
+                            <>
+                              <EyeOff className="w-4 h-4 mr-2" />
+                              Deactivate
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Activate
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setDeletingQuiz(quiz)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleManageQuestions(quiz)}>
-                        <Settings className="w-4 h-4 mr-2" />
-                        Manage Questions
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEditQuiz(quiz)}>
-                        <Pencil className="w-4 h-4 mr-2" />
-                        Edit Quiz
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDuplicatingQuiz(quiz);
-                          setDuplicateTitle(`${quiz.title} (Copy)`);
-                        }}
-                      >
-                        <Copy className="w-4 h-4 mr-2" />
-                        Duplicate
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleToggleActive(quiz)}>
-                        {quiz.is_active ? (
-                          <>
-                            <EyeOff className="w-4 h-4 mr-2" />
-                            Deactivate
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Activate
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setDeletingQuiz(quiz)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               ))}
             </div>
@@ -941,14 +950,14 @@ const QuizManagement = () => {
 
       {/* Manage Questions Dialog */}
       <Dialog open={!!managingQuiz} onOpenChange={() => setManagingQuiz(null)}>
-        <DialogContent className="sm:max-w-[900px] max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Manage Questions: {managingQuiz?.title}
+        <DialogContent className="w-[95vw] max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="truncate">Manage: {managingQuiz?.title}</span>
             </DialogTitle>
-            <DialogDescription>
-              Drag to reorder, add new questions, or remove existing ones
+            <DialogDescription className="text-xs sm:text-sm">
+              Drag to reorder, add or remove questions
             </DialogDescription>
           </DialogHeader>
 
@@ -957,98 +966,186 @@ const QuizManagement = () => {
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Current Questions - Sortable */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Current Questions ({quizQuestions.length})</h4>
-                </div>
-                <ScrollArea className="h-[400px] pr-4">
-                  {quizQuestions.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>No questions in this quiz</p>
-                      <p className="text-sm">Add questions from the right panel</p>
+            <Tabs defaultValue="current" className="flex-1 flex flex-col overflow-hidden">
+              <TabsList className="grid w-full grid-cols-2 shrink-0 md:hidden">
+                <TabsTrigger value="current">Current ({quizQuestions.length})</TabsTrigger>
+                <TabsTrigger value="available">Available</TabsTrigger>
+              </TabsList>
+              
+              <div className="flex-1 overflow-hidden">
+                {/* Mobile: Tabs view */}
+                <div className="md:hidden h-full">
+                  <TabsContent value="current" className="h-full mt-2">
+                    <ScrollArea className="h-[50vh]">
+                      {quizQuestions.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No questions in this quiz</p>
+                          <p className="text-sm">Switch to Available tab to add</p>
+                        </div>
+                      ) : (
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <SortableContext
+                            items={quizQuestions.map((q) => q.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="space-y-2 pr-4">
+                              {quizQuestions.map((item, index) => (
+                                <SortableQuestionItem
+                                  key={item.id}
+                                  item={item}
+                                  index={index}
+                                  onRemove={handleRemoveQuestion}
+                                />
+                              ))}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
+                      )}
+                    </ScrollArea>
+                  </TabsContent>
+                  <TabsContent value="available" className="h-full mt-2 space-y-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search questions..."
+                        value={questionSearchQuery}
+                        onChange={(e) => setQuestionSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
                     </div>
-                  ) : (
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={quizQuestions.map((q) => q.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        <div className="space-y-2">
-                          {quizQuestions.map((item, index) => (
-                            <SortableQuestionItem
-                              key={item.id}
-                              item={item}
-                              index={index}
-                              onRemove={handleRemoveQuestion}
-                            />
+                    <ScrollArea className="h-[45vh]">
+                      {filteredAvailableQuestions.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p className="text-sm">No available questions</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2 pr-4">
+                          {filteredAvailableQuestions.map((question) => (
+                            <div
+                              key={question.id}
+                              className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border hover:border-primary/30 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm line-clamp-2">{question.question_text}</p>
+                                <Badge variant="outline" className="text-xs mt-1">
+                                  {question.difficulty}
+                                </Badge>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="shrink-0 text-primary hover:text-primary"
+                                onClick={() => handleAddQuestion(question)}
+                              >
+                                <Plus className="w-4 h-4" />
+                              </Button>
+                            </div>
                           ))}
                         </div>
-                      </SortableContext>
-                    </DndContext>
-                  )}
-                </ScrollArea>
-              </div>
+                      )}
+                    </ScrollArea>
+                  </TabsContent>
+                </div>
 
-              {/* Available Questions */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Available Questions</h4>
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search questions..."
-                    value={questionSearchQuery}
-                    onChange={(e) => setQuestionSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <ScrollArea className="h-[360px] pr-4">
-                  {filteredAvailableQuestions.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p className="text-sm">No available questions</p>
+                {/* Desktop: Side-by-side view */}
+                <div className="hidden md:grid md:grid-cols-2 gap-4 h-full">
+                  {/* Current Questions - Sortable */}
+                  <div className="space-y-3 flex flex-col">
+                    <div className="flex items-center justify-between shrink-0">
+                      <h4 className="font-medium">Current Questions ({quizQuestions.length})</h4>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {filteredAvailableQuestions.map((question) => (
-                        <div
-                          key={question.id}
-                          className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border hover:border-primary/30 transition-colors"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm line-clamp-2">{question.question_text}</p>
-                            <Badge variant="outline" className="text-xs mt-1">
-                              {question.difficulty}
-                            </Badge>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="shrink-0 text-success hover:text-success"
-                            onClick={() => handleAddQuestion(question)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                    <ScrollArea className="flex-1 h-[400px] pr-4">
+                      {quizQuestions.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No questions in this quiz</p>
+                          <p className="text-sm">Add questions from the right panel</p>
                         </div>
-                      ))}
+                      ) : (
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <SortableContext
+                            items={quizQuestions.map((q) => q.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="space-y-2">
+                              {quizQuestions.map((item, index) => (
+                                <SortableQuestionItem
+                                  key={item.id}
+                                  item={item}
+                                  index={index}
+                                  onRemove={handleRemoveQuestion}
+                                />
+                              ))}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
+                      )}
+                    </ScrollArea>
+                  </div>
+
+                  {/* Available Questions */}
+                  <div className="space-y-3 flex flex-col">
+                    <div className="flex items-center justify-between shrink-0">
+                      <h4 className="font-medium">Available Questions</h4>
                     </div>
-                  )}
-                </ScrollArea>
+                    <div className="relative shrink-0">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search questions..."
+                        value={questionSearchQuery}
+                        onChange={(e) => setQuestionSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                    <ScrollArea className="flex-1 h-[360px] pr-4">
+                      {filteredAvailableQuestions.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p className="text-sm">No available questions</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {filteredAvailableQuestions.map((question) => (
+                            <div
+                              key={question.id}
+                              className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg border border-border hover:border-primary/30 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm line-clamp-2">{question.question_text}</p>
+                                <Badge variant="outline" className="text-xs mt-1">
+                                  {question.difficulty}
+                                </Badge>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="shrink-0 text-primary hover:text-primary"
+                                onClick={() => handleAddQuestion(question)}
+                              >
+                                <Plus className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+                  </div>
+                </div>
               </div>
-            </div>
+            </Tabs>
           )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setManagingQuiz(null)}>
+          <DialogFooter className="shrink-0 flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setManagingQuiz(null)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={handleSaveQuestions} disabled={savingQuestions}>
+            <Button onClick={handleSaveQuestions} disabled={savingQuestions} className="w-full sm:w-auto">
               {savingQuestions && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               <Check className="w-4 h-4 mr-2" />
               Save Questions
