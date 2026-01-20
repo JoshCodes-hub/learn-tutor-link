@@ -32,6 +32,7 @@ import { WithdrawalRequestDialog } from "@/components/tutor/WithdrawalRequestDia
 import { QuickQuizCreator } from "@/components/tutor/QuickQuizCreator";
 import { UnifiedQuizCreator } from "@/components/tutor/UnifiedQuizCreator";
 import QuestionReports from "@/components/tutor/QuestionReports";
+import TutorAnalytics from "@/components/tutor/TutorAnalytics";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -555,6 +556,11 @@ const TutorDashboard = () => {
               </table>
             </div>
           )}
+        </div>
+
+        {/* Analytics Dashboard */}
+        <div className="mb-8">
+          <TutorAnalytics />
         </div>
 
         {/* Question Reports Section */}
