@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X, GraduationCap, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import TutorApplicationDialog from "@/components/landing/TutorApplicationDialog";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
@@ -10,9 +10,18 @@ import logo from "@/assets/logo.png";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showTutorDialog, setShowTutorDialog] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isLoading, hasRole } = useAuth();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
     { name: "Features", href: "#features" },
@@ -25,10 +34,8 @@ const Navbar = () => {
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     
-    // If not on home page, navigate there first
     if (location.pathname !== "/") {
       navigate("/");
-      // Wait for navigation then scroll
       setTimeout(() => {
         const element = document.querySelector(href);
         if (element) {
@@ -44,31 +51,34 @@ const Navbar = () => {
     setIsMenuOpen(false);
   };
 
-  // Don't show "Become a Tutor" if user is already a tutor or admin
   const showTutorButton = !hasRole("tutor") && !hasRole("admin");
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border">
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-card/90 backdrop-blur-xl shadow-lg shadow-foreground/5 border-b border-border/50' 
+          : 'bg-transparent'
+      }`}>
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 md:h-18">
             {/* Logo */}
             <Link to="/" className="flex items-center group">
               <img 
                 src={logo} 
                 alt="OverraPrep AI FUTA" 
-                className="h-10 w-auto object-contain"
+                className="h-9 md:h-10 w-auto object-contain transition-transform group-hover:scale-105"
               />
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link) => (
                 link.isRoute ? (
                   <Link
                     key={link.name}
                     to={link.href}
-                    className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200"
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/50 transition-all duration-200"
                   >
                     {link.name}
                   </Link>
@@ -77,7 +87,7 @@ const Navbar = () => {
                     key={link.name}
                     href={link.href}
                     onClick={(e) => handleSmoothScroll(e, link.href)}
-                    className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 cursor-pointer"
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/50 transition-all duration-200 cursor-pointer"
                   >
                     {link.name}
                   </a>
@@ -86,13 +96,13 @@ const Navbar = () => {
             </div>
 
             {/* Desktop CTA */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-3">
               {showTutorButton && (
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   size="sm" 
                   onClick={() => setShowTutorDialog(true)}
-                  className="gap-1.5"
+                  className="gap-1.5 text-muted-foreground hover:text-foreground"
                 >
                   <GraduationCap className="w-4 h-4" />
                   Become a Tutor
@@ -102,8 +112,14 @@ const Navbar = () => {
                 user ? (
                   <>
                     <NotificationCenter />
-                    <Button variant="hero" size="sm" onClick={() => navigate("/dashboard")}>
-                      Go to Dashboard
+                    <Button 
+                      variant="hero" 
+                      size="sm" 
+                      onClick={() => navigate("/dashboard")}
+                      className="shadow-md shadow-primary/20"
+                    >
+                      Dashboard
+                      <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </>
                 ) : (
@@ -111,8 +127,14 @@ const Navbar = () => {
                     <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
                       Sign In
                     </Button>
-                    <Button variant="hero" size="sm" onClick={() => navigate("/auth")}>
-                      Get Started Free
+                    <Button 
+                      variant="hero" 
+                      size="sm" 
+                      onClick={() => navigate("/auth")}
+                      className="shadow-md shadow-primary/20"
+                    >
+                      Get Started
+                      <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </>
                 )
@@ -121,23 +143,26 @@ const Navbar = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 text-foreground"
+              className="lg:hidden p-2 text-foreground rounded-lg hover:bg-muted/50 transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
 
           {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className="md:hidden py-4 border-t border-border animate-fade-in">
-              <div className="flex flex-col gap-4">
+          <div className={`lg:hidden overflow-hidden transition-all duration-300 ${
+            isMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}>
+            <div className="py-4 border-t border-border/50">
+              <div className="flex flex-col gap-1">
                 {navLinks.map((link) => (
                   link.isRoute ? (
                     <Link
                       key={link.name}
                       to={link.href}
-                      className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 py-2"
+                      className="px-4 py-3 text-muted-foreground hover:text-foreground font-medium transition-colors rounded-lg hover:bg-muted/50"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {link.name}
@@ -147,13 +172,13 @@ const Navbar = () => {
                       key={link.name}
                       href={link.href}
                       onClick={(e) => handleSmoothScroll(e, link.href)}
-                      className="text-muted-foreground hover:text-foreground font-medium transition-colors duration-200 py-2 cursor-pointer"
+                      className="px-4 py-3 text-muted-foreground hover:text-foreground font-medium transition-colors rounded-lg hover:bg-muted/50 cursor-pointer"
                     >
                       {link.name}
                     </a>
                   )
                 ))}
-                <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-border/50">
                   {showTutorButton && (
                     <Button 
                       variant="outline" 
@@ -167,7 +192,11 @@ const Navbar = () => {
                   {user ? (
                     <div className="flex items-center gap-2">
                       <NotificationCenter />
-                      <Button variant="hero" className="flex-1 justify-center" onClick={() => navigate("/dashboard")}>
+                      <Button 
+                        variant="hero" 
+                        className="flex-1 justify-center" 
+                        onClick={() => navigate("/dashboard")}
+                      >
                         Go to Dashboard
                       </Button>
                     </div>
@@ -184,7 +213,7 @@ const Navbar = () => {
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </nav>
 
