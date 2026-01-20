@@ -16,7 +16,8 @@ import {
   Trash2,
   Edit2,
   Eye,
-  FileDown
+  FileDown,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +54,14 @@ interface BulkQuestionImportProps {
 
 type ViewMode = "upload" | "preview" | "edit";
 
+interface ProcessingStatus {
+  stage: "reading" | "parsing" | "validating" | "complete";
+  progress: number;
+  message: string;
+  totalRows?: number;
+  processedRows?: number;
+}
+
 export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: BulkQuestionImportProps) {
   const [importedQuestions, setImportedQuestions] = useState<ImportedQuestion[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -61,6 +71,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState<ProcessingStatus | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const normalizeCorrectOption = (value: string): "A" | "B" | "C" | "D" | null => {
@@ -94,6 +105,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     setIsProcessing(true);
     setErrors([]);
     setImportedQuestions([]);
+    setProcessingStatus({ stage: "reading", progress: 0, message: "Reading file..." });
 
     try {
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
@@ -102,7 +114,16 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
         throw new Error("Please upload a CSV or Excel file (.csv, .xlsx, .xls)");
       }
 
+      // Stage 1: Reading file
+      setProcessingStatus({ stage: "reading", progress: 20, message: `Reading ${file.name}...` });
+      
       const data = await file.arrayBuffer();
+      
+      setProcessingStatus({ stage: "parsing", progress: 40, message: "Parsing spreadsheet data..." });
+      
+      // Small delay to show progress
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const workbook = XLSX.read(data, { type: "array" });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
@@ -112,11 +133,35 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
         throw new Error("The file appears to be empty");
       }
 
+      setProcessingStatus({ 
+        stage: "validating", 
+        progress: 60, 
+        message: `Validating ${jsonData.length} rows...`,
+        totalRows: jsonData.length,
+        processedRows: 0
+      });
+
       const questions: ImportedQuestion[] = [];
       const parseErrors: string[] = [];
 
-      jsonData.forEach((row: any, index: number) => {
+      // Process rows with progress updates
+      for (let index = 0; index < jsonData.length; index++) {
+        const row = jsonData[index] as any;
         const rowNum = index + 2;
+
+        // Update progress every 10 rows or on the last row
+        if (index % 10 === 0 || index === jsonData.length - 1) {
+          const validationProgress = 60 + ((index / jsonData.length) * 35);
+          setProcessingStatus({ 
+            stage: "validating", 
+            progress: validationProgress, 
+            message: `Validating row ${index + 1} of ${jsonData.length}...`,
+            totalRows: jsonData.length,
+            processedRows: index + 1
+          });
+          // Small yield to allow UI to update
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
 
         const questionText = row.question_text || row.question || row.Question || row["Question Text"] || "";
         const optionA = row.option_a || row.Option_A || row["Option A"] || row.A || "";
@@ -129,17 +174,17 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
 
         if (!String(questionText).trim()) {
           parseErrors.push(`Row ${rowNum}: Missing question text`);
-          return;
+          continue;
         }
         if (!String(optionA).trim() || !String(optionB).trim() || !String(optionC).trim() || !String(optionD).trim()) {
           parseErrors.push(`Row ${rowNum}: Missing one or more options`);
-          return;
+          continue;
         }
 
         const normalizedCorrect = normalizeCorrectOption(correctOption);
         if (!normalizedCorrect) {
           parseErrors.push(`Row ${rowNum}: Invalid correct option "${correctOption}" (must be A, B, C, or D)`);
-          return;
+          continue;
         }
 
         questions.push({
@@ -152,6 +197,14 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
           explanation: String(explanation).trim(),
           difficulty: normalizeDifficulty(difficulty),
         });
+      }
+
+      setProcessingStatus({ 
+        stage: "complete", 
+        progress: 100, 
+        message: `Complete! ${questions.length} questions ready.`,
+        totalRows: jsonData.length,
+        processedRows: jsonData.length
       });
 
       setImportedQuestions(questions);
@@ -170,6 +223,8 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
       toast.error(error.message || "Failed to process file");
     } finally {
       setIsProcessing(false);
+      // Clear processing status after a short delay
+      setTimeout(() => setProcessingStatus(null), 1500);
     }
   };
 
@@ -443,10 +498,29 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
           </div>
         </div>
 
-        {isProcessing && (
-          <div className="p-4 rounded-lg bg-muted/30 text-center">
-            <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-            <p className="text-sm">Processing file...</p>
+        {isProcessing && processingStatus && (
+          <div className="p-4 rounded-lg bg-muted/30 space-y-3">
+            <div className="flex items-center gap-3">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">{processingStatus.message}</p>
+                {processingStatus.totalRows && (
+                  <p className="text-xs text-muted-foreground">
+                    {processingStatus.processedRows} of {processingStatus.totalRows} rows processed
+                  </p>
+                )}
+              </div>
+              <Badge variant="outline" className="capitalize">
+                {processingStatus.stage}
+              </Badge>
+            </div>
+            <Progress value={processingStatus.progress} className="h-2" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Reading</span>
+              <span>Parsing</span>
+              <span>Validating</span>
+              <span>Complete</span>
+            </div>
           </div>
         )}
 
