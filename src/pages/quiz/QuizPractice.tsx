@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useBookmarkedQuestions } from "@/hooks/useBookmarkedQuestions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +16,9 @@ import {
   XCircle,
   Brain,
   Lightbulb,
-  Clock
+  Clock,
+  Bookmark,
+  BookmarkCheck
 } from "lucide-react";
 
 interface Question {
@@ -48,6 +51,7 @@ const QuizPractice = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
+  const { isBookmarked, toggleBookmark } = useBookmarkedQuestions();
   
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -380,18 +384,40 @@ const QuizPractice = () => {
           <div className={`rounded-xl p-4 mb-6 ${
             isCorrect ? "bg-success/10 border border-success/20" : "bg-destructive/10 border border-destructive/20"
           }`}>
-            <div className="flex items-center gap-2 mb-2">
-              {isCorrect ? (
-                <>
-                  <CheckCircle2 className="w-5 h-5 text-success" />
-                  <span className="font-semibold text-success">Correct!</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="w-5 h-5 text-destructive" />
-                  <span className="font-semibold text-destructive">Incorrect</span>
-                </>
-              )}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                {isCorrect ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-success" />
+                    <span className="font-semibold text-success">Correct!</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-5 h-5 text-destructive" />
+                    <span className="font-semibold text-destructive">Incorrect</span>
+                  </>
+                )}
+              </div>
+              
+              {/* Bookmark Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => currentQuestion && toggleBookmark(currentQuestion.id)}
+                className={isBookmarked(currentQuestion?.id || "") ? "text-primary" : "text-muted-foreground"}
+              >
+                {isBookmarked(currentQuestion?.id || "") ? (
+                  <>
+                    <BookmarkCheck className="w-4 h-4 mr-1" />
+                    Bookmarked
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="w-4 h-4 mr-1" />
+                    Bookmark
+                  </>
+                )}
+              </Button>
             </div>
             
             {currentQuestion?.explanation && (

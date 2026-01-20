@@ -14,6 +14,7 @@ import { Achievements } from "@/components/student/Achievements";
 import { ReferralCard } from "@/components/student/ReferralCard";
 import { TeamCard } from "@/components/student/TeamCard";
 import FavoriteTutors from "@/components/student/FavoriteTutors";
+import BookmarkedQuestions from "@/components/student/BookmarkedQuestions";
 import { TeamChallenges } from "@/components/student/TeamChallenges";
 import { TeamChat } from "@/components/student/TeamChat";
 import { SEO } from "@/components/seo/SEO";
@@ -1077,6 +1078,11 @@ const StudentDashboard = () => {
               })}
             </div>
           )}
+        </div>
+
+        {/* Bookmarked Questions */}
+        <div className="mb-8">
+          <BookmarkedQuestions />
         </div>
 
         {/* Recent Activity */}
