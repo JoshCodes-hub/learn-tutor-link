@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Trash2,
   Edit2,
-  Eye
+  Eye,
+  FileDown
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImportedQuestion {
   question_text: string;
@@ -44,17 +46,21 @@ interface ImportedQuestion {
 interface BulkQuestionImportProps {
   onImport: (questions: ImportedQuestion[]) => void;
   onClose: () => void;
+  courseId?: string;
+  tutorId?: string;
 }
 
 type ViewMode = "upload" | "preview" | "edit";
 
-export function BulkQuestionImport({ onImport, onClose }: BulkQuestionImportProps) {
+export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: BulkQuestionImportProps) {
   const [importedQuestions, setImportedQuestions] = useState<ImportedQuestion[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("upload");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [previewIndex, setPreviewIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const normalizeCorrectOption = (value: string): "A" | "B" | "C" | "D" | null => {
@@ -174,6 +180,114 @@ export function BulkQuestionImport({ onImport, onClose }: BulkQuestionImportProp
     }
   };
 
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're leaving the drop zone entirely
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+      if (["csv", "xlsx", "xls"].includes(fileExtension || "")) {
+        processFile(file);
+      } else {
+        toast.error("Please upload a CSV or Excel file (.csv, .xlsx, .xls)");
+      }
+    }
+  }, []);
+
+  // Export existing questions
+  const exportQuestions = async (format: "csv" | "excel") => {
+    if (!courseId || !tutorId) {
+      toast.error("Course selection required to export questions");
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const { data: questions, error } = await supabase
+        .from("questions")
+        .select("question_text, option_a, option_b, option_c, option_d, correct_option, explanation, difficulty")
+        .eq("course_id", courseId)
+        .eq("tutor_id", tutorId);
+
+      if (error) throw error;
+
+      if (!questions || questions.length === 0) {
+        toast.error("No questions found to export");
+        return;
+      }
+
+      const exportData = questions.map(q => ({
+        question_text: q.question_text,
+        option_a: q.option_a,
+        option_b: q.option_b,
+        option_c: q.option_c,
+        option_d: q.option_d,
+        correct_option: q.correct_option,
+        explanation: q.explanation || "",
+        difficulty: q.difficulty,
+      }));
+
+      if (format === "excel") {
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
+        XLSX.writeFile(workbook, `questions_export_${new Date().toISOString().split("T")[0]}.xlsx`);
+      } else {
+        // CSV export
+        const headers = Object.keys(exportData[0]).join(",");
+        const rows = exportData.map(row => 
+          Object.values(row).map(val => {
+            const cellValue = String(val);
+            if (cellValue.includes(",") || cellValue.includes('"') || cellValue.includes("\n")) {
+              return `"${cellValue.replace(/"/g, '""')}"`;
+            }
+            return cellValue;
+          }).join(",")
+        );
+        const csvContent = [headers, ...rows].join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `questions_export_${new Date().toISOString().split("T")[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      toast.success(`Exported ${questions.length} questions!`);
+    } catch (error: any) {
+      console.error("Export error:", error);
+      toast.error(error.message || "Failed to export questions");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const downloadTemplate = () => {
     const templateData = [
       {
@@ -251,24 +365,65 @@ export function BulkQuestionImport({ onImport, onClose }: BulkQuestionImportProp
           </Button>
         </div>
 
-        <div className="p-3 rounded-lg bg-muted/50 border border-dashed">
-          <div className="flex items-center justify-between gap-4">
-            <div className="text-sm">
-              <p className="font-medium">Need a template?</p>
-              <p className="text-muted-foreground">Download our Excel template with sample questions</p>
+        {/* Template & Export Row */}
+        <div className="flex gap-2">
+          <div className="flex-1 p-3 rounded-lg bg-muted/50 border border-dashed">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-sm">
+                <p className="font-medium">Template</p>
+                <p className="text-xs text-muted-foreground">Download sample format</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={downloadTemplate}>
+                <Download className="w-4 h-4 mr-1" />
+                Get
+              </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={downloadTemplate}>
-              <Download className="w-4 h-4 mr-2" />
-              Template
-            </Button>
           </div>
+          
+          {courseId && tutorId && (
+            <div className="flex-1 p-3 rounded-lg bg-muted/50 border border-dashed">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm">
+                  <p className="font-medium">Export</p>
+                  <p className="text-xs text-muted-foreground">Download existing</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => exportQuestions("csv")}
+                    disabled={isExporting}
+                  >
+                    CSV
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => exportQuestions("excel")}
+                    disabled={isExporting}
+                  >
+                    Excel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label>Upload File (CSV or Excel)</Label>
           <div 
-            className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            className={cn(
+              "border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer",
+              isDragging 
+                ? "border-primary bg-primary/5 scale-[1.02]" 
+                : "hover:border-primary/50"
+            )}
             onClick={() => fileInputRef.current?.click()}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
           >
             <Input
               ref={fileInputRef}
@@ -277,8 +432,13 @@ export function BulkQuestionImport({ onImport, onClose }: BulkQuestionImportProp
               onChange={handleFileChange}
               className="hidden"
             />
-            <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-            <p className="text-sm font-medium">Click to upload or drag and drop</p>
+            <Upload className={cn(
+              "w-8 h-8 mx-auto mb-2 transition-colors",
+              isDragging ? "text-primary" : "text-muted-foreground"
+            )} />
+            <p className="text-sm font-medium">
+              {isDragging ? "Drop file here" : "Click to upload or drag and drop"}
+            </p>
             <p className="text-xs text-muted-foreground">CSV, XLSX, or XLS files</p>
           </div>
         </div>
