@@ -48,6 +48,7 @@ interface Question {
   correct_option: "A" | "B" | "C" | "D";
   explanation: string;
   difficulty: "easy" | "medium" | "hard";
+  image_url?: string;
 }
 
 interface UnifiedQuizCreatorProps {
@@ -65,6 +66,7 @@ const emptyQuestion: Question = {
   correct_option: "A",
   explanation: "",
   difficulty: "medium",
+  image_url: "",
 };
 
 export function UnifiedQuizCreator({
@@ -315,6 +317,7 @@ export function UnifiedQuizCreator({
           correct_option: q.correct_option,
           explanation: q.explanation.trim() || null,
           difficulty: q.difficulty,
+          image_url: q.image_url?.trim() || null,
           is_approved: true,
         }));
 
@@ -794,22 +797,53 @@ export function UnifiedQuizCreator({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Difficulty</Label>
-                <Select
-                  value={currentQuestion.difficulty}
-                  onValueChange={(v) => updateQuestion("difficulty", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Difficulty</Label>
+                  <Select
+                    value={currentQuestion.difficulty}
+                    onValueChange={(v) => updateQuestion("difficulty", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    Image URL 
+                    <Badge variant="outline" className="text-xs font-normal">Optional</Badge>
+                  </Label>
+                  <Input
+                    placeholder="https://example.com/diagram.png"
+                    value={currentQuestion.image_url || ""}
+                    onChange={(e) => updateQuestion("image_url", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Add image URL for questions with diagrams
+                  </p>
+                </div>
               </div>
+
+              {/* Image Preview */}
+              {currentQuestion.image_url && (
+                <div className="relative rounded-lg border overflow-hidden bg-muted/30">
+                  <img 
+                    src={currentQuestion.image_url} 
+                    alt="Question diagram"
+                    className="max-h-40 mx-auto object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Navigation */}
