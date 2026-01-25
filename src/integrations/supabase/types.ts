@@ -416,6 +416,7 @@ export type Database = {
           difficulty: string
           explanation: string | null
           id: string
+          image_url: string | null
           is_approved: boolean
           is_premium: boolean
           option_a: string
@@ -433,6 +434,7 @@ export type Database = {
           difficulty?: string
           explanation?: string | null
           id?: string
+          image_url?: string | null
           is_approved?: boolean
           is_premium?: boolean
           option_a: string
@@ -450,6 +452,7 @@ export type Database = {
           difficulty?: string
           explanation?: string | null
           id?: string
+          image_url?: string | null
           is_approved?: boolean
           is_premium?: boolean
           option_a?: string

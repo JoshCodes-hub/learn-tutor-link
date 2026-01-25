@@ -43,6 +43,7 @@ interface ImportedQuestion {
   correct_option: "A" | "B" | "C" | "D";
   explanation: string;
   difficulty: "easy" | "medium" | "hard";
+  image_url?: string;
 }
 
 interface BulkQuestionImportProps {
@@ -171,6 +172,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
         const correctOption = row.correct_option || row.correct || row.Correct || row["Correct Option"] || row.Answer || "";
         const explanation = row.explanation || row.Explanation || "";
         const difficulty = row.difficulty || row.Difficulty || "medium";
+        const imageUrl = row.image_url || row.Image_URL || row["Image URL"] || row.image || "";
 
         if (!String(questionText).trim()) {
           parseErrors.push(`Row ${rowNum}: Missing question text`);
@@ -196,6 +198,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
           correct_option: normalizedCorrect,
           explanation: String(explanation).trim(),
           difficulty: normalizeDifficulty(difficulty),
+          image_url: String(imageUrl).trim() || undefined,
         });
       }
 
@@ -272,7 +275,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     }
   }, []);
 
-  // Export existing questions
+  // Export existing questions with watermark
   const exportQuestions = async (format: "csv" | "excel") => {
     if (!courseId || !tutorId) {
       toast.error("Course selection required to export questions");
@@ -283,7 +286,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     try {
       const { data: questions, error } = await supabase
         .from("questions")
-        .select("question_text, option_a, option_b, option_c, option_d, correct_option, explanation, difficulty")
+        .select("question_text, option_a, option_b, option_c, option_d, correct_option, explanation, difficulty, image_url")
         .eq("course_id", courseId)
         .eq("tutor_id", tutorId);
 
@@ -294,24 +297,69 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
         return;
       }
 
-      const exportData = questions.map(q => ({
-        question_text: q.question_text,
-        option_a: q.option_a,
-        option_b: q.option_b,
-        option_c: q.option_c,
-        option_d: q.option_d,
-        correct_option: q.correct_option,
-        explanation: q.explanation || "",
-        difficulty: q.difficulty,
-      }));
+      // Add watermark row at the top
+      const watermarkRow = {
+        question_text: "📚 Exported from OverraPrep AI - FUTA | https://quiz-nest-ai.lovable.app",
+        option_a: "",
+        option_b: "",
+        option_c: "",
+        option_d: "",
+        correct_option: "",
+        explanation: `Export Date: ${new Date().toLocaleDateString()} | Total Questions: ${questions.length}`,
+        difficulty: "",
+        image_url: "",
+      };
+
+      const exportData = [
+        watermarkRow,
+        ...questions.map(q => ({
+          question_text: q.question_text,
+          option_a: q.option_a,
+          option_b: q.option_b,
+          option_c: q.option_c,
+          option_d: q.option_d,
+          correct_option: q.correct_option,
+          explanation: q.explanation || "",
+          difficulty: q.difficulty,
+          image_url: (q as any).image_url || "",
+        }))
+      ];
 
       if (format === "excel") {
         const worksheet = XLSX.utils.json_to_sheet(exportData);
+        
+        // Set column widths for better readability
+        worksheet['!cols'] = [
+          { wch: 50 }, // question_text
+          { wch: 25 }, // option_a
+          { wch: 25 }, // option_b
+          { wch: 25 }, // option_c
+          { wch: 25 }, // option_d
+          { wch: 10 }, // correct_option
+          { wch: 40 }, // explanation
+          { wch: 10 }, // difficulty
+          { wch: 40 }, // image_url
+        ];
+        
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
-        XLSX.writeFile(workbook, `questions_export_${new Date().toISOString().split("T")[0]}.xlsx`);
+        
+        // Add info sheet with watermark
+        const infoData = [
+          { info: "OverraPrep AI - FUTA" },
+          { info: "Quiz Question Export" },
+          { info: `Exported on: ${new Date().toLocaleString()}` },
+          { info: `Total Questions: ${questions.length}` },
+          { info: "https://quiz-nest-ai.lovable.app" },
+          { info: "" },
+          { info: "Note: The image_url column is optional. Use it only for questions that require diagrams or images." },
+        ];
+        const infoSheet = XLSX.utils.json_to_sheet(infoData);
+        XLSX.utils.book_append_sheet(workbook, infoSheet, "Info");
+        
+        XLSX.writeFile(workbook, `OverraPrep_Questions_${new Date().toISOString().split("T")[0]}.xlsx`);
       } else {
-        // CSV export
+        // CSV export with watermark
         const headers = Object.keys(exportData[0]).join(",");
         const rows = exportData.map(row => 
           Object.values(row).map(val => {
@@ -327,14 +375,14 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `questions_export_${new Date().toISOString().split("T")[0]}.csv`);
+        link.setAttribute("download", `OverraPrep_Questions_${new Date().toISOString().split("T")[0]}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }
 
-      toast.success(`Exported ${questions.length} questions!`);
+      toast.success(`Exported ${questions.length} questions with watermark!`);
     } catch (error: any) {
       console.error("Export error:", error);
       toast.error(error.message || "Failed to export questions");
@@ -344,34 +392,103 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
   };
 
   const downloadTemplate = () => {
+    // Watermark row
+    const watermarkRow = {
+      question_text: "📚 OverraPrep AI - FUTA Question Template | https://quiz-nest-ai.lovable.app",
+      option_a: "",
+      option_b: "",
+      option_c: "",
+      option_d: "",
+      correct_option: "",
+      explanation: "DELETE THIS ROW before importing. Fill in your questions below following the format.",
+      difficulty: "",
+      image_url: "(Optional) Add image URL for diagrams",
+    };
+
     const templateData = [
+      watermarkRow,
       {
-        question_text: "What is the capital of France?",
-        option_a: "London",
-        option_b: "Paris",
-        option_c: "Berlin",
-        option_d: "Madrid",
+        question_text: "What is the capital of Nigeria?",
+        option_a: "Lagos",
+        option_b: "Abuja",
+        option_c: "Kano",
+        option_d: "Port Harcourt",
         correct_option: "B",
-        explanation: "Paris is the capital and largest city of France.",
+        explanation: "Abuja became the capital of Nigeria on December 12, 1991, replacing Lagos.",
         difficulty: "easy",
+        image_url: "",
       },
       {
-        question_text: "Which planet is known as the Red Planet?",
-        option_a: "Venus",
-        option_b: "Jupiter",
-        option_c: "Mars",
-        option_d: "Saturn",
-        correct_option: "C",
-        explanation: "Mars appears red due to iron oxide on its surface.",
-        difficulty: "easy",
+        question_text: "In a simple pendulum experiment, the period T is related to the length L by which formula?",
+        option_a: "T = 2π√(L/g)",
+        option_b: "T = 2π√(g/L)",
+        option_c: "T = π√(L/g)",
+        option_d: "T = 2π(L/g)",
+        correct_option: "A",
+        explanation: "The period of a simple pendulum is T = 2π√(L/g), where g is the acceleration due to gravity.",
+        difficulty: "medium",
+        image_url: "https://example.com/pendulum-diagram.png",
+      },
+      {
+        question_text: "From the circuit diagram shown, calculate the total resistance when R1=4Ω and R2=6Ω are connected in parallel.",
+        option_a: "10Ω",
+        option_b: "2.4Ω",
+        option_c: "24Ω",
+        option_d: "1.5Ω",
+        correct_option: "B",
+        explanation: "For parallel resistors: 1/Rtotal = 1/R1 + 1/R2 = 1/4 + 1/6 = 5/12. Therefore Rtotal = 12/5 = 2.4Ω",
+        difficulty: "hard",
+        image_url: "https://example.com/parallel-circuit.png",
       },
     ];
 
     const worksheet = XLSX.utils.json_to_sheet(templateData);
+    
+    // Set column widths for better readability
+    worksheet['!cols'] = [
+      { wch: 60 }, // question_text
+      { wch: 25 }, // option_a
+      { wch: 25 }, // option_b
+      { wch: 25 }, // option_c
+      { wch: 25 }, // option_d
+      { wch: 12 }, // correct_option
+      { wch: 50 }, // explanation
+      { wch: 10 }, // difficulty
+      { wch: 45 }, // image_url
+    ];
+    
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
-    XLSX.writeFile(workbook, "question_import_template.xlsx");
-    toast.success("Template downloaded!");
+    
+    // Add instructions sheet
+    const instructionsData = [
+      { instruction: "📚 OverraPrep AI - FUTA" },
+      { instruction: "Question Import Template Instructions" },
+      { instruction: "" },
+      { instruction: "REQUIRED COLUMNS:" },
+      { instruction: "• question_text - The full question text" },
+      { instruction: "• option_a, option_b, option_c, option_d - Four answer options" },
+      { instruction: "• correct_option - The correct answer (A, B, C, or D)" },
+      { instruction: "" },
+      { instruction: "OPTIONAL COLUMNS:" },
+      { instruction: "• explanation - Explanation for the correct answer" },
+      { instruction: "• difficulty - easy, medium, or hard (defaults to medium)" },
+      { instruction: "• image_url - URL to an image/diagram for the question" },
+      { instruction: "" },
+      { instruction: "IMPORTANT NOTES:" },
+      { instruction: "1. Delete the first watermark row before importing" },
+      { instruction: "2. The image_url column is optional - use it only for questions with diagrams" },
+      { instruction: "3. Image URLs must be publicly accessible" },
+      { instruction: "4. Supported file formats: .xlsx, .xls, .csv" },
+      { instruction: "" },
+      { instruction: "Website: https://quiz-nest-ai.lovable.app" },
+    ];
+    const instructionsSheet = XLSX.utils.json_to_sheet(instructionsData);
+    instructionsSheet['!cols'] = [{ wch: 70 }];
+    XLSX.utils.book_append_sheet(workbook, instructionsSheet, "Instructions");
+    
+    XLSX.writeFile(workbook, "OverraPrep_Question_Template.xlsx");
+    toast.success("Template with 3 sample questions downloaded!");
   };
 
   const updateQuestion = (index: number, field: keyof ImportedQuestion, value: string) => {
@@ -549,7 +666,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
           <p className="font-medium mb-1">Required columns:</p>
           <p>question_text, option_a, option_b, option_c, option_d, correct_option (A/B/C/D)</p>
           <p className="mt-1 font-medium">Optional columns:</p>
-          <p>explanation, difficulty (easy/medium/hard)</p>
+          <p>explanation, difficulty (easy/medium/hard), image_url (for diagrams)</p>
         </div>
       </div>
     );
@@ -662,6 +779,20 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
               );
             })}
           </div>
+
+          {currentQuestion.image_url && (
+            <div className="relative rounded-lg border overflow-hidden bg-muted/30 p-2">
+              <p className="text-xs text-muted-foreground mb-1">📷 Question Image:</p>
+              <img 
+                src={currentQuestion.image_url} 
+                alt="Question diagram"
+                className="max-h-32 mx-auto object-contain rounded"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+          )}
 
           {currentQuestion.explanation && (
             <div className="p-2 rounded bg-muted/30 text-xs">
@@ -790,22 +921,51 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Difficulty</Label>
-              <Select
-                value={editQuestion.difficulty}
-                onValueChange={(v) => updateQuestion(editingIndex, "difficulty", v)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Difficulty</Label>
+                <Select
+                  value={editQuestion.difficulty}
+                  onValueChange={(v) => updateQuestion(editingIndex, "difficulty", v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  Image URL 
+                  <Badge variant="outline" className="text-xs font-normal">Optional</Badge>
+                </Label>
+                <Input
+                  value={editQuestion.image_url || ""}
+                  onChange={(e) => updateQuestion(editingIndex, "image_url", e.target.value)}
+                  placeholder="https://example.com/diagram.png"
+                />
+              </div>
             </div>
+
+            {/* Image Preview */}
+            {editQuestion.image_url && (
+              <div className="relative rounded-lg border overflow-hidden bg-muted/30 p-2">
+                <p className="text-xs text-muted-foreground mb-1">Image Preview:</p>
+                <img 
+                  src={editQuestion.image_url} 
+                  alt="Question diagram"
+                  className="max-h-32 mx-auto object-contain rounded"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
           </div>
         </ScrollArea>
 
