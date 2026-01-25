@@ -38,6 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { BulkQuestionImport } from "./BulkQuestionImport";
+import { QuestionImageUpload } from "./QuestionImageUpload";
 
 interface Question {
   question_text: string;
@@ -797,53 +798,28 @@ export function UnifiedQuizCreator({
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Difficulty</Label>
-                  <Select
-                    value={currentQuestion.difficulty}
-                    onValueChange={(v) => updateQuestion("difficulty", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    Image URL 
-                    <Badge variant="outline" className="text-xs font-normal">Optional</Badge>
-                  </Label>
-                  <Input
-                    placeholder="https://example.com/diagram.png"
-                    value={currentQuestion.image_url || ""}
-                    onChange={(e) => updateQuestion("image_url", e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Add image URL for questions with diagrams
-                  </p>
-                </div>
+              <div className="space-y-2">
+                <Label>Difficulty</Label>
+                <Select
+                  value={currentQuestion.difficulty}
+                  onValueChange={(v) => updateQuestion("difficulty", v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Image Preview */}
-              {currentQuestion.image_url && (
-                <div className="relative rounded-lg border overflow-hidden bg-muted/30">
-                  <img 
-                    src={currentQuestion.image_url} 
-                    alt="Question diagram"
-                    className="max-h-40 mx-auto object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
+              {/* Question Image Upload */}
+              <QuestionImageUpload
+                value={currentQuestion.image_url || ""}
+                onChange={(url) => updateQuestion("image_url", url)}
+              />
             </div>
 
             {/* Navigation */}
