@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, X, Image, Link, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import imageCompression from "browser-image-compression";
 
 interface QuestionImageUploadProps {
   value: string;
@@ -13,14 +14,55 @@ interface QuestionImageUploadProps {
   questionId?: string;
 }
 
+// Compression options for optimal file size
+const compressionOptions = {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 1200,
+  useWebWorker: true,
+  fileType: "image/webp" as const,
+};
+
+export async function compressImage(file: File): Promise<File> {
+  try {
+    const compressedFile = await imageCompression(file, compressionOptions);
+    console.log(`Compressed: ${(file.size / 1024).toFixed(1)}KB → ${(compressedFile.size / 1024).toFixed(1)}KB`);
+    return compressedFile;
+  } catch (error) {
+    console.error("Compression failed, using original:", error);
+    return file;
+  }
+}
+
+export async function uploadQuestionImage(file: File): Promise<string> {
+  // Compress the image first
+  const compressedFile = await compressImage(file);
+  
+  // Generate unique filename
+  const fileExt = "webp";
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+  const filePath = `questions/${fileName}`;
+
+  // Upload to Supabase Storage
+  const { error: uploadError } = await supabase.storage
+    .from("question-images")
+    .upload(filePath, compressedFile);
+
+  if (uploadError) throw uploadError;
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from("question-images")
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
+}
+
 export function QuestionImageUpload({ value, onChange, questionId }: QuestionImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState(value || "");
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleFileUpload = async (file: File) => {
     // Validate file type
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
@@ -28,34 +70,18 @@ export function QuestionImageUpload({ value, onChange, questionId }: QuestionIma
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+    // Validate file size (max 10MB before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image size must be less than 10MB");
       return;
     }
 
     setUploading(true);
 
     try {
-      // Generate unique filename
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `questions/${fileName}`;
-
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("question-images")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("question-images")
-        .getPublicUrl(filePath);
-
-      onChange(urlData.publicUrl);
-      toast.success("Image uploaded successfully!");
+      const publicUrl = await uploadQuestionImage(file);
+      onChange(publicUrl);
+      toast.success("Image uploaded & optimized!");
     } catch (error: any) {
       console.error("Upload error:", error);
       toast.error(error.message || "Failed to upload image");
@@ -63,6 +89,29 @@ export function QuestionImageUpload({ value, onChange, questionId }: QuestionIma
       setUploading(false);
     }
   };
+
+  const handleInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) await handleFileUpload(file);
+  };
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file) await handleFileUpload(file);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
   const handleUrlSubmit = () => {
     if (urlInput.trim()) {
@@ -114,11 +163,20 @@ export function QuestionImageUpload({ value, onChange, questionId }: QuestionIma
           </TabsList>
           
           <TabsContent value="upload" className="space-y-3">
-            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+            <div 
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                isDragging 
+                  ? "border-primary bg-primary/5" 
+                  : "border-border hover:border-primary/50"
+              }`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+            >
               <Input
                 type="file"
                 accept="image/*"
-                onChange={handleFileUpload}
+                onChange={handleInputChange}
                 disabled={uploading}
                 className="hidden"
                 id="question-image-upload"
@@ -130,16 +188,16 @@ export function QuestionImageUpload({ value, onChange, questionId }: QuestionIma
                 {uploading ? (
                   <>
                     <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-                    <span className="text-sm text-muted-foreground">Uploading...</span>
+                    <span className="text-sm text-muted-foreground">Compressing & uploading...</span>
                   </>
                 ) : (
                   <>
                     <Image className="h-8 w-8 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      Click to upload image
+                      {isDragging ? "Drop image here" : "Click or drag image to upload"}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      JPEG, PNG, GIF, WebP (max 5MB)
+                      Auto-compressed to WebP (max 1MB)
                     </span>
                   </>
                 )}

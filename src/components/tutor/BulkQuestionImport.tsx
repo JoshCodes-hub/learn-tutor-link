@@ -17,7 +17,8 @@ import {
   Edit2,
   Eye,
   FileDown,
-  Loader2
+  Loader2,
+  Image
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -73,6 +74,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
   const [previewIndex, setPreviewIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus | null>(null);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const normalizeCorrectOption = (value: string): "A" | "B" | "C" | "D" | null => {
