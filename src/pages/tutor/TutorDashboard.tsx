@@ -31,6 +31,7 @@ import { UploadQuestionsDialog } from "@/components/tutor/UploadQuestionsDialog"
 import { WithdrawalRequestDialog } from "@/components/tutor/WithdrawalRequestDialog";
 import { QuickQuizCreator } from "@/components/tutor/QuickQuizCreator";
 import { UnifiedQuizCreator } from "@/components/tutor/UnifiedQuizCreator";
+import { BulkQuizImport } from "@/components/tutor/BulkQuizImport";
 import QuestionReports from "@/components/tutor/QuestionReports";
 import TutorAnalytics from "@/components/tutor/TutorAnalytics";
 import QuizManagement from "@/components/tutor/QuizManagement";
@@ -97,6 +98,7 @@ const TutorDashboard = () => {
   const [showWithdrawal, setShowWithdrawal] = useState(false);
   const [showQuickQuizCreator, setShowQuickQuizCreator] = useState(false);
   const [showUnifiedQuizCreator, setShowUnifiedQuizCreator] = useState(false);
+  const [showBulkQuizImport, setShowBulkQuizImport] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
@@ -324,6 +326,10 @@ const TutorDashboard = () => {
             <Plus className="w-4 h-4 mr-2" />
             Create Quiz or Exam
           </Button>
+          <Button variant="outline" onClick={() => setShowBulkQuizImport(true)}>
+            <FileText className="w-4 h-4 mr-2" />
+            Bulk Import Quizzes
+          </Button>
           <Button variant="outline" onClick={() => setShowCreateCourse(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Course
@@ -527,6 +533,13 @@ const TutorDashboard = () => {
       <UnifiedQuizCreator
         open={showUnifiedQuizCreator}
         onOpenChange={setShowUnifiedQuizCreator}
+        onSuccess={() => {
+          window.location.reload();
+        }}
+      />
+      <BulkQuizImport
+        open={showBulkQuizImport}
+        onOpenChange={setShowBulkQuizImport}
         onSuccess={() => {
           window.location.reload();
         }}
