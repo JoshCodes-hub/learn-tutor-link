@@ -25,6 +25,7 @@ interface Question {
   option_c: string;
   option_d: string;
   correct_option: string;
+  image_url: string | null;
 }
 
 interface QuizData {
@@ -303,9 +304,23 @@ const CBTSimulation = () => {
                 </div>
               </div>
 
-              <h2 className="font-display text-xl font-semibold text-foreground mb-6 leading-relaxed">
+              <h2 className="font-display text-xl font-semibold text-foreground mb-4 leading-relaxed">
                 {currentQuestion?.question_text}
               </h2>
+
+              {/* Question Image */}
+              {currentQuestion?.image_url && (
+                <div className="mb-6 rounded-lg border border-border overflow-hidden bg-muted/30">
+                  <img 
+                    src={currentQuestion.image_url} 
+                    alt="Question diagram"
+                    className="w-full max-h-56 object-contain mx-auto"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
 
               <div className="space-y-3">
                 {options.map((option) => {
