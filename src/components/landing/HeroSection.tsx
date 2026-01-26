@@ -8,7 +8,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative h-screen w-full overflow-hidden" aria-label="Hero section">
+    <section className="relative min-h-[85vh] sm:min-h-[80vh] w-full overflow-hidden" aria-label="Hero section">
       {/* Full-screen background image */}
       <div className="absolute inset-0">
         <img 
@@ -20,7 +20,7 @@ const HeroSection = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 h-full flex flex-col justify-between px-6 sm:px-8 lg:px-12 py-24 sm:py-28">
+      <div className="relative z-10 h-full flex flex-col justify-between px-6 sm:px-8 lg:px-12 py-20 sm:py-24">
         {/* Top - Trust badge */}
         <motion.div 
           className="flex justify-end"
