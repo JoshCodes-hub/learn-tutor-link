@@ -1,351 +1,185 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Sparkles, Brain, Target, TrendingUp, CheckCircle2, Star, Zap, Users } from "lucide-react";
+import { CheckCircle2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import heroStudent from "@/assets/hero-student.jpg";
+import logo from "@/assets/logo.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const [currentDate, setCurrentDate] = useState("");
+
+  useEffect(() => {
+    const updateDate = () => {
+      const now = new Date();
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      };
+      setCurrentDate(now.toLocaleDateString('en-US', options));
+    };
+    updateDate();
+    const interval = setInterval(updateDate, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section className="relative min-h-screen overflow-hidden pt-16" aria-label="Hero section">
-      {/* Premium gradient background */}
-      <div className="absolute inset-0 bg-gradient-hero" />
-      
-      {/* Animated mesh gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-mesh opacity-60" />
-      
-      {/* Animated background blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          className="absolute -top-40 -left-40 w-80 h-80 md:w-[500px] md:h-[500px] bg-primary/10 rounded-full blur-3xl"
-          animate={{ 
-            x: [0, 30, 0],
-            y: [0, -20, 0],
-            scale: [1, 1.1, 1]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+    <section className="relative min-h-screen overflow-hidden" aria-label="Hero section">
+      {/* Full-screen background image */}
+      <div className="absolute inset-0">
+        <img 
+          src={heroStudent} 
+          alt="Student studying with OverraPrep AI" 
+          className="w-full h-full object-cover object-center"
         />
-        <motion.div 
-          className="absolute top-1/3 -right-40 w-96 h-96 md:w-[600px] md:h-[600px] bg-accent/8 rounded-full blur-3xl"
-          animate={{ 
-            x: [0, -30, 0],
-            y: [0, 20, 0],
-            scale: [1.1, 1, 1.1]
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div 
-          className="absolute -bottom-40 left-1/3 w-80 h-80 md:w-[500px] md:h-[500px] bg-primary/5 rounded-full blur-3xl"
-          animate={{ 
-            x: [0, 20, 0],
-            y: [0, -15, 0]
-          }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-        />
-        
-        {/* Subtle grid pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.015]"
-          style={{
-            backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
-                              linear-gradient(to right, hsl(var(--foreground)) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
-          }}
-        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
       </div>
 
-      <div className="container mx-auto px-4 py-16 md:py-24 lg:py-32 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* Left Content */}
+      {/* Content overlay */}
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Top bar with logo and trust badge */}
+        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24">
+          {/* Logo */}
           <motion.div 
-            className="max-w-2xl"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="flex items-center gap-2"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
           >
-            {/* Trust badge */}
-            <motion.div 
-              className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-6 backdrop-blur-sm"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="flex -space-x-1">
-                <div className="w-5 h-5 rounded-full bg-gradient-primary flex items-center justify-center">
-                  <Star className="w-3 h-3 text-primary-foreground fill-primary-foreground" />
-                </div>
-              </div>
-              <span className="text-sm font-semibold text-foreground">Trusted by 5,000+ FUTA Students</span>
-              <Sparkles className="w-4 h-4 text-accent" />
-            </motion.div>
-
-            <motion.h1 
-              className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-[1.1] mb-6 text-balance"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-            >
-              Master Your{" "}
-              <span className="relative">
-                <span className="text-gradient-primary">CBT Exams</span>
-                <motion.svg 
-                  className="absolute -bottom-2 left-0 w-full" 
-                  viewBox="0 0 200 12" 
-                  fill="none"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ delay: 0.8, duration: 0.8 }}
-                >
-                  <motion.path 
-                    d="M2 8C50 4 150 4 198 8" 
-                    stroke="hsl(var(--accent))" 
-                    strokeWidth="3" 
-                    strokeLinecap="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 0.8, duration: 0.8 }}
-                  />
-                </motion.svg>
-              </span>{" "}
-              with AI Power
-            </motion.h1>
-
-            <motion.p 
-              className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed max-w-xl"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              Practice with thousands of past questions, get instant AI explanations, 
-              and track your progress. Join the smartest way to prepare for FUTA exams.
-            </motion.p>
-
-            {/* Feature chips */}
-            <motion.div 
-              className="flex flex-wrap gap-3 mb-8"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              {[
-                { icon: CheckCircle2, text: "10,000+ Questions" },
-                { icon: Zap, text: "AI Explanations" },
-                { icon: Target, text: "CBT Simulation" },
-              ].map((feature, i) => (
-                <motion.div 
-                  key={i} 
-                  className="inline-flex items-center gap-2 bg-card/60 backdrop-blur-sm border border-border/50 rounded-full px-3 py-1.5"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.7 + i * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <feature.icon className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">{feature.text}</span>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* CTA Buttons */}
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-4 mb-10"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <Button 
-                variant="hero" 
-                size="xl" 
-                className="group shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
-                onClick={() => navigate("/auth")}
-              >
-                Start Learning Free
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button variant="hero-outline" size="xl" className="group backdrop-blur-sm">
-                <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                Watch Demo
-              </Button>
-            </motion.div>
-
-            {/* Social proof */}
-            <motion.div 
-              className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-            >
-              <div className="flex items-center -space-x-3">
-                {["A", "O", "C", "T", "F"].map((initial, i) => (
-                  <motion.div
-                    key={i}
-                    className="w-10 h-10 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold shadow-md"
-                    style={{
-                      background: `linear-gradient(135deg, hsl(${173 + i * 30} 58% ${39 + i * 5}%) 0%, hsl(${173 + i * 30} 58% ${30 + i * 5}%) 100%)`,
-                      color: 'white'
-                    }}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 1.1 + i * 0.1 }}
-                  >
-                    {initial}
-                  </motion.div>
-                ))}
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1 mb-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-accent text-accent" />
-                  ))}
-                  <span className="text-sm font-semibold text-foreground ml-1">4.9/5</span>
-                </div>
-                <p className="text-sm text-muted-foreground">Based on 1,000+ student reviews</p>
-              </div>
-            </motion.div>
+            <img src={logo} alt="OverraPrep AI" className="w-8 h-8 sm:w-10 sm:h-10" />
+            <span className="font-display text-xl sm:text-2xl font-bold text-white">
+              OverraPrep <span className="text-primary">AI</span>
+            </span>
           </motion.div>
 
-          {/* Right Content - Hero Student Image with Floating Cards */}
-          <div className="relative h-[500px] lg:h-[650px] hidden md:block perspective-1000">
-            {/* Main student image - prominently displayed */}
-            <motion.div 
-              className="absolute top-4 right-0 w-[380px] lg:w-[450px] h-[400px] lg:h-[480px] rounded-3xl overflow-hidden shadow-2xl border-4 border-primary/20"
-              initial={{ opacity: 0, scale: 0.9, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ scale: 1.02 }}
-            >
-              <img 
-                src={heroStudent} 
-                alt="Happy student using OverraPrep AI on laptop" 
-                className="w-full h-full object-cover object-center"
-              />
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
-              
-              {/* Success badge on image */}
-              <motion.div 
-                className="absolute top-4 right-4 glass-card rounded-full px-4 py-2 flex items-center gap-2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1 }}
-              >
-                <CheckCircle2 className="w-5 h-5 text-success" />
-                <span className="text-sm font-bold text-foreground">Exam Ready!</span>
-              </motion.div>
-
-              {/* Bottom info card */}
-              <motion.div 
-                className="absolute bottom-4 left-4 right-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-              >
-                <div className="glass-card rounded-xl p-4 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg">
-                    <TrendingUp className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-foreground">Score Improved by 40%</p>
-                    <p className="text-xs text-muted-foreground">After 2 weeks of practice</p>
-                  </div>
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-accent text-accent" />
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-
-            {/* AI Explanation Card */}
-            <motion.div 
-              className="absolute bottom-16 lg:bottom-24 left-0 w-[280px] lg:w-[300px] glass-card rounded-2xl p-5 preserve-3d"
-              initial={{ opacity: 0, x: -40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              style={{ transform: 'rotateY(5deg) rotateX(-5deg)' }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 bg-gradient-accent rounded-lg flex items-center justify-center shadow-md">
-                  <Sparkles className="w-4 h-4 text-accent-foreground" />
-                </div>
-                <span className="font-display font-bold text-foreground">AI Explanation</span>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Using the kinetic energy formula:<br />
-                <span className="font-mono text-primary font-medium">KE = ½mv²</span><br />
-                KE = ½ × 5 × (10)² = <span className="text-success font-bold">250 J</span>
-              </p>
-              <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-                <span>Verified by Expert Tutors</span>
-              </div>
-            </motion.div>
-
-            {/* Progress Card */}
-            <motion.div 
-              className="absolute top-1/2 -translate-y-1/2 left-4 lg:left-0 w-56 glass-card rounded-xl p-4 preserve-3d"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              style={{ transform: 'rotateY(8deg)' }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                <p className="text-xs font-semibold text-foreground">Weekly Progress</p>
-              </div>
-              <div className="flex items-end gap-1 h-20">
-                {[40, 55, 45, 70, 60, 85, 90].map((height, i) => (
-                  <motion.div
-                    key={i}
-                    className="flex-1 bg-gradient-primary rounded-t transition-all duration-500 hover:opacity-80"
-                    initial={{ height: 0 }}
-                    animate={{ height: `${height}%` }}
-                    transition={{ delay: 1 + i * 0.1, duration: 0.5 }}
-                  />
-                ))}
-              </div>
-              <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
-                <span>Mon</span>
-                <span>Sun</span>
-              </div>
-            </motion.div>
-
-            {/* Floating badges */}
-            <motion.div 
-              className="absolute top-56 lg:top-72 left-20 glass-card rounded-full px-3 py-1.5 flex items-center gap-2"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.2 }}
-            >
-              <motion.div 
-                className="w-2 h-2 rounded-full bg-success"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              />
-              <span className="text-xs font-semibold text-foreground">2,847 online</span>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <motion.div 
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.6 }}
-        transition={{ delay: 1.5 }}
-      >
-        <span className="text-xs text-muted-foreground">Scroll to explore</span>
-        <div className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex items-start justify-center p-1.5">
+          {/* Trust badge */}
           <motion.div 
-            className="w-1.5 h-3 bg-muted-foreground/50 rounded-full"
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          />
+            className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-3 py-1.5 sm:px-4 sm:py-2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary flex items-center justify-center">
+              <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-primary-foreground" />
+            </div>
+            <span className="text-xs sm:text-sm font-medium text-white">
+              Trusted by<br className="sm:hidden" />
+              <span className="font-bold"> FUTA Students</span>
+            </span>
+          </motion.div>
         </div>
-      </motion.div>
+
+        {/* Main content */}
+        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-8">
+          {/* Date display */}
+          <motion.p 
+            className="text-white/80 text-sm sm:text-base mb-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            {currentDate}
+          </motion.p>
+
+          {/* Main headline */}
+          <motion.h1 
+            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.05] mb-6"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
+            FUTA CBTs<br />
+            Made Easy
+          </motion.h1>
+
+          {/* Floating phone mockup with AI explanation */}
+          <motion.div 
+            className="relative self-end mr-4 sm:mr-8 lg:mr-16 -mt-8 sm:-mt-16"
+            initial={{ opacity: 0, y: 40, rotate: 5 }}
+            animate={{ opacity: 1, y: 0, rotate: 0 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+          >
+            {/* Phone frame */}
+            <div className="w-40 sm:w-52 lg:w-64 bg-gray-900 rounded-3xl p-1.5 shadow-2xl border border-gray-700">
+              {/* Phone screen */}
+              <div className="bg-background rounded-2xl overflow-hidden">
+                {/* Phone status bar */}
+                <div className="bg-primary/10 px-3 py-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <img src={logo} alt="" className="w-4 h-4" />
+                    <span className="text-[10px] sm:text-xs font-semibold text-foreground">OverraPrep AI</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
+                  </div>
+                </div>
+                
+                {/* Chat bubbles */}
+                <div className="p-3 space-y-2">
+                  <div className="bg-muted rounded-xl rounded-tl-sm p-2">
+                    <div className="h-2 bg-muted-foreground/20 rounded w-3/4 mb-1" />
+                    <div className="h-2 bg-muted-foreground/20 rounded w-1/2" />
+                  </div>
+                  
+                  {/* AI Explanation card */}
+                  <motion.div 
+                    className="bg-primary/10 border border-primary/20 rounded-xl p-3"
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 1.2 }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-primary/20 rounded-lg flex items-center justify-center">
+                        <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                      </div>
+                      <span className="text-xs sm:text-sm font-bold text-foreground">AI Explanation</span>
+                    </div>
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-relaxed">
+                      From your university student AI is study, proper easy and especially interactive in ethical students.
+                    </p>
+                  </motion.div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Bottom CTA */}
+        <motion.div 
+          className="px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+        >
+          <Button 
+            size="xl"
+            className="w-full sm:w-auto sm:min-w-[300px] h-14 sm:h-16 text-lg sm:text-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-xl shadow-primary/30"
+            onClick={() => navigate("/auth")}
+          >
+            Start Learning Now
+          </Button>
+          
+          {/* Decorative sparkle */}
+          <motion.div 
+            className="absolute bottom-6 right-6 text-primary/60"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 15, 0]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Sparkles className="w-6 h-6" />
+          </motion.div>
+        </motion.div>
+      </div>
     </section>
   );
 };
