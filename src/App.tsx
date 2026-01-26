@@ -28,6 +28,7 @@ const EditProfile = lazy(() => import("./pages/profile/EditProfile"));
 const Community = lazy(() => import("./pages/Community"));
 const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
 const TeamStatsPage = lazy(() => import("./pages/TeamStatsPage"));
+const CommunityView = lazy(() => import("./pages/community/CommunityView"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/community" element={<Community />} />
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="/team/stats" element={<TeamStatsPage />} />
+              <Route path="/community/:communityId" element={<CommunityView />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

@@ -17,6 +17,7 @@ import FavoriteTutors from "@/components/student/FavoriteTutors";
 import BookmarkedQuestions from "@/components/student/BookmarkedQuestions";
 import { TeamChallenges } from "@/components/student/TeamChallenges";
 import { TeamChat } from "@/components/student/TeamChat";
+import { MyCommunities } from "@/components/student/MyCommunities";
 import { SEO } from "@/components/seo/SEO";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
@@ -825,6 +826,11 @@ const StudentDashboard = () => {
           <ReferralCard />
           <TeamCard />
           <FavoriteTutors />
+        </div>
+
+        {/* My Communities */}
+        <div className="mb-8">
+          <MyCommunities />
         </div>
 
         {/* Team Challenges & Chat */}
