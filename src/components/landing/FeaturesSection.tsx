@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import studentsGroup from "@/assets/students-group.jpg";
 
 const features = [
   {
@@ -57,6 +59,28 @@ const features = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut" as const,
+    },
+  },
+};
+
 const FeaturesSection = () => {
   const navigate = useNavigate();
 
@@ -66,9 +90,28 @@ const FeaturesSection = () => {
       <div className="absolute inset-0 bg-background" />
       <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
       
+      {/* Subtle student image background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+          style={{
+            backgroundImage: `url(${studentsGroup})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      </div>
+      
       <div className="container mx-auto px-4 relative z-10">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <motion.div 
+          className="text-center max-w-3xl mx-auto mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-6 backdrop-blur-sm">
             <Zap className="w-4 h-4 text-accent" />
             <span className="text-sm font-semibold text-foreground">Powerful Features</span>
@@ -81,21 +124,34 @@ const FeaturesSection = () => {
             Our platform combines cutting-edge AI technology with comprehensive study materials 
             to give you the best exam preparation experience.
           </p>
-        </div>
+        </motion.div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <motion.div 
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {features.map((feature, index) => {
             const Icon = feature.icon;
             
             return (
-              <div
+              <motion.div
                 key={index}
                 className="group glass-card glass-card-hover rounded-2xl p-6 lg:p-8"
+                variants={cardVariants}
+                whileHover={{ y: -4, scale: 1.02 }}
+                transition={{ duration: 0.3 }}
               >
                 {/* Icon */}
-                <div className={`relative w-14 h-14 mb-6`}>
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                <div className="relative w-14 h-14 mb-6">
+                  <motion.div 
+                    className={`absolute inset-0 bg-gradient-to-br ${feature.bgGradient} rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                    initial={{ scale: 0.8 }}
+                    whileHover={{ scale: 1.2 }}
+                  />
                   <div className={`relative w-full h-full bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     <Icon className="w-7 h-7 text-white" />
                   </div>
@@ -108,13 +164,19 @@ const FeaturesSection = () => {
                 <p className="text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
 
         {/* Bottom CTA */}
-        <div className="mt-16 text-center">
+        <motion.div 
+          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+        >
           <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-6 glass-card rounded-2xl">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
@@ -135,7 +197,7 @@ const FeaturesSection = () => {
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

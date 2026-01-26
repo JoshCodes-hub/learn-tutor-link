@@ -1,6 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, Quote, MessageSquare } from "lucide-react";
+import { motion } from "framer-motion";
+import studentFemale from "@/assets/student-female.jpg";
+import studentMale from "@/assets/student-male.jpg";
 
 const testimonials = [
   {
@@ -10,6 +13,7 @@ const testimonials = [
     rating: 5,
     review: "OverraPrep AI transformed my exam preparation. The CBT simulation mode helped me get comfortable with the actual exam format, and I scored much higher than expected!",
     gradient: "from-blue-500 to-cyan-500",
+    image: studentMale,
   },
   {
     name: "Chidinma Eze",
@@ -18,6 +22,7 @@ const testimonials = [
     rating: 5,
     review: "The AI explanations are incredibly helpful. Whenever I get a question wrong, I actually understand why. It's like having a personal tutor available 24/7.",
     gradient: "from-purple-500 to-pink-500",
+    image: studentFemale,
   },
   {
     name: "Tunde Bakare",
@@ -37,6 +42,28 @@ const testimonials = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut" as const,
+    },
+  },
+};
+
 const TestimonialsSection = () => {
   return (
     <section className="py-20 lg:py-32 relative overflow-hidden">
@@ -46,7 +73,13 @@ const TestimonialsSection = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-12 lg:mb-16">
+        <motion.div 
+          className="text-center mb-12 lg:mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="inline-flex items-center gap-2 bg-success/10 border border-success/20 rounded-full px-4 py-2 mb-6">
             <MessageSquare className="w-4 h-4 text-success" />
             <span className="text-sm font-semibold text-foreground">Student Stories</span>
@@ -57,14 +90,22 @@ const TestimonialsSection = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Join thousands of FUTA students who have improved their exam performance with OverraPrep AI
           </p>
-        </div>
+        </motion.div>
 
         {/* Testimonials Grid */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <motion.div 
+          className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {testimonials.map((testimonial, index) => (
-            <div 
+            <motion.div 
               key={index} 
               className="group glass-card glass-card-hover rounded-2xl p-6 lg:p-8 relative overflow-hidden"
+              variants={cardVariants}
+              whileHover={{ y: -4 }}
             >
               {/* Quote icon */}
               <Quote className="absolute top-6 right-6 w-10 h-10 text-primary/10 group-hover:text-primary/20 transition-colors" />
@@ -72,14 +113,20 @@ const TestimonialsSection = () => {
               {/* Rating */}
               <div className="flex items-center gap-1 mb-4">
                 {[...Array(5)].map((_, i) => (
-                  <Star
+                  <motion.div
                     key={i}
-                    className={`w-5 h-5 ${
-                      i < testimonial.rating
-                        ? "fill-accent text-accent"
-                        : "text-muted"
-                    }`}
-                  />
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 * i }}
+                  >
+                    <Star
+                      className={`w-5 h-5 ${
+                        i < testimonial.rating
+                          ? "fill-accent text-accent"
+                          : "text-muted"
+                      }`}
+                    />
+                  </motion.div>
                 ))}
               </div>
 
@@ -91,6 +138,13 @@ const TestimonialsSection = () => {
               {/* Author */}
               <div className="flex items-center gap-4">
                 <Avatar className="w-12 h-12 ring-2 ring-border">
+                  {testimonial.image ? (
+                    <AvatarImage 
+                      src={testimonial.image} 
+                      alt={testimonial.name}
+                      className="object-cover"
+                    />
+                  ) : null}
                   <AvatarFallback className={`bg-gradient-to-br ${testimonial.gradient} text-white font-bold`}>
                     {testimonial.name
                       .split(" ")
@@ -105,12 +159,18 @@ const TestimonialsSection = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Trust indicators */}
-        <div className="mt-16 text-center">
+        <motion.div 
+          className="mt-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+        >
           <div className="inline-flex flex-wrap items-center justify-center gap-4 sm:gap-8 p-4 sm:p-6 glass-card rounded-2xl">
             <div className="flex items-center gap-2">
               <div className="flex -space-x-1">
@@ -129,7 +189,7 @@ const TestimonialsSection = () => {
               Verified Students
             </Badge>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
