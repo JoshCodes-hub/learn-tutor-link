@@ -4,6 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { RateQuizDialog } from "@/components/student/RateQuizDialog";
+import { ShareResultsButton } from "@/components/quiz/ShareResultsButton";
+import { QuizCelebration } from "@/components/quiz/QuizCelebration";
 import logo from "@/assets/logo.png";
 import {
   Trophy,
@@ -43,6 +45,7 @@ const QuizResults = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showRating, setShowRating] = useState(false);
   const [hasRated, setHasRated] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -83,9 +86,16 @@ const QuizResults = () => {
 
         setHasRated(!!ratingData);
 
+        // Show celebration for good scores
+        const scorePercent = Math.round((data.correct_answers / data.total_questions) * 100);
+        if (scorePercent >= 70) {
+          setShowCelebration(true);
+          setTimeout(() => setShowCelebration(false), 4000);
+        }
+
         // Show rating prompt after a short delay if not already rated
         if (!ratingData) {
-          setTimeout(() => setShowRating(true), 1500);
+          setTimeout(() => setShowRating(true), scorePercent >= 70 ? 4500 : 1500);
         }
       } catch (error) {
         console.error("Error fetching results:", error);
@@ -134,7 +144,11 @@ const QuizResults = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <>
+      {/* Celebration Animation */}
+      <QuizCelebration score={percentage} isVisible={showCelebration} />
+
+      <div className="min-h-screen bg-gradient-hero">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4">
@@ -241,6 +255,15 @@ const QuizResults = () => {
               </Button>
             </div>
 
+            {/* Share Results */}
+            <div className="mb-6">
+              <ShareResultsButton
+                quizTitle={attempt.quiz.title}
+                score={percentage}
+                quizId={attempt.quiz.id}
+              />
+            </div>
+
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
@@ -276,7 +299,8 @@ const QuizResults = () => {
           quizTitle={attempt.quiz.title}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

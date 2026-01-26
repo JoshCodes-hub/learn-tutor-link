@@ -1,10 +1,12 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useBookmarkedQuestions } from "@/hooks/useBookmarkedQuestions";
+import { useQuizAutoSave } from "@/hooks/useQuizAutoSave";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { QuizProgressBar } from "@/components/quiz/QuizProgressBar";
 import {
   BookOpen,
   ArrowLeft,
@@ -13,7 +15,8 @@ import {
   AlertTriangle,
   Flag,
   Bookmark,
-  BookmarkCheck
+  BookmarkCheck,
+  Timer
 } from "lucide-react";
 import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
@@ -57,8 +60,13 @@ const CBTSimulation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
+  const [questionTimes, setQuestionTimes] = useState<Record<string, number>>({});
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const questionStartTimeRef = useRef<number>(Date.now());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
+  
+  const { saveState, loadState, clearState, hasSavedState } = useQuizAutoSave(quizId || "");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -149,6 +157,37 @@ const CBTSimulation = () => {
     };
   }, [isLoading]);
 
+  // Auto-save effect
+  useEffect(() => {
+    if (!attemptId || isLoading || isSubmitting) return;
+    
+    const saveTimer = setInterval(() => {
+      saveState({
+        answers,
+        flagged: Array.from(flagged),
+        currentIndex,
+        timeLeft,
+        attemptId,
+      });
+    }, 5000); // Save every 5 seconds
+
+    return () => clearInterval(saveTimer);
+  }, [answers, flagged, currentIndex, timeLeft, attemptId, isLoading, isSubmitting, saveState]);
+
+  // Track question time when changing questions
+  const handleQuestionChange = useCallback((newIndex: number) => {
+    const question = questions[currentIndex];
+    if (question) {
+      const timeSpent = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
+      setQuestionTimes((prev) => ({
+        ...prev,
+        [question.id]: (prev[question.id] || 0) + timeSpent,
+      }));
+    }
+    questionStartTimeRef.current = Date.now();
+    setCurrentIndex(newIndex);
+  }, [questions, currentIndex]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -208,6 +247,8 @@ const CBTSimulation = () => {
         })
         .eq("id", attemptId);
 
+      // Clear auto-save on successful submit
+      clearState();
       navigate(`/quiz/${quizId}/results/${attemptId}`);
     } catch (error) {
       console.error("Error submitting exam:", error);
@@ -268,11 +309,29 @@ const CBTSimulation = () => {
         <div className="grid lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Question Panel */}
           <div className="lg:col-span-3">
+            {/* Progress Bar */}
+            <div className="bg-card text-card-foreground rounded-xl p-4 mb-4">
+              <QuizProgressBar 
+                currentIndex={currentIndex}
+                totalQuestions={questions.length}
+                answeredCount={answeredCount}
+              />
+            </div>
+
             <div className="bg-card text-card-foreground rounded-xl p-6 mb-4">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Question {currentIndex + 1} of {questions.length}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Question {currentIndex + 1} of {questions.length}
+                  </span>
+                  {/* Question Timer */}
+                  {currentQuestion && questionTimes[currentQuestion.id] > 0 && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                      <Timer className="w-3 h-3" />
+                      {formatTime(questionTimes[currentQuestion.id])}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   {/* Bookmark Button */}
                   <Button
@@ -351,7 +410,7 @@ const CBTSimulation = () => {
             <div className="flex items-center justify-between">
               <Button
                 variant="secondary"
-                onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                onClick={() => handleQuestionChange(Math.max(0, currentIndex - 1))}
                 disabled={currentIndex === 0}
               >
                 Previous
@@ -359,7 +418,7 @@ const CBTSimulation = () => {
               
               <Button
                 variant="secondary"
-                onClick={() => setCurrentIndex(Math.min(questions.length - 1, currentIndex + 1))}
+                onClick={() => handleQuestionChange(Math.min(questions.length - 1, currentIndex + 1))}
                 disabled={currentIndex === questions.length - 1}
               >
                 Next
@@ -378,7 +437,7 @@ const CBTSimulation = () => {
                 {questions.map((q, idx) => (
                   <button
                     key={q.id}
-                    onClick={() => setCurrentIndex(idx)}
+                    onClick={() => handleQuestionChange(idx)}
                     className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg font-medium text-xs sm:text-sm flex items-center justify-center transition-colors ${
                       idx === currentIndex
                         ? "bg-primary text-primary-foreground"
