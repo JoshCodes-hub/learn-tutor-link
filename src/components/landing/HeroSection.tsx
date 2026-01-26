@@ -1,28 +1,73 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import heroStudent from "@/assets/hero-student.jpg";
+import studentsHero from "@/assets/students-hero.jpg";
+import studentFemale from "@/assets/student-female.jpg";
+import studentMale from "@/assets/student-male.jpg";
+import studentsGroup from "@/assets/students-group.jpg";
+
+const heroImages = [
+  heroStudent,
+  studentsHero,
+  studentFemale,
+  studentMale,
+  studentsGroup,
+];
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000); // Change image every 4 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section className="relative w-full overflow-hidden" aria-label="Hero section">
-      {/* Background image - optimized for mobile */}
+      {/* Animated background images */}
       <div className="absolute inset-0">
-        <img 
-          src={heroStudent} 
-          alt="Student studying with OverraPrep AI" 
-          className="w-full h-full object-cover object-[center_20%]"
-        />
-        {/* Stronger gradient for better text readability on mobile */}
+        <AnimatePresence mode="popLayout">
+          <motion.img
+            key={currentImageIndex}
+            src={heroImages[currentImageIndex]}
+            alt="Students studying with OverraPrep AI"
+            className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+          />
+        </AnimatePresence>
+        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
       </div>
 
-      {/* Content - compact for mobile, comfortable for desktop */}
+      {/* Image indicators */}
+      <div className="absolute bottom-20 sm:bottom-24 right-4 sm:right-8 z-20 flex gap-1.5">
+        {heroImages.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentImageIndex(index)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index === currentImageIndex 
+                ? "bg-primary w-6" 
+                : "bg-white/50 hover:bg-white/70"
+            }`}
+            aria-label={`Go to image ${index + 1}`}
+          />
+        ))}
+      </div>
+
+      {/* Content */}
       <div className="relative z-10 flex flex-col justify-end min-h-[420px] sm:min-h-[480px] md:min-h-[520px] px-5 sm:px-8 lg:px-12 pt-20 pb-8 sm:pb-10">
-        {/* Trust badge - top right with safe area padding */}
+        {/* Trust badge */}
         <motion.div 
           className="absolute top-20 sm:top-24 right-4 sm:right-8 lg:right-12"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -39,9 +84,8 @@ const HeroSection = () => {
           </div>
         </motion.div>
 
-        {/* Main content - optimized spacing for Android */}
+        {/* Main content */}
         <div className="space-y-3 sm:space-y-4">
-          {/* Headline - punchy and readable */}
           <motion.h1 
             className="font-display text-[2rem] leading-[1.1] sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white"
             initial={{ opacity: 0, y: 15 }}
@@ -52,7 +96,6 @@ const HeroSection = () => {
             <span className="text-primary">Made Easy</span>
           </motion.h1>
 
-          {/* Subtitle - concise */}
           <motion.p
             className="text-white/85 text-sm sm:text-base max-w-xs sm:max-w-sm leading-relaxed"
             initial={{ opacity: 0, y: 15 }}
@@ -62,7 +105,6 @@ const HeroSection = () => {
             Practice with AI-powered quizzes and ace your exams.
           </motion.p>
 
-          {/* CTA Button - prominent and touch-friendly */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
