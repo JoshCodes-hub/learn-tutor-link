@@ -76,12 +76,18 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
                 style={{ transform: "scale(1.5)" }}
               />
               
-              {/* Logo container */}
-              <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-3xl bg-card shadow-2xl flex items-center justify-center overflow-hidden border border-border/50">
-                <img 
+            {/* Logo container with spinning animation */}
+              <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full bg-card shadow-2xl flex items-center justify-center overflow-hidden border-2 border-primary/30">
+                <motion.img 
                   src={logo} 
                   alt="OverraPrep AI" 
                   className="w-20 h-20 md:w-28 md:h-28 object-contain"
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
                 />
               </div>
             </motion.div>
