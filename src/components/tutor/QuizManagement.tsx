@@ -72,6 +72,7 @@ import {
   Settings,
   X,
   Check,
+  Share2,
 } from "lucide-react";
 
 interface Quiz {
@@ -829,6 +830,16 @@ const QuizManagement = () => {
                         >
                           <Copy className="w-4 h-4 mr-2" />
                           Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            const shareUrl = `${window.location.origin}/quiz/${quiz.id}`;
+                            navigator.clipboard.writeText(shareUrl);
+                            toast.success("Quiz link copied to clipboard!");
+                          }}
+                        >
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Share Link
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleToggleActive(quiz)}>
                           {quiz.is_active ? (
