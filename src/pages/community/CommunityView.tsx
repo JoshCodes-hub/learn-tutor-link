@@ -3,10 +3,12 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudentCommunity } from "@/hooks/useTutorCommunity";
+import { CommunityAnnouncements } from "@/components/community/CommunityAnnouncements";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BookOpen,
   Sparkles,
@@ -20,6 +22,7 @@ import {
   Loader2,
   LogOut,
   UserPlus,
+  Megaphone,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import logo from "@/assets/logo.png";
@@ -212,121 +215,136 @@ const CommunityView = () => {
           </div>
         </div>
 
-        {/* Shared Quizzes */}
-        <div>
-          <h2 className="font-display text-xl font-bold text-foreground mb-4">
-            Shared Quizzes
-          </h2>
+        {/* Content Tabs for Members */}
+        {isMember ? (
+          <Tabs defaultValue="quizzes" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="quizzes" className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                Shared Quizzes
+              </TabsTrigger>
+              <TabsTrigger value="announcements" className="flex items-center gap-2">
+                <Megaphone className="w-4 h-4" />
+                Announcements
+              </TabsTrigger>
+            </TabsList>
 
-          {!isMember ? (
-            <div className="bg-muted/30 rounded-xl p-8 text-center">
-              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-foreground font-medium mb-2">Join to access quizzes</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Join this community to view and practice the quizzes shared by {tutor?.full_name || "the tutor"}.
-              </p>
-              {user ? (
-                <Button onClick={handleJoin} disabled={isJoining}>
-                  {isJoining ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <UserPlus className="w-4 h-4 mr-2" />
-                  )}
-                  Join Community
-                </Button>
+            <TabsContent value="quizzes">
+              {sharedQuizzes.length === 0 ? (
+                <div className="bg-muted/30 rounded-xl p-8 text-center">
+                  <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-foreground font-medium mb-2">No quizzes shared yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Check back later for new quizzes from your tutor.
+                  </p>
+                </div>
               ) : (
-                <Button onClick={() => navigate("/auth")}>
-                  Sign In to Join
-                </Button>
-              )}
-            </div>
-          ) : sharedQuizzes.length === 0 ? (
-            <div className="bg-muted/30 rounded-xl p-8 text-center">
-              <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-foreground font-medium mb-2">No quizzes shared yet</p>
-              <p className="text-sm text-muted-foreground">
-                Check back later for new quizzes from your tutor.
-              </p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sharedQuizzes.map((shared) => (
-                <div
-                  key={shared.id}
-                  className="bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {shared.quiz?.course?.code || "Quiz"}
-                        </Badge>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {sharedQuizzes.map((shared) => (
+                    <div
+                      key={shared.id}
+                      className="bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {shared.quiz?.course?.code || "Quiz"}
+                            </Badge>
+                            {shared.quiz?.is_simulation && (
+                              <Badge variant="outline" className="text-xs">
+                                CBT
+                              </Badge>
+                            )}
+                            {shared.quiz?.is_premium && (
+                              <Badge variant="outline" className="text-xs text-accent">
+                                <Coins className="w-3 h-3 mr-1" />
+                                {shared.quiz.token_cost}
+                              </Badge>
+                            )}
+                          </div>
+                          <h3 className="font-display font-semibold text-foreground">
+                            {shared.quiz?.title || "Quiz"}
+                          </h3>
+                        </div>
+                      </div>
+
+                      {shared.message && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          "{shared.message}"
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                        <span className="flex items-center gap-1">
+                          <Brain className="w-4 h-4" />
+                          {shared.quiz?.question_count} questions
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {shared.quiz?.duration_minutes} min
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-muted-foreground mb-3">
+                        Shared {formatDistanceToNow(new Date(shared.shared_at), { addSuffix: true })}
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => navigate(`/quiz/${shared.quiz_id}/practice`)}
+                        >
+                          <Play className="w-4 h-4 mr-1" />
+                          Practice
+                        </Button>
                         {shared.quiz?.is_simulation && (
-                          <Badge variant="outline" className="text-xs">
-                            CBT
-                          </Badge>
-                        )}
-                        {shared.quiz?.is_premium && (
-                          <Badge variant="outline" className="text-xs text-accent">
-                            <Coins className="w-3 h-3 mr-1" />
-                            {shared.quiz.token_cost}
-                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => navigate(`/quiz/${shared.quiz_id}/simulation`)}
+                          >
+                            <Target className="w-4 h-4 mr-1" />
+                            CBT Mode
+                          </Button>
                         )}
                       </div>
-                      <h3 className="font-display font-semibold text-foreground">
-                        {shared.quiz?.title || "Quiz"}
-                      </h3>
                     </div>
-                  </div>
-
-                  {shared.message && (
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      "{shared.message}"
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                    <span className="flex items-center gap-1">
-                      <Brain className="w-4 h-4" />
-                      {shared.quiz?.question_count} questions
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {shared.quiz?.duration_minutes} min
-                    </span>
-                  </div>
-
-                  <div className="text-xs text-muted-foreground mb-3">
-                    Shared {formatDistanceToNow(new Date(shared.shared_at), { addSuffix: true })}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => navigate(`/quiz/${shared.quiz_id}/practice`)}
-                    >
-                      <Play className="w-4 h-4 mr-1" />
-                      Practice
-                    </Button>
-                    {shared.quiz?.is_simulation && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => navigate(`/quiz/${shared.quiz_id}/simulation`)}
-                      >
-                        <Target className="w-4 h-4 mr-1" />
-                        CBT Mode
-                      </Button>
-                    )}
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="announcements">
+              <CommunityAnnouncements communityId={currentCommunity.id} isTutor={false} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="bg-muted/30 rounded-xl p-8 text-center">
+            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-foreground font-medium mb-2">Join to access quizzes</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Join this community to view and practice the quizzes shared by {tutor?.full_name || "the tutor"}.
+            </p>
+            {user ? (
+              <Button onClick={handleJoin} disabled={isJoining}>
+                {isJoining ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <UserPlus className="w-4 h-4 mr-2" />
+                )}
+                Join Community
+              </Button>
+            ) : (
+              <Button onClick={() => navigate("/auth")}>
+                Sign In to Join
+              </Button>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTutorCommunity } from "@/hooks/useTutorCommunity";
+import { CommunityAnnouncements } from "@/components/community/CommunityAnnouncements";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +23,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Users,
   Copy,
@@ -36,6 +38,7 @@ import {
   Coins,
   X,
   ExternalLink,
+  Megaphone,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -274,128 +277,149 @@ export function TutorCommunityManager({ quizzes }: TutorCommunityManagerProps) {
             </p>
           </div>
 
-          {/* Members Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-foreground">
-                Members ({members.length})
-              </h4>
-            </div>
+          {/* Tabs for different sections */}
+          <Tabs defaultValue="quizzes" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="quizzes" className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                Quizzes
+              </TabsTrigger>
+              <TabsTrigger value="announcements" className="flex items-center gap-2">
+                <Megaphone className="w-4 h-4" />
+                Announcements
+              </TabsTrigger>
+              <TabsTrigger value="members" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Members
+              </TabsTrigger>
+            </TabsList>
 
-            {members.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No members yet. Share your invite code to get started!
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {members.slice(0, 10).map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full"
-                  >
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={member.profile?.profile_image_url || undefined} />
-                      <AvatarFallback className="text-xs">
-                        {member.profile?.full_name?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm">
-                      {member.profile?.full_name || "Student"}
-                    </span>
-                  </div>
-                ))}
-                {members.length > 10 && (
-                  <Badge variant="secondary">+{members.length - 10} more</Badge>
-                )}
+            {/* Quizzes Tab */}
+            <TabsContent value="quizzes" className="mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-foreground">
+                  Shared Quizzes ({sharedQuizzes.length})
+                </h4>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowShareDialog(true)}
+                  disabled={unsharedQuizzes.length === 0}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share Quiz
+                </Button>
               </div>
-            )}
-          </div>
 
-          {/* Shared Quizzes Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-semibold text-foreground">
-                Shared Quizzes ({sharedQuizzes.length})
-              </h4>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowShareDialog(true)}
-                disabled={unsharedQuizzes.length === 0}
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share Quiz
-              </Button>
-            </div>
-
-            {sharedQuizzes.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No quizzes shared yet. Share a quiz to make it easily accessible to your community.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {sharedQuizzes.map((shared) => (
-                  <div
-                    key={shared.id}
-                    className="p-4 bg-card rounded-lg border border-border hover:border-primary/30 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {shared.quiz?.course?.code || "Quiz"}
-                          </Badge>
-                          {shared.quiz?.is_premium && (
-                            <Badge variant="outline" className="text-xs">
-                              <Coins className="w-3 h-3 mr-1" />
-                              {shared.quiz.token_cost}
+              {sharedQuizzes.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No quizzes shared yet. Share a quiz to make it easily accessible to your community.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {sharedQuizzes.map((shared) => (
+                    <div
+                      key={shared.id}
+                      className="p-4 bg-card rounded-lg border border-border hover:border-primary/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {shared.quiz?.course?.code || "Quiz"}
                             </Badge>
+                            {shared.quiz?.is_premium && (
+                              <Badge variant="outline" className="text-xs">
+                                <Coins className="w-3 h-3 mr-1" />
+                                {shared.quiz.token_cost}
+                              </Badge>
+                            )}
+                          </div>
+                          <h5 className="font-medium text-foreground truncate">
+                            {shared.quiz?.title || "Quiz"}
+                          </h5>
+                          {shared.message && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {shared.message}
+                            </p>
                           )}
+                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Brain className="w-3 h-3" />
+                              {shared.quiz?.question_count} questions
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {shared.quiz?.duration_minutes} min
+                            </span>
+                            <span>
+                              Shared {formatDistanceToNow(new Date(shared.shared_at), { addSuffix: true })}
+                            </span>
+                          </div>
                         </div>
-                        <h5 className="font-medium text-foreground truncate">
-                          {shared.quiz?.title || "Quiz"}
-                        </h5>
-                        {shared.message && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {shared.message}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Brain className="w-3 h-3" />
-                            {shared.quiz?.question_count} questions
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {shared.quiz?.duration_minutes} min
-                          </span>
-                          <span>
-                            Shared {formatDistanceToNow(new Date(shared.shared_at), { addSuffix: true })}
-                          </span>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => copyShareLink(shared.quiz_id)}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => unshareQuiz(shared.id)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => copyShareLink(shared.quiz_id)}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => unshareQuiz(shared.id)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Announcements Tab */}
+            <TabsContent value="announcements" className="mt-4">
+              <CommunityAnnouncements communityId={community.id} isTutor={true} />
+            </TabsContent>
+
+            {/* Members Tab */}
+            <TabsContent value="members" className="mt-4">
+              <h4 className="font-semibold text-foreground mb-3">
+                Members ({members.length})
+              </h4>
+
+              {members.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No members yet. Share your invite code to get started!
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {members.slice(0, 20).map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full"
+                    >
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={member.profile?.profile_image_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {member.profile?.full_name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">
+                        {member.profile?.full_name || "Student"}
+                      </span>
+                    </div>
+                  ))}
+                  {members.length > 20 && (
+                    <Badge variant="secondary">+{members.length - 20} more</Badge>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

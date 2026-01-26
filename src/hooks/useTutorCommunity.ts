@@ -180,7 +180,7 @@ export const useTutorCommunity = () => {
   };
 
   const shareQuiz = async (quizId: string, message?: string) => {
-    if (!community) return false;
+    if (!community || !user) return false;
 
     try {
       const { data, error } = await supabase
@@ -199,6 +199,39 @@ export const useTutorCommunity = () => {
           return false;
         }
         throw error;
+      }
+
+      // Get quiz details for notification
+      const { data: quizData } = await supabase
+        .from("quizzes")
+        .select("title")
+        .eq("id", quizId)
+        .single();
+
+      // Get tutor name
+      const { data: tutorData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      // Get all community members
+      const { data: membersData } = await supabase
+        .from("community_members")
+        .select("user_id")
+        .eq("community_id", community.id);
+
+      // Create notifications for all members
+      if (membersData && membersData.length > 0) {
+        const notifications = membersData.map((member) => ({
+          user_id: member.user_id,
+          title: "New Quiz Shared!",
+          message: `${tutorData?.full_name || "Your tutor"} shared "${quizData?.title || "a new quiz"}" in ${community.name}`,
+          type: "success",
+          link: `/community/${community.id}`,
+        }));
+
+        await supabase.from("notifications").insert(notifications);
       }
 
       toast.success("Quiz shared to community!");
