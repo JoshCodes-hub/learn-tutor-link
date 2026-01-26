@@ -24,6 +24,7 @@ import {
   MessageSquare,
   Quote,
   Heart,
+  UserPlus,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useFavoriteTutors } from "@/hooks/useFavoriteTutors";
@@ -75,6 +76,13 @@ interface TutorStats {
   totalRatings: number;
 }
 
+interface TutorCommunity {
+  id: string;
+  name: string;
+  description: string | null;
+  invite_code: string;
+}
+
 const TutorProfile = () => {
   const { tutorId } = useParams<{ tutorId: string }>();
   const navigate = useNavigate();
@@ -83,6 +91,7 @@ const TutorProfile = () => {
   const [application, setApplication] = useState<TutorApplication | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [community, setCommunity] = useState<TutorCommunity | null>(null);
   const [stats, setStats] = useState<TutorStats>({
     totalQuizzes: 0,
     totalStudents: 0,
@@ -139,6 +148,18 @@ const TutorProfile = () => {
               course: q.courses as { code: string; name: string },
             }))
           );
+        }
+
+        // Fetch tutor's community
+        const { data: communityData } = await supabase
+          .from("tutor_communities")
+          .select("id, name, description, invite_code")
+          .eq("tutor_id", tutorId)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (communityData) {
+          setCommunity(communityData);
         }
 
         // Calculate stats
@@ -421,6 +442,31 @@ const TutorProfile = () => {
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Community Section */}
+        {community && (
+          <div className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-xl border border-primary/20 p-6 mb-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-display text-lg font-semibold text-foreground">
+                    {community.name}
+                  </h3>
+                  {community.description && (
+                    <p className="text-sm text-muted-foreground">{community.description}</p>
+                  )}
+                </div>
+              </div>
+              <Button onClick={() => navigate(`/community/${community.id}`)}>
+                <UserPlus className="w-4 h-4 mr-2" />
+                View Community
+              </Button>
+            </div>
           </div>
         )}
 

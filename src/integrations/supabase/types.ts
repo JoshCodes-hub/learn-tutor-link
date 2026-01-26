@@ -118,6 +118,74 @@ export type Database = {
           },
         ]
       }
+      community_members: {
+        Row: {
+          community_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_members_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_shared_quizzes: {
+        Row: {
+          community_id: string
+          id: string
+          message: string | null
+          quiz_id: string
+          shared_at: string
+        }
+        Insert: {
+          community_id: string
+          id?: string
+          message?: string | null
+          quiz_id: string
+          shared_at?: string
+        }
+        Update: {
+          community_id?: string
+          id?: string
+          message?: string | null
+          quiz_id?: string
+          shared_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_shared_quizzes_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_shared_quizzes_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           code: string
@@ -1183,6 +1251,39 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_communities: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          invite_code: string
+          is_active: boolean
+          name: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          invite_code: string
+          is_active?: boolean
+          name: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          invite_code?: string
+          is_active?: boolean
+          name?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tutor_earnings: {
         Row: {
           created_at: string
@@ -1324,6 +1425,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_community_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_team_code: { Args: never; Returns: string }
       generate_tutor_code: { Args: never; Returns: string }

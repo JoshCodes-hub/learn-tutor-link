@@ -35,6 +35,7 @@ import { BulkQuizImport } from "@/components/tutor/BulkQuizImport";
 import QuestionReports from "@/components/tutor/QuestionReports";
 import TutorAnalytics from "@/components/tutor/TutorAnalytics";
 import QuizManagement from "@/components/tutor/QuizManagement";
+import { TutorCommunityManager } from "@/components/tutor/TutorCommunityManager";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -459,6 +460,11 @@ const TutorDashboard = () => {
         {/* Analytics Dashboard */}
         <div className="mb-8">
           <TutorAnalytics />
+        </div>
+
+        {/* Tutor Community */}
+        <div className="mb-8">
+          <TutorCommunityManager quizzes={quizzes} />
         </div>
 
         {/* Question Reports Section */}
