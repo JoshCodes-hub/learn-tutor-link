@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, Brain, Target, TrendingUp, CheckCircle2, Star, Zap, Users } from "lucide-react";
 import { motion } from "framer-motion";
-import studentsHero from "@/assets/students-hero.jpg";
+import heroStudent from "@/assets/hero-student.jpg";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -14,20 +14,6 @@ const HeroSection = () => {
       
       {/* Animated mesh gradient overlay */}
       <div className="absolute inset-0 bg-gradient-mesh opacity-60" />
-      
-      {/* Hero image overlay with gradient */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div 
-          className="absolute inset-0 opacity-[0.08] dark:opacity-[0.12]"
-          style={{
-            backgroundImage: `url(${studentsHero})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
-      </div>
       
       {/* Animated background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -219,33 +205,57 @@ const HeroSection = () => {
             </motion.div>
           </motion.div>
 
-          {/* Right Content - Premium Floating Cards with Student Image */}
+          {/* Right Content - Hero Student Image with Floating Cards */}
           <div className="relative h-[500px] lg:h-[650px] hidden md:block perspective-1000">
-            {/* Student image showcase */}
+            {/* Main student image - prominently displayed */}
             <motion.div 
-              className="absolute top-0 right-0 lg:right-0 w-[340px] lg:w-[400px] h-[280px] lg:h-[320px] rounded-3xl overflow-hidden shadow-2xl border border-border/50"
-              initial={{ opacity: 0, y: 40, rotateY: -10 }}
-              animate={{ opacity: 1, y: 0, rotateY: -5 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              style={{ transform: 'rotateY(-5deg) rotateX(5deg)' }}
+              className="absolute top-4 right-0 w-[380px] lg:w-[450px] h-[400px] lg:h-[480px] rounded-3xl overflow-hidden shadow-2xl border-4 border-primary/20"
+              initial={{ opacity: 0, scale: 0.9, y: 40 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ scale: 1.02 }}
             >
               <img 
-                src={studentsHero} 
-                alt="Happy university students studying" 
-                className="w-full h-full object-cover"
+                src={heroStudent} 
+                alt="Happy student using OverraPrep AI on laptop" 
+                className="w-full h-full object-cover object-center"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="glass-card rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                    <Users className="w-5 h-5 text-primary-foreground" />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
+              
+              {/* Success badge on image */}
+              <motion.div 
+                className="absolute top-4 right-4 glass-card rounded-full px-4 py-2 flex items-center gap-2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1 }}
+              >
+                <CheckCircle2 className="w-5 h-5 text-success" />
+                <span className="text-sm font-bold text-foreground">Exam Ready!</span>
+              </motion.div>
+
+              {/* Bottom info card */}
+              <motion.div 
+                className="absolute bottom-4 left-4 right-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+              >
+                <div className="glass-card rounded-xl p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg">
+                    <TrendingUp className="w-6 h-6 text-primary-foreground" />
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground">5,000+ Students</p>
-                    <p className="text-xs text-muted-foreground">Preparing smarter together</p>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-foreground">Score Improved by 40%</p>
+                    <p className="text-xs text-muted-foreground">After 2 weeks of practice</p>
+                  </div>
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-accent text-accent" />
+                    ))}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
 
             {/* AI Explanation Card */}
