@@ -22,6 +22,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
+import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
 
 interface Question {
   id: string;
@@ -68,6 +69,7 @@ const QuizPractice = () => {
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -333,18 +335,10 @@ const QuizPractice = () => {
           </h2>
 
           {/* Question Image */}
-          {currentQuestion?.image_url && (
-            <div className="mb-6 rounded-lg border border-border overflow-hidden bg-muted/30">
-              <img 
-                src={currentQuestion.image_url} 
-                alt="Question diagram"
-                className="w-full max-h-64 object-contain mx-auto"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-          )}
+          <ClickableQuestionImage
+            imageUrl={currentQuestion?.image_url || null}
+            onImageClick={() => setZoomedImageUrl(currentQuestion?.image_url || null)}
+          />
 
           {/* Options */}
           <div className="space-y-3">
@@ -531,6 +525,13 @@ const QuizPractice = () => {
           questionText={currentQuestion.question_text}
         />
       )}
+
+      {/* Image Zoom Modal */}
+      <ImageZoomModal
+        imageUrl={zoomedImageUrl}
+        isOpen={!!zoomedImageUrl}
+        onClose={() => setZoomedImageUrl(null)}
+      />
     </div>
   );
 };
