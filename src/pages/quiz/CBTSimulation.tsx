@@ -16,6 +16,7 @@ import {
   BookmarkCheck
 } from "lucide-react";
 import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
+import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
 
 interface Question {
   id: string;
@@ -55,6 +56,7 @@ const CBTSimulation = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
+  const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
 
@@ -309,18 +311,11 @@ const CBTSimulation = () => {
               </h2>
 
               {/* Question Image */}
-              {currentQuestion?.image_url && (
-                <div className="mb-6 rounded-lg border border-border overflow-hidden bg-muted/30">
-                  <img 
-                    src={currentQuestion.image_url} 
-                    alt="Question diagram"
-                    className="w-full max-h-56 object-contain mx-auto"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
+              <ClickableQuestionImage
+                imageUrl={currentQuestion?.image_url || null}
+                onImageClick={() => setZoomedImageUrl(currentQuestion?.image_url || null)}
+                className="max-h-56"
+              />
 
               <div className="space-y-3">
                 {options.map((option) => {
@@ -456,6 +451,13 @@ const CBTSimulation = () => {
           questionText={currentQuestion.question_text}
         />
       )}
+
+      {/* Image Zoom Modal */}
+      <ImageZoomModal
+        imageUrl={zoomedImageUrl}
+        isOpen={!!zoomedImageUrl}
+        onClose={() => setZoomedImageUrl(null)}
+      />
     </div>
   );
 };
