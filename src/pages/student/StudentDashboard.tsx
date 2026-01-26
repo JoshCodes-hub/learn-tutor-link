@@ -54,7 +54,8 @@ import {
   MessageSquare,
   Flame,
   RefreshCw,
-  FileText
+  FileText,
+  Share2
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -1077,6 +1078,21 @@ const StudentDashboard = () => {
                       >
                         <Target className="w-4 h-4 mr-1" />
                         CBT Mode
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/quiz/${quiz.id}`;
+                          navigator.clipboard.writeText(shareUrl);
+                          toast({
+                            title: "Link copied!",
+                            description: "Quiz link copied to clipboard",
+                          });
+                        }}
+                      >
+                        <Share2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

@@ -21,6 +21,7 @@ const BrowseTutors = lazy(() => import("./pages/tutor/BrowseTutors"));
 const ApplyTutor = lazy(() => import("./pages/ApplyTutor"));
 const TutorApplications = lazy(() => import("./pages/admin/TutorApplications"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const QuizPreview = lazy(() => import("./pages/quiz/QuizPreview"));
 const QuizPractice = lazy(() => import("./pages/quiz/QuizPractice"));
 const CBTSimulation = lazy(() => import("./pages/quiz/CBTSimulation"));
 const QuizResults = lazy(() => import("./pages/quiz/QuizResults"));
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/apply-tutor" element={<ApplyTutor />} />
               <Route path="/admin/applications" element={<TutorApplications />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/quiz/:quizId" element={<QuizPreview />} />
               <Route path="/quiz/:quizId/practice" element={<QuizPractice />} />
               <Route path="/quiz/:quizId/simulation" element={<CBTSimulation />} />
               <Route path="/quiz/:quizId/results/:attemptId" element={<QuizResults />} />
