@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Sparkles, Brain, Target, TrendingUp, CheckCircle2, Star, Zap, Users } from "lucide-react";
+import { motion } from "framer-motion";
+import studentsHero from "@/assets/students-hero.jpg";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -13,11 +15,48 @@ const HeroSection = () => {
       {/* Animated mesh gradient overlay */}
       <div className="absolute inset-0 bg-gradient-mesh opacity-60" />
       
+      {/* Hero image overlay with gradient */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-[0.08] dark:opacity-[0.12]"
+          style={{
+            backgroundImage: `url(${studentsHero})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+      </div>
+      
       {/* Animated background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-80 h-80 md:w-[500px] md:h-[500px] bg-primary/10 rounded-full blur-3xl animate-blob" />
-        <div className="absolute top-1/3 -right-40 w-96 h-96 md:w-[600px] md:h-[600px] bg-accent/8 rounded-full blur-3xl animate-blob-delayed" />
-        <div className="absolute -bottom-40 left-1/3 w-80 h-80 md:w-[500px] md:h-[500px] bg-primary/5 rounded-full blur-3xl animate-blob" />
+        <motion.div 
+          className="absolute -top-40 -left-40 w-80 h-80 md:w-[500px] md:h-[500px] bg-primary/10 rounded-full blur-3xl"
+          animate={{ 
+            x: [0, 30, 0],
+            y: [0, -20, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute top-1/3 -right-40 w-96 h-96 md:w-[600px] md:h-[600px] bg-accent/8 rounded-full blur-3xl"
+          animate={{ 
+            x: [0, -30, 0],
+            y: [0, 20, 0],
+            scale: [1.1, 1, 1.1]
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute -bottom-40 left-1/3 w-80 h-80 md:w-[500px] md:h-[500px] bg-primary/5 rounded-full blur-3xl"
+          animate={{ 
+            x: [0, 20, 0],
+            y: [0, -15, 0]
+          }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        />
         
         {/* Subtle grid pattern */}
         <div 
@@ -33,9 +72,19 @@ const HeroSection = () => {
       <div className="container mx-auto px-4 py-16 md:py-24 lg:py-32 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left Content */}
-          <div className="max-w-2xl animate-slide-up">
+          <motion.div 
+            className="max-w-2xl"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          >
             {/* Trust badge */}
-            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-6 backdrop-blur-sm">
+            <motion.div 
+              className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-6 backdrop-blur-sm"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="flex -space-x-1">
                 <div className="w-5 h-5 rounded-full bg-gradient-primary flex items-center justify-center">
                   <Star className="w-3 h-3 text-primary-foreground fill-primary-foreground" />
@@ -43,40 +92,82 @@ const HeroSection = () => {
               </div>
               <span className="text-sm font-semibold text-foreground">Trusted by 5,000+ FUTA Students</span>
               <Sparkles className="w-4 h-4 text-accent" />
-            </div>
+            </motion.div>
 
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-[1.1] mb-6 text-balance">
+            <motion.h1 
+              className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-[1.1] mb-6 text-balance"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
               Master Your{" "}
               <span className="relative">
                 <span className="text-gradient-primary">CBT Exams</span>
-                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
-                  <path d="M2 8C50 4 150 4 198 8" stroke="hsl(var(--accent))" strokeWidth="3" strokeLinecap="round" className="animate-pulse-subtle" />
-                </svg>
+                <motion.svg 
+                  className="absolute -bottom-2 left-0 w-full" 
+                  viewBox="0 0 200 12" 
+                  fill="none"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ delay: 0.8, duration: 0.8 }}
+                >
+                  <motion.path 
+                    d="M2 8C50 4 150 4 198 8" 
+                    stroke="hsl(var(--accent))" 
+                    strokeWidth="3" 
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ delay: 0.8, duration: 0.8 }}
+                  />
+                </motion.svg>
               </span>{" "}
               with AI Power
-            </h1>
+            </motion.h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed max-w-xl">
+            <motion.p 
+              className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed max-w-xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
               Practice with thousands of past questions, get instant AI explanations, 
               and track your progress. Join the smartest way to prepare for FUTA exams.
-            </p>
+            </motion.p>
 
             {/* Feature chips */}
-            <div className="flex flex-wrap gap-3 mb-8">
+            <motion.div 
+              className="flex flex-wrap gap-3 mb-8"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
               {[
                 { icon: CheckCircle2, text: "10,000+ Questions" },
                 { icon: Zap, text: "AI Explanations" },
                 { icon: Target, text: "CBT Simulation" },
               ].map((feature, i) => (
-                <div key={i} className="inline-flex items-center gap-2 bg-card/60 backdrop-blur-sm border border-border/50 rounded-full px-3 py-1.5">
+                <motion.div 
+                  key={i} 
+                  className="inline-flex items-center gap-2 bg-card/60 backdrop-blur-sm border border-border/50 rounded-full px-3 py-1.5"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.7 + i * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
+                >
                   <feature.icon className="w-4 h-4 text-primary" />
                   <span className="text-sm font-medium text-foreground">{feature.text}</span>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-10">
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 mb-10"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
               <Button 
                 variant="hero" 
                 size="xl" 
@@ -90,22 +181,30 @@ const HeroSection = () => {
                 <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 Watch Demo
               </Button>
-            </div>
+            </motion.div>
 
             {/* Social proof */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+            <motion.div 
+              className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+            >
               <div className="flex items-center -space-x-3">
                 {["A", "O", "C", "T", "F"].map((initial, i) => (
-                  <div
+                  <motion.div
                     key={i}
                     className="w-10 h-10 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold shadow-md"
                     style={{
                       background: `linear-gradient(135deg, hsl(${173 + i * 30} 58% ${39 + i * 5}%) 0%, hsl(${173 + i * 30} 58% ${30 + i * 5}%) 100%)`,
                       color: 'white'
                     }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 1.1 + i * 0.1 }}
                   >
                     {initial}
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               <div className="flex flex-col">
@@ -117,66 +216,46 @@ const HeroSection = () => {
                 </div>
                 <p className="text-sm text-muted-foreground">Based on 1,000+ student reviews</p>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          {/* Right Content - Premium Floating Cards */}
+          {/* Right Content - Premium Floating Cards with Student Image */}
           <div className="relative h-[500px] lg:h-[650px] hidden md:block perspective-1000">
-            {/* Main Quiz Card */}
-            <div className="absolute top-0 right-0 lg:right-8 w-[320px] lg:w-[360px] glass-card rounded-2xl p-6 animate-float preserve-3d" style={{ transform: 'rotateY(-5deg) rotateX(5deg)' }}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                    <Brain className="w-6 h-6 text-primary-foreground" />
+            {/* Student image showcase */}
+            <motion.div 
+              className="absolute top-0 right-0 lg:right-0 w-[340px] lg:w-[400px] h-[280px] lg:h-[320px] rounded-3xl overflow-hidden shadow-2xl border border-border/50"
+              initial={{ opacity: 0, y: 40, rotateY: -10 }}
+              animate={{ opacity: 1, y: 0, rotateY: -5 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              style={{ transform: 'rotateY(-5deg) rotateX(5deg)' }}
+            >
+              <img 
+                src={studentsHero} 
+                alt="Happy university students studying" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4">
+                <div className="glass-card rounded-xl p-3 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <p className="font-display font-bold text-foreground">PHY 101</p>
-                    <p className="text-sm text-muted-foreground">General Physics I</p>
+                    <p className="text-sm font-bold text-foreground">5,000+ Students</p>
+                    <p className="text-xs text-muted-foreground">Preparing smarter together</p>
                   </div>
                 </div>
-                <div className="px-2.5 py-1 bg-success/10 text-success text-xs font-semibold rounded-full">
-                  Live
-                </div>
               </div>
-              
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Question 15 of 20</span>
-                  <span className="text-primary font-semibold">75%</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-primary w-3/4 rounded-full transition-all duration-500" />
-                </div>
-              </div>
-              
-              <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
-                <p className="text-sm text-foreground font-medium mb-4 leading-relaxed">
-                  A body of mass 5kg is moving with a velocity of 10m/s. Calculate its kinetic energy.
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: "A. 250 J", correct: true },
-                    { label: "B. 500 J", correct: false },
-                    { label: "C. 125 J", correct: false },
-                    { label: "D. 50 J", correct: false },
-                  ].map((option, i) => (
-                    <div
-                      key={i}
-                      className={`p-2.5 rounded-lg border text-sm font-medium transition-all ${
-                        option.correct
-                          ? "border-success bg-success/10 text-success"
-                          : "border-border/50 text-muted-foreground hover:border-primary/30 hover:bg-primary/5"
-                      }`}
-                    >
-                      {option.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            </motion.div>
 
             {/* AI Explanation Card */}
-            <div className="absolute bottom-16 lg:bottom-24 left-0 w-[280px] lg:w-[300px] glass-card rounded-2xl p-5 animate-float-delayed preserve-3d" style={{ transform: 'rotateY(5deg) rotateX(-5deg)' }}>
+            <motion.div 
+              className="absolute bottom-16 lg:bottom-24 left-0 w-[280px] lg:w-[300px] glass-card rounded-2xl p-5 preserve-3d"
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              style={{ transform: 'rotateY(5deg) rotateX(-5deg)' }}
+            >
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 bg-gradient-accent rounded-lg flex items-center justify-center shadow-md">
                   <Sparkles className="w-4 h-4 text-accent-foreground" />
@@ -192,20 +271,28 @@ const HeroSection = () => {
                 <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                 <span>Verified by Expert Tutors</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Progress Card */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-4 lg:left-0 w-56 glass-card rounded-xl p-4 animate-float-slow preserve-3d" style={{ transform: 'rotateY(8deg)', animationDelay: '1s' }}>
+            <motion.div 
+              className="absolute top-1/2 -translate-y-1/2 left-4 lg:left-0 w-56 glass-card rounded-xl p-4 preserve-3d"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
+              style={{ transform: 'rotateY(8deg)' }}
+            >
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="w-4 h-4 text-primary" />
                 <p className="text-xs font-semibold text-foreground">Weekly Progress</p>
               </div>
               <div className="flex items-end gap-1 h-20">
                 {[40, 55, 45, 70, 60, 85, 90].map((height, i) => (
-                  <div
+                  <motion.div
                     key={i}
                     className="flex-1 bg-gradient-primary rounded-t transition-all duration-500 hover:opacity-80"
-                    style={{ height: `${height}%` }}
+                    initial={{ height: 0 }}
+                    animate={{ height: `${height}%` }}
+                    transition={{ delay: 1 + i * 0.1, duration: 0.5 }}
                   />
                 ))}
               </div>
@@ -213,24 +300,42 @@ const HeroSection = () => {
                 <span>Mon</span>
                 <span>Sun</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Floating badges */}
-            <div className="absolute top-20 left-20 glass-card rounded-full px-3 py-1.5 flex items-center gap-2 animate-pulse-subtle">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <motion.div 
+              className="absolute top-56 lg:top-72 left-20 glass-card rounded-full px-3 py-1.5 flex items-center gap-2"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.2 }}
+            >
+              <motion.div 
+                className="w-2 h-2 rounded-full bg-success"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
               <span className="text-xs font-semibold text-foreground">2,847 online</span>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-60 animate-pulse-subtle">
+      <motion.div 
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.6 }}
+        transition={{ delay: 1.5 }}
+      >
         <span className="text-xs text-muted-foreground">Scroll to explore</span>
         <div className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex items-start justify-center p-1.5">
-          <div className="w-1.5 h-3 bg-muted-foreground/50 rounded-full animate-bounce" />
+          <motion.div 
+            className="w-1.5 h-3 bg-muted-foreground/50 rounded-full"
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };
