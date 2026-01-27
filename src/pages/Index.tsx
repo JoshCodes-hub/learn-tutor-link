@@ -16,7 +16,7 @@ const homepageStructuredData = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "OverraPrep AI",
-  url: "https://overraprep.com",
+  url: "https://overraprepaifuta.vercel.app/",
   description: "AI-powered CBT exam preparation platform for FUTA students",
   potentialAction: {
     "@type": "SearchAction",
@@ -28,7 +28,7 @@ const homepageStructuredData = {
     name: "OverraPrep AI",
     logo: {
       "@type": "ImageObject",
-      url: "https://overraprep.com/logo.png",
+      url: "https://overraprepaifuta.vercel.app/assets/logo-B4OzJs9a.png",
     },
   },
 };
@@ -40,7 +40,7 @@ const Index = () => {
         title="AI-Powered CBT Exam Preparation"
         description="Ace your FUTA CBT exams with AI-powered practice questions, instant explanations, and personalized learning paths. Join thousands of students preparing smarter."
         keywords="FUTA, CBT, exam preparation, past questions, AI tutoring, online learning, Nigeria university, Federal University of Technology Akure"
-        url="https://overraprep.com"
+        url="https://overraprepaifuta.vercel.app/"
         structuredData={homepageStructuredData}
       />
       <OnboardingTour />
