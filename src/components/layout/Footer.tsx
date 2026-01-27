@@ -102,13 +102,13 @@ const Footer = () => {
                   <div className="w-8 h-8 rounded-full bg-background/10 flex items-center justify-center">
                     <Mail className="w-4 h-4" />
                   </div>
-                  <span className="text-sm">support@overraprep.com</span>
+                  <span className="text-sm">info.0verraaisolutions@gmail.com</span>
                 </div>
                 <div className="flex items-center gap-3 text-background/70">
                   <div className="w-8 h-8 rounded-full bg-background/10 flex items-center justify-center">
                     <Phone className="w-4 h-4" />
                   </div>
-                  <span className="text-sm">+234 800 000 0000</span>
+                  <span className="text-sm">+234 8145 4725 86</span>
                 </div>
                 <div className="flex items-center gap-3 text-background/70">
                   <div className="w-8 h-8 rounded-full bg-background/10 flex items-center justify-center">
