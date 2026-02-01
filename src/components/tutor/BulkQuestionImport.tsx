@@ -33,6 +33,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
+import mammoth from "mammoth";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ImportedQuestion {
@@ -104,6 +105,57 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     );
   };
 
+  // Parse Word document tables to JSON
+  const parseWordDocument = async (file: File): Promise<any[]> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({ arrayBuffer });
+    const html = result.value;
+    
+    // Create a temporary DOM element to parse the HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const tables = doc.querySelectorAll("table");
+    
+    if (tables.length === 0) {
+      throw new Error("No tables found in the Word document. Please ensure your document contains a table with question data.");
+    }
+    
+    const jsonData: any[] = [];
+    const table = tables[0]; // Use the first table
+    const rows = table.querySelectorAll("tr");
+    
+    if (rows.length < 2) {
+      throw new Error("Table must have at least a header row and one data row.");
+    }
+    
+    // Get headers from first row
+    const headerRow = rows[0];
+    const headers: string[] = [];
+    headerRow.querySelectorAll("th, td").forEach((cell) => {
+      headers.push((cell.textContent || "").trim().toLowerCase().replace(/\s+/g, "_"));
+    });
+    
+    // Parse data rows
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const cells = row.querySelectorAll("td");
+      const rowData: any = {};
+      
+      cells.forEach((cell, index) => {
+        if (index < headers.length) {
+          rowData[headers[index]] = (cell.textContent || "").trim();
+        }
+      });
+      
+      // Only add if row has some data
+      if (Object.values(rowData).some(v => v)) {
+        jsonData.push(rowData);
+      }
+    }
+    
+    return jsonData;
+  };
+
   const processFile = async (file: File) => {
     setIsProcessing(true);
     setErrors([]);
@@ -113,24 +165,28 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     try {
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
       
-      if (!["csv", "xlsx", "xls"].includes(fileExtension || "")) {
-        throw new Error("Please upload a CSV or Excel file (.csv, .xlsx, .xls)");
+      if (!["csv", "xlsx", "xls", "docx"].includes(fileExtension || "")) {
+        throw new Error("Please upload a CSV, Excel, or Word file (.csv, .xlsx, .xls, .docx)");
       }
 
       // Stage 1: Reading file
       setProcessingStatus({ stage: "reading", progress: 20, message: `Reading ${file.name}...` });
       
-      const data = await file.arrayBuffer();
+      let jsonData: any[];
       
-      setProcessingStatus({ stage: "parsing", progress: 40, message: "Parsing spreadsheet data..." });
-      
-      // Small delay to show progress
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      if (fileExtension === "docx") {
+        setProcessingStatus({ stage: "parsing", progress: 40, message: "Extracting tables from Word document..." });
+        jsonData = await parseWordDocument(file);
+      } else {
+        const data = await file.arrayBuffer();
+        setProcessingStatus({ stage: "parsing", progress: 40, message: "Parsing spreadsheet data..." });
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+      }
 
       if (jsonData.length === 0) {
         throw new Error("The file appears to be empty");
@@ -269,10 +325,10 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     if (files && files.length > 0) {
       const file = files[0];
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
-      if (["csv", "xlsx", "xls"].includes(fileExtension || "")) {
+      if (["csv", "xlsx", "xls", "docx"].includes(fileExtension || "")) {
         processFile(file);
       } else {
-        toast.error("Please upload a CSV or Excel file (.csv, .xlsx, .xls)");
+        toast.error("Please upload a CSV, Excel, or Word file (.csv, .xlsx, .xls, .docx)");
       }
     }
   }, []);
@@ -585,7 +641,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
         </div>
 
         <div className="space-y-2">
-          <Label>Upload File (CSV or Excel)</Label>
+          <Label>Upload File (CSV, Excel, or Word)</Label>
           <div 
             className={cn(
               "border-2 border-dashed rounded-lg p-6 text-center transition-all cursor-pointer",
@@ -602,7 +658,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
             <Input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xlsx,.xls"
+              accept=".csv,.xlsx,.xls,.docx"
               onChange={handleFileChange}
               className="hidden"
             />
@@ -613,7 +669,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
             <p className="text-sm font-medium">
               {isDragging ? "Drop file here" : "Click to upload or drag and drop"}
             </p>
-            <p className="text-xs text-muted-foreground">CSV, XLSX, or XLS files</p>
+            <p className="text-xs text-muted-foreground">CSV, Excel, or Word (.docx) files</p>
           </div>
         </div>
 
