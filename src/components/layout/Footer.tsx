@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Mail, Phone, MapPin, ArrowRight, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,9 +37,9 @@ const socialLinks = [
   { icon: Linkedin, href: "#", label: "LinkedIn" },
 ];
 
-const Footer = () => {
+const Footer = forwardRef<HTMLElement>((props, ref) => {
   return (
-    <footer className="relative overflow-hidden">
+    <footer ref={ref} className="relative overflow-hidden" {...props}>
       {/* Gradient top border */}
       <div className="h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       
@@ -203,6 +204,8 @@ const Footer = () => {
       </div>
     </footer>
   );
-};
+});
+
+Footer.displayName = "Footer";
 
 export default Footer;
