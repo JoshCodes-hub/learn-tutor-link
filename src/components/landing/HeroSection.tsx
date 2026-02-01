@@ -33,16 +33,22 @@ const HeroSection = () => {
     <section className="relative w-full overflow-hidden" aria-label="Hero section">
       {/* Animated background images */}
       <div className="absolute inset-0">
-        <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="popLayout">
           <motion.img
             key={currentImageIndex}
             src={heroImages[currentImageIndex]}
             alt="Students studying with OverraPrep AI"
             className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1, ease: "easeInOut" }}
+            initial={{ opacity: 0, scale: 1.15 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1.05,
+              transition: {
+                opacity: { duration: 1, ease: "easeInOut" },
+                scale: { duration: 4, ease: "easeOut" }
+              }
+            }}
+            exit={{ opacity: 0, transition: { duration: 0.8 } }}
           />
         </AnimatePresence>
         {/* Gradient overlay */}
