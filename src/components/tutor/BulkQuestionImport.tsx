@@ -105,6 +105,17 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     );
   };
 
+  const getQuestionErrors = (q: ImportedQuestion): string[] => {
+    const errors: string[] = [];
+    if (!q.question_text.trim()) errors.push("Missing question text");
+    if (!q.option_a.trim()) errors.push("Missing Option A");
+    if (!q.option_b.trim()) errors.push("Missing Option B");
+    if (!q.option_c.trim()) errors.push("Missing Option C");
+    if (!q.option_d.trim()) errors.push("Missing Option D");
+    if (!q.correct_option) errors.push("Missing correct answer");
+    return errors;
+  };
+
   // Parse Word document tables to JSON
   const parseWordDocument = async (file: File): Promise<any[]> => {
     const arrayBuffer = await file.arrayBuffer();
@@ -537,7 +548,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
       { instruction: "1. Delete the first watermark row before importing" },
       { instruction: "2. The image_url column is optional - use it only for questions with diagrams" },
       { instruction: "3. Image URLs must be publicly accessible" },
-      { instruction: "4. Supported file formats: .xlsx, .xls, .csv" },
+      { instruction: "4. Supported file formats: .xlsx, .xls, .csv, .docx (Word)" },
       { instruction: "" },
       { instruction: "Website: https://quiz-nest-ai.lovable.app" },
     ];
@@ -547,6 +558,101 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     
     XLSX.writeFile(workbook, "OverraPrep_Question_Template.xlsx");
     toast.success("Template with 3 sample questions downloaded!");
+  };
+
+  const downloadWordTemplate = () => {
+    // Create HTML content for Word document
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>OverraPrep AI Question Template</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #7c3aed; }
+            table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #7c3aed; color: white; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .note { background-color: #fef3c7; padding: 10px; border-radius: 5px; margin-top: 20px; }
+            .footer { margin-top: 20px; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <h1>📚 OverraPrep AI - FUTA Question Template</h1>
+          <p>Fill in the table below with your questions. Delete the sample rows before importing.</p>
+          
+          <table>
+            <tr>
+              <th>question_text</th>
+              <th>option_a</th>
+              <th>option_b</th>
+              <th>option_c</th>
+              <th>option_d</th>
+              <th>correct_option</th>
+              <th>difficulty</th>
+              <th>explanation</th>
+            </tr>
+            <tr>
+              <td>What is the capital of Nigeria?</td>
+              <td>Lagos</td>
+              <td>Abuja</td>
+              <td>Kano</td>
+              <td>Port Harcourt</td>
+              <td>B</td>
+              <td>easy</td>
+              <td>Abuja became the capital on December 12, 1991.</td>
+            </tr>
+            <tr>
+              <td>The period T of a simple pendulum is related to length L by?</td>
+              <td>T = 2π√(L/g)</td>
+              <td>T = 2π√(g/L)</td>
+              <td>T = π√(L/g)</td>
+              <td>T = 2π(L/g)</td>
+              <td>A</td>
+              <td>medium</td>
+              <td>The period formula is T = 2π√(L/g).</td>
+            </tr>
+            <tr>
+              <td>Calculate total resistance: R1=4Ω and R2=6Ω in parallel.</td>
+              <td>10Ω</td>
+              <td>2.4Ω</td>
+              <td>24Ω</td>
+              <td>1.5Ω</td>
+              <td>B</td>
+              <td>hard</td>
+              <td>1/Rtotal = 1/4 + 1/6 = 5/12, so Rtotal = 2.4Ω</td>
+            </tr>
+          </table>
+          
+          <div class="note">
+            <strong>Important Notes:</strong>
+            <ul>
+              <li>Required: question_text, option_a, option_b, option_c, option_d, correct_option (A/B/C/D)</li>
+              <li>Optional: difficulty (easy/medium/hard), explanation</li>
+              <li>Delete the sample rows above before importing</li>
+              <li>Save as .docx format</li>
+            </ul>
+          </div>
+          
+          <div class="footer">
+            <p>OverraPrep AI - FUTA | https://quiz-nest-ai.lovable.app</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: "application/msword" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "OverraPrep_Question_Template.doc");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Word template downloaded!");
   };
 
   const updateQuestion = (index: number, field: keyof ImportedQuestion, value: string) => {
@@ -596,17 +702,21 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
         </div>
 
         {/* Template & Export Row */}
-        <div className="flex gap-2">
-          <div className="flex-1 p-3 rounded-lg bg-muted/50 border border-dashed">
+        <div className="flex gap-2 flex-wrap">
+          <div className="flex-1 min-w-[200px] p-3 rounded-lg bg-muted/50 border border-dashed">
             <div className="flex items-center justify-between gap-2">
               <div className="text-sm">
-                <p className="font-medium">Template</p>
+                <p className="font-medium">Templates</p>
                 <p className="text-xs text-muted-foreground">Download sample format</p>
               </div>
-              <Button variant="outline" size="sm" onClick={downloadTemplate}>
-                <Download className="w-4 h-4 mr-1" />
-                Get
-              </Button>
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" onClick={downloadTemplate} title="Excel Template">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={downloadWordTemplate} title="Word Template">
+                  <FileDown className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -779,6 +889,25 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
           ))}
         </div>
 
+        {/* Validation Errors for Current Question */}
+        {!isQuestionValid(currentQuestion) && (
+          <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                  Question {previewIndex + 1} has {getQuestionErrors(currentQuestion).length} issue(s):
+                </p>
+                <ul className="text-xs text-amber-700 dark:text-amber-400 mt-1 space-y-0.5">
+                  {getQuestionErrors(currentQuestion).map((error, i) => (
+                    <li key={i}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Question Preview Card */}
         <div className="p-4 rounded-lg border bg-card space-y-3">
           <div className="flex items-center justify-between">
@@ -786,7 +915,9 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
               <Badge variant="outline">Q{previewIndex + 1}</Badge>
               <Badge variant="secondary" className="capitalize">{currentQuestion.difficulty}</Badge>
               {!isQuestionValid(currentQuestion) && (
-                <Badge variant="destructive" className="text-xs">Incomplete</Badge>
+                <Badge variant="destructive" className="text-xs">
+                  {getQuestionErrors(currentQuestion).length} error(s)
+                </Badge>
               )}
             </div>
             <div className="flex items-center gap-1">
