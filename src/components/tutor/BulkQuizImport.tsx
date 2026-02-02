@@ -41,16 +41,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface ImportedQuestion {
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: string;
+  explanation: string;
+  difficulty: string;
+}
+
 interface ImportedQuiz {
   title: string;
   description: string;
   course_code: string;
   course_name: string;
   duration_minutes: number;
-  question_count: number;
   is_premium: boolean;
   token_cost: number;
   is_simulation: boolean;
+  questions: ImportedQuestion[];
 }
 
 interface BulkQuizImportProps {
@@ -104,7 +115,19 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
       q.title.trim() &&
       q.course_code.trim() &&
       q.duration_minutes > 0 &&
-      q.question_count > 0
+      q.questions.length > 0 &&
+      q.questions.every(isQuestionValid)
+    );
+  };
+
+  const isQuestionValid = (q: ImportedQuestion): boolean => {
+    return !!(
+      q.question_text.trim() &&
+      q.option_a.trim() &&
+      q.option_b.trim() &&
+      q.option_c.trim() &&
+      q.option_d.trim() &&
+      ["A", "B", "C", "D"].includes(q.correct_option.toUpperCase())
     );
   };
 
@@ -202,7 +225,8 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
         processedRows: 0
       });
 
-      const quizzes: ImportedQuiz[] = [];
+      // Group rows by quiz title - each row is one question for a quiz
+      const quizMap = new Map<string, { quizData: any; questions: any[] }>();
       const parseErrors: string[] = [];
 
       for (let index = 0; index < jsonData.length; index++) {
@@ -221,45 +245,88 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
           await new Promise(resolve => setTimeout(resolve, 0));
         }
 
-        const title = row.title || row.Title || row["Quiz Title"] || "";
-        const description = row.description || row.Description || "";
-        const courseCode = row.course_code || row.Course_Code || row["Course Code"] || "";
-        const courseName = row.course_name || row.Course_Name || row["Course Name"] || "";
+        // Quiz metadata
+        const title = String(row.quiz_title || row.title || row.Title || row["Quiz Title"] || "").trim();
+        const courseCode = String(row.course_code || row.Course_Code || row["Course Code"] || "").trim().toUpperCase();
+        const courseName = String(row.course_name || row.Course_Name || row["Course Name"] || courseCode).trim();
         const durationMinutes = parseInt(row.duration_minutes || row.Duration || row["Duration (mins)"] || "30", 10);
-        const questionCount = parseInt(row.question_count || row.Questions || row["Question Count"] || "20", 10);
         const isPremium = String(row.is_premium || row.Premium || row["Is Premium"] || "false").toLowerCase() === "true";
         const tokenCost = parseInt(row.token_cost || row.Cost || row["Token Cost"] || "0", 10);
         const isSimulation = String(row.is_simulation || row.Simulation || row["Is Simulation"] || "false").toLowerCase() === "true";
 
-        if (!String(title).trim()) {
+        // Question data
+        const questionText = String(row.question_text || row.Question || row["Question Text"] || "").trim();
+        const optionA = String(row.option_a || row.Option_A || row["Option A"] || "").trim();
+        const optionB = String(row.option_b || row.Option_B || row["Option B"] || "").trim();
+        const optionC = String(row.option_c || row.Option_C || row["Option C"] || "").trim();
+        const optionD = String(row.option_d || row.Option_D || row["Option D"] || "").trim();
+        const correctOption = String(row.correct_option || row.Correct || row["Correct Option"] || row.Answer || "").trim().toUpperCase();
+        const explanation = String(row.explanation || row.Explanation || "").trim();
+        const difficulty = String(row.difficulty || row.Difficulty || "medium").trim().toLowerCase();
+
+        // Validate required fields
+        if (!title) {
           parseErrors.push(`Row ${rowNum}: Missing quiz title`);
           continue;
         }
-        if (!String(courseCode).trim()) {
+        if (!courseCode) {
           parseErrors.push(`Row ${rowNum}: Missing course code`);
           continue;
         }
-        if (isNaN(durationMinutes) || durationMinutes <= 0) {
-          parseErrors.push(`Row ${rowNum}: Invalid duration`);
+        if (!questionText) {
+          parseErrors.push(`Row ${rowNum}: Missing question text`);
           continue;
         }
-        if (isNaN(questionCount) || questionCount <= 0) {
-          parseErrors.push(`Row ${rowNum}: Invalid question count`);
+        if (!optionA || !optionB || !optionC || !optionD) {
+          parseErrors.push(`Row ${rowNum}: Missing one or more options`);
+          continue;
+        }
+        if (!["A", "B", "C", "D"].includes(correctOption)) {
+          parseErrors.push(`Row ${rowNum}: Invalid correct option "${correctOption}" - must be A, B, C, or D`);
           continue;
         }
 
-        quizzes.push({
-          title: String(title).trim(),
-          description: String(description).trim(),
-          course_code: String(courseCode).trim().toUpperCase(),
-          course_name: String(courseName).trim() || String(courseCode).trim().toUpperCase(),
-          duration_minutes: durationMinutes,
-          question_count: questionCount,
-          is_premium: isPremium,
-          token_cost: isPremium ? (tokenCost || 5) : 0,
-          is_simulation: isSimulation,
+        // Add to quiz map
+        const quizKey = `${courseCode}::${title}`;
+        if (!quizMap.has(quizKey)) {
+          quizMap.set(quizKey, {
+            quizData: {
+              title,
+              course_code: courseCode,
+              course_name: courseName,
+              duration_minutes: durationMinutes,
+              is_premium: isPremium,
+              token_cost: tokenCost,
+              is_simulation: isSimulation,
+            },
+            questions: [],
+          });
+        }
+
+        quizMap.get(quizKey)!.questions.push({
+          question_text: questionText,
+          option_a: optionA,
+          option_b: optionB,
+          option_c: optionC,
+          option_d: optionD,
+          correct_option: correctOption,
+          explanation,
+          difficulty,
         });
       }
+
+      // Convert map to array
+      const quizzes: ImportedQuiz[] = Array.from(quizMap.values()).map(({ quizData, questions }) => ({
+        title: quizData.title,
+        description: "",
+        course_code: quizData.course_code,
+        course_name: quizData.course_name,
+        duration_minutes: quizData.duration_minutes,
+        is_premium: quizData.is_premium,
+        token_cost: quizData.is_premium ? (quizData.token_cost || 5) : 0,
+        is_simulation: quizData.is_simulation,
+        questions,
+      }));
 
       setProcessingStatus({ 
         stage: "complete", 
@@ -332,36 +399,174 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   }, []);
 
   const downloadTemplate = () => {
+    // Template with multiple questions per quiz - rows with same quiz_title are grouped together
     const templateData = [
+      // Quiz 1: Nigerian History (3 questions)
       {
-        title: "Introduction to Physics Quiz 1",
-        description: "Basic concepts of motion and forces",
-        course_code: "PHY101",
-        course_name: "Introduction to Physics",
-        duration_minutes: 30,
-        question_count: 20,
+        quiz_title: "Nigerian History Quiz",
+        course_code: "HST101",
+        course_name: "Nigerian History",
+        duration_minutes: 20,
         is_premium: "false",
         token_cost: 0,
         is_simulation: "false",
+        question_text: "In which year did Nigeria gain independence?",
+        option_a: "1957",
+        option_b: "1958",
+        option_c: "1960",
+        option_d: "1963",
+        correct_option: "C",
+        explanation: "Nigeria gained independence from British colonial rule on October 1, 1960.",
+        difficulty: "easy",
       },
       {
-        title: "Chemistry Midterm Simulation",
-        description: "Comprehensive exam covering organic chemistry",
-        course_code: "CHM201",
-        course_name: "Organic Chemistry",
-        duration_minutes: 60,
-        question_count: 50,
-        is_premium: "true",
-        token_cost: 10,
-        is_simulation: "true",
+        quiz_title: "Nigerian History Quiz",
+        course_code: "HST101",
+        course_name: "Nigerian History",
+        duration_minutes: 20,
+        is_premium: "false",
+        token_cost: 0,
+        is_simulation: "false",
+        question_text: "Who was the first Prime Minister of Nigeria?",
+        option_a: "Nnamdi Azikiwe",
+        option_b: "Obafemi Awolowo",
+        option_c: "Abubakar Tafawa Balewa",
+        option_d: "Ahmadu Bello",
+        correct_option: "C",
+        explanation: "Sir Abubakar Tafawa Balewa was the first Prime Minister of Nigeria from 1960 to 1966.",
+        difficulty: "medium",
+      },
+      {
+        quiz_title: "Nigerian History Quiz",
+        course_code: "HST101",
+        course_name: "Nigerian History",
+        duration_minutes: 20,
+        is_premium: "false",
+        token_cost: 0,
+        is_simulation: "false",
+        question_text: "Which Nigerian university is the oldest?",
+        option_a: "University of Lagos",
+        option_b: "Ahmadu Bello University",
+        option_c: "University of Ibadan",
+        option_d: "University of Nigeria, Nsukka",
+        correct_option: "C",
+        explanation: "University of Ibadan was founded in 1948 as a college of the University of London.",
+        difficulty: "medium",
+      },
+      // Quiz 2: Basic Mathematics (3 questions)
+      {
+        quiz_title: "Basic Mathematics Quiz",
+        course_code: "MTH101",
+        course_name: "Mathematics I",
+        duration_minutes: 30,
+        is_premium: "false",
+        token_cost: 0,
+        is_simulation: "false",
+        question_text: "What is the derivative of x² with respect to x?",
+        option_a: "x",
+        option_b: "2x",
+        option_c: "x²",
+        option_d: "2",
+        correct_option: "B",
+        explanation: "Using the power rule, d/dx(x²) = 2x¹ = 2x.",
+        difficulty: "medium",
+      },
+      {
+        quiz_title: "Basic Mathematics Quiz",
+        course_code: "MTH101",
+        course_name: "Mathematics I",
+        duration_minutes: 30,
+        is_premium: "false",
+        token_cost: 0,
+        is_simulation: "false",
+        question_text: "Solve: If 2x + 5 = 13, what is x?",
+        option_a: "3",
+        option_b: "4",
+        option_c: "5",
+        option_d: "6",
+        correct_option: "B",
+        explanation: "2x + 5 = 13 → 2x = 13 - 5 → 2x = 8 → x = 4.",
+        difficulty: "easy",
+      },
+      {
+        quiz_title: "Basic Mathematics Quiz",
+        course_code: "MTH101",
+        course_name: "Mathematics I",
+        duration_minutes: 30,
+        is_premium: "false",
+        token_cost: 0,
+        is_simulation: "false",
+        question_text: "What is the value of π (pi) to 2 decimal places?",
+        option_a: "3.12",
+        option_b: "3.14",
+        option_c: "3.16",
+        option_d: "3.18",
+        correct_option: "B",
+        explanation: "Pi (π) is approximately 3.14159..., which rounds to 3.14.",
+        difficulty: "easy",
+      },
+      // Quiz 3: Basic Science (2 questions)
+      {
+        quiz_title: "Basic Science Quiz",
+        course_code: "SCI101",
+        course_name: "General Science",
+        duration_minutes: 15,
+        is_premium: "false",
+        token_cost: 0,
+        is_simulation: "false",
+        question_text: "What is the chemical symbol for water?",
+        option_a: "O2",
+        option_b: "H2O",
+        option_c: "CO2",
+        option_d: "NaCl",
+        correct_option: "B",
+        explanation: "Water consists of 2 hydrogen atoms and 1 oxygen atom, hence H2O.",
+        difficulty: "easy",
+      },
+      {
+        quiz_title: "Basic Science Quiz",
+        course_code: "SCI101",
+        course_name: "General Science",
+        duration_minutes: 15,
+        is_premium: "false",
+        token_cost: 0,
+        is_simulation: "false",
+        question_text: "What is the SI unit of electric current?",
+        option_a: "Volt",
+        option_b: "Ohm",
+        option_c: "Watt",
+        option_d: "Ampere",
+        correct_option: "D",
+        explanation: "The ampere (A) is the SI base unit of electric current.",
+        difficulty: "easy",
       },
     ];
 
     const worksheet = XLSX.utils.json_to_sheet(templateData);
+    
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 25 }, // quiz_title
+      { wch: 12 }, // course_code
+      { wch: 20 }, // course_name
+      { wch: 15 }, // duration_minutes
+      { wch: 10 }, // is_premium
+      { wch: 10 }, // token_cost
+      { wch: 12 }, // is_simulation
+      { wch: 50 }, // question_text
+      { wch: 20 }, // option_a
+      { wch: 20 }, // option_b
+      { wch: 20 }, // option_c
+      { wch: 20 }, // option_d
+      { wch: 12 }, // correct_option
+      { wch: 55 }, // explanation
+      { wch: 10 }, // difficulty
+    ];
+
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Quizzes");
-    XLSX.writeFile(workbook, "quiz_import_template.xlsx");
-    toast.success("Template downloaded!");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Quizzes with Questions");
+    XLSX.writeFile(workbook, "quiz_with_questions_template.xlsx");
+    toast.success("Template downloaded! Each row = 1 question. Rows with the same Quiz Title will be grouped together.");
   };
 
   const deleteQuiz = (index: number) => {
@@ -444,8 +649,33 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
             }]);
           }
 
+          // Create or find a default topic for the course
+          let topicId: string;
+          const { data: existingTopic } = await supabase
+            .from("topics")
+            .select("id")
+            .eq("course_id", courseId)
+            .limit(1)
+            .single();
+
+          if (existingTopic) {
+            topicId = existingTopic.id;
+          } else {
+            const { data: newTopic, error: topicError } = await supabase
+              .from("topics")
+              .insert({
+                name: "General",
+                course_id: courseId,
+              })
+              .select("id")
+              .single();
+
+            if (topicError) throw topicError;
+            topicId = newTopic.id;
+          }
+
           // Create the quiz
-          const { error: quizError } = await supabase
+          const { data: newQuiz, error: quizError } = await supabase
             .from("quizzes")
             .insert({
               title: quiz.title,
@@ -453,14 +683,55 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
               course_id: courseId,
               tutor_id: user.id,
               duration_minutes: quiz.duration_minutes,
-              question_count: quiz.question_count,
+              question_count: quiz.questions.length,
               is_premium: quiz.is_premium,
               token_cost: quiz.token_cost,
               is_simulation: quiz.is_simulation,
               is_active: true,
-            });
+            })
+            .select("id")
+            .single();
 
           if (quizError) throw quizError;
+
+          // Create questions for the quiz
+          const questionInserts = quiz.questions.map((q, idx) => ({
+            question_text: q.question_text,
+            option_a: q.option_a,
+            option_b: q.option_b,
+            option_c: q.option_c,
+            option_d: q.option_d,
+            correct_option: q.correct_option,
+            explanation: q.explanation || null,
+            difficulty: q.difficulty || "medium",
+            course_id: courseId,
+            topic_id: topicId,
+            tutor_id: user.id,
+            is_approved: true,
+          }));
+
+          const { data: createdQuestions, error: questionsError } = await supabase
+            .from("questions")
+            .insert(questionInserts)
+            .select("id");
+
+          if (questionsError) throw questionsError;
+
+          // Link questions to quiz
+          if (createdQuestions && createdQuestions.length > 0) {
+            const quizQuestionLinks = createdQuestions.map((q, idx) => ({
+              quiz_id: newQuiz.id,
+              question_id: q.id,
+              order_index: idx,
+            }));
+
+            const { error: linkError } = await supabase
+              .from("quiz_questions")
+              .insert(quizQuestionLinks);
+
+            if (linkError) throw linkError;
+          }
+
           createdCount++;
         } catch (error: any) {
           console.error(`Error creating quiz "${quiz.title}":`, error);
@@ -608,9 +879,11 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
 
               {/* Format Info */}
               <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg">
+                <p className="font-medium mb-1">How it works:</p>
+                <p className="mb-2">Each row = 1 question. Rows with the same <code className="bg-muted px-1 rounded">quiz_title</code> will be grouped into one quiz.</p>
                 <p className="font-medium mb-1">Required columns:</p>
-                <p><code className="bg-muted px-1 rounded">title</code>, <code className="bg-muted px-1 rounded">course_code</code>, <code className="bg-muted px-1 rounded">duration_minutes</code>, <code className="bg-muted px-1 rounded">question_count</code></p>
-                <p className="mt-1"><span className="font-medium">Optional:</span> description, course_name, is_premium, token_cost, is_simulation</p>
+                <p><code className="bg-muted px-1 rounded">quiz_title</code>, <code className="bg-muted px-1 rounded">course_code</code>, <code className="bg-muted px-1 rounded">question_text</code>, <code className="bg-muted px-1 rounded">option_a</code>, <code className="bg-muted px-1 rounded">option_b</code>, <code className="bg-muted px-1 rounded">option_c</code>, <code className="bg-muted px-1 rounded">option_d</code>, <code className="bg-muted px-1 rounded">correct_option</code></p>
+                <p className="mt-1"><span className="font-medium">Optional:</span> course_name, duration_minutes, explanation, difficulty, is_premium, token_cost, is_simulation</p>
               </div>
             </>
           ) : (
@@ -693,7 +966,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground">Questions:</span>
-                      <span>{currentQuiz.question_count}</span>
+                      <span>{currentQuiz.questions.length}</span>
                     </div>
                     {currentQuiz.is_premium && (
                       <div className="flex items-center gap-2">
@@ -732,7 +1005,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-xs text-muted-foreground w-6">{index + 1}.</span>
                           <span className="truncate text-sm">{quiz.title}</span>
-                          <Badge variant="outline" className="text-xs shrink-0">{quiz.course_code}</Badge>
+                          <Badge variant="outline" className="text-xs shrink-0">{quiz.questions.length} Q</Badge>
                         </div>
                         {isQuizValid(quiz) ? (
                           <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
