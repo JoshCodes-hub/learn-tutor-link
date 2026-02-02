@@ -461,53 +461,26 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
   };
 
   const downloadTemplate = () => {
-    // Watermark row
-    const watermarkRow = {
-      question_text: "📚 OverraPrep AI - FUTA Question Template | https://quiz-nest-ai.lovable.app",
-      option_a: "",
-      option_b: "",
-      option_c: "",
-      option_d: "",
-      correct_option: "",
-      explanation: "DELETE THIS ROW before importing. Fill in your questions below following the format.",
-      difficulty: "",
-      image_url: "(Optional) Add image URL for diagrams",
-    };
-
     const templateData = [
-      watermarkRow,
       {
-        question_text: "What is the capital of Nigeria?",
-        option_a: "Lagos",
-        option_b: "Abuja",
-        option_c: "Kano",
-        option_d: "Port Harcourt",
+        question_text: "What is the capital of France?",
+        option_a: "London",
+        option_b: "Paris",
+        option_c: "Berlin",
+        option_d: "Madrid",
         correct_option: "B",
-        explanation: "Abuja became the capital of Nigeria on December 12, 1991, replacing Lagos.",
+        explanation: "Paris is the capital and largest city of France.",
         difficulty: "easy",
-        image_url: "",
       },
       {
-        question_text: "In a simple pendulum experiment, the period T is related to the length L by which formula?",
-        option_a: "T = 2π√(L/g)",
-        option_b: "T = 2π√(g/L)",
-        option_c: "T = π√(L/g)",
-        option_d: "T = 2π(L/g)",
-        correct_option: "A",
-        explanation: "The period of a simple pendulum is T = 2π√(L/g), where g is the acceleration due to gravity.",
-        difficulty: "medium",
-        image_url: "https://example.com/pendulum-diagram.png",
-      },
-      {
-        question_text: "From the circuit diagram shown, calculate the total resistance when R1=4Ω and R2=6Ω are connected in parallel.",
-        option_a: "10Ω",
-        option_b: "2.4Ω",
-        option_c: "24Ω",
-        option_d: "1.5Ω",
-        correct_option: "B",
-        explanation: "For parallel resistors: 1/Rtotal = 1/R1 + 1/R2 = 1/4 + 1/6 = 5/12. Therefore Rtotal = 12/5 = 2.4Ω",
-        difficulty: "hard",
-        image_url: "https://example.com/parallel-circuit.png",
+        question_text: "Which planet is known as the Red Planet?",
+        option_a: "Venus",
+        option_b: "Jupiter",
+        option_c: "Mars",
+        option_d: "Saturn",
+        correct_option: "C",
+        explanation: "Mars appears red due to iron oxide on its surface.",
+        difficulty: "easy",
       },
     ];
 
@@ -515,49 +488,20 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     
     // Set column widths for better readability
     worksheet['!cols'] = [
-      { wch: 60 }, // question_text
-      { wch: 25 }, // option_a
-      { wch: 25 }, // option_b
-      { wch: 25 }, // option_c
-      { wch: 25 }, // option_d
-      { wch: 12 }, // correct_option
-      { wch: 50 }, // explanation
-      { wch: 10 }, // difficulty
-      { wch: 45 }, // image_url
+      { wch: 50 }, // question_text
+      { wch: 15 }, // option_a
+      { wch: 15 }, // option_b
+      { wch: 15 }, // option_c
+      { wch: 15 }, // option_d
+      { wch: 15 }, // correct_option
+      { wch: 55 }, // explanation
+      { wch: 12 }, // difficulty
     ];
     
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
-    
-    // Add instructions sheet
-    const instructionsData = [
-      { instruction: "📚 OverraPrep AI - FUTA" },
-      { instruction: "Question Import Template Instructions" },
-      { instruction: "" },
-      { instruction: "REQUIRED COLUMNS:" },
-      { instruction: "• question_text - The full question text" },
-      { instruction: "• option_a, option_b, option_c, option_d - Four answer options" },
-      { instruction: "• correct_option - The correct answer (A, B, C, or D)" },
-      { instruction: "" },
-      { instruction: "OPTIONAL COLUMNS:" },
-      { instruction: "• explanation - Explanation for the correct answer" },
-      { instruction: "• difficulty - easy, medium, or hard (defaults to medium)" },
-      { instruction: "• image_url - URL to an image/diagram for the question" },
-      { instruction: "" },
-      { instruction: "IMPORTANT NOTES:" },
-      { instruction: "1. Delete the first watermark row before importing" },
-      { instruction: "2. The image_url column is optional - use it only for questions with diagrams" },
-      { instruction: "3. Image URLs must be publicly accessible" },
-      { instruction: "4. Supported file formats: .xlsx, .xls, .csv, .docx (Word)" },
-      { instruction: "" },
-      { instruction: "Website: https://quiz-nest-ai.lovable.app" },
-    ];
-    const instructionsSheet = XLSX.utils.json_to_sheet(instructionsData);
-    instructionsSheet['!cols'] = [{ wch: 70 }];
-    XLSX.utils.book_append_sheet(workbook, instructionsSheet, "Instructions");
-    
-    XLSX.writeFile(workbook, "OverraPrep_Question_Template.xlsx");
-    toast.success("Template with 3 sample questions downloaded!");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    XLSX.writeFile(workbook, "question_import_template.xlsx");
+    toast.success("Template downloaded!");
   };
 
   const downloadWordTemplate = () => {
@@ -567,22 +511,15 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
       <html>
         <head>
           <meta charset="utf-8">
-          <title>OverraPrep AI Question Template</title>
+          <title>Question Import Template</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
-            h1 { color: #7c3aed; }
-            table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #7c3aed; color: white; }
-            tr:nth-child(even) { background-color: #f9f9f9; }
-            .note { background-color: #fef3c7; padding: 10px; border-radius: 5px; margin-top: 20px; }
-            .footer { margin-top: 20px; font-size: 12px; color: #666; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+            th { background-color: #f0f0f0; font-weight: bold; }
           </style>
         </head>
         <body>
-          <h1>📚 OverraPrep AI - FUTA Question Template</h1>
-          <p>Fill in the table below with your questions. Delete the sample rows before importing.</p>
-          
           <table>
             <tr>
               <th>question_text</th>
@@ -591,54 +528,30 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
               <th>option_c</th>
               <th>option_d</th>
               <th>correct_option</th>
-              <th>difficulty</th>
               <th>explanation</th>
+              <th>difficulty</th>
             </tr>
             <tr>
-              <td>What is the capital of Nigeria?</td>
-              <td>Lagos</td>
-              <td>Abuja</td>
-              <td>Kano</td>
-              <td>Port Harcourt</td>
+              <td>What is the capital of France?</td>
+              <td>London</td>
+              <td>Paris</td>
+              <td>Berlin</td>
+              <td>Madrid</td>
               <td>B</td>
+              <td>Paris is the capital and largest city of France.</td>
               <td>easy</td>
-              <td>Abuja became the capital on December 12, 1991.</td>
             </tr>
             <tr>
-              <td>The period T of a simple pendulum is related to length L by?</td>
-              <td>T = 2π√(L/g)</td>
-              <td>T = 2π√(g/L)</td>
-              <td>T = π√(L/g)</td>
-              <td>T = 2π(L/g)</td>
-              <td>A</td>
-              <td>medium</td>
-              <td>The period formula is T = 2π√(L/g).</td>
-            </tr>
-            <tr>
-              <td>Calculate total resistance: R1=4Ω and R2=6Ω in parallel.</td>
-              <td>10Ω</td>
-              <td>2.4Ω</td>
-              <td>24Ω</td>
-              <td>1.5Ω</td>
-              <td>B</td>
-              <td>hard</td>
-              <td>1/Rtotal = 1/4 + 1/6 = 5/12, so Rtotal = 2.4Ω</td>
+              <td>Which planet is known as the Red Planet?</td>
+              <td>Venus</td>
+              <td>Jupiter</td>
+              <td>Mars</td>
+              <td>Saturn</td>
+              <td>C</td>
+              <td>Mars appears red due to iron oxide on its surface.</td>
+              <td>easy</td>
             </tr>
           </table>
-          
-          <div class="note">
-            <strong>Important Notes:</strong>
-            <ul>
-              <li>Required: question_text, option_a, option_b, option_c, option_d, correct_option (A/B/C/D)</li>
-              <li>Optional: difficulty (easy/medium/hard), explanation</li>
-              <li>Delete the sample rows above before importing</li>
-              <li>Save as .docx format</li>
-            </ul>
-          </div>
-          
-          <div class="footer">
-            <p>OverraPrep AI - FUTA | https://quiz-nest-ai.lovable.app</p>
-          </div>
         </body>
       </html>
     `;
@@ -647,7 +560,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "OverraPrep_Question_Template.doc");
+    link.setAttribute("download", "question_import_template.doc");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
