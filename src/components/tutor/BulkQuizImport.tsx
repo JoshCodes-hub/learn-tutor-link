@@ -542,7 +542,26 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
       },
     ];
 
-    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    // Define explicit column order to ensure correct_option appears
+    const columnOrder = [
+      "quiz_title",
+      "course_code", 
+      "course_name",
+      "duration_minutes",
+      "is_premium",
+      "token_cost",
+      "is_simulation",
+      "question_text",
+      "option_a",
+      "option_b",
+      "option_c",
+      "option_d",
+      "correct_option",
+      "explanation",
+      "difficulty"
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(templateData, { header: columnOrder });
     
     // Set column widths
     worksheet['!cols'] = [
@@ -558,7 +577,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
       { wch: 20 }, // option_b
       { wch: 20 }, // option_c
       { wch: 20 }, // option_d
-      { wch: 12 }, // correct_option
+      { wch: 15 }, // correct_option
       { wch: 55 }, // explanation
       { wch: 10 }, // difficulty
     ];
