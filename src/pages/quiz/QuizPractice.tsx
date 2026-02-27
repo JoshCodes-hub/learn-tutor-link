@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useBookmarkedQuestions } from "@/hooks/useBookmarkedQuestions";
+import { useQuizAutoSave } from "@/hooks/useQuizAutoSave";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +20,8 @@ import {
   Clock,
   Bookmark,
   BookmarkCheck,
-  AlertTriangle
+  AlertTriangle,
+  RotateCcw
 } from "lucide-react";
 import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
@@ -56,6 +58,7 @@ const QuizPractice = () => {
   const { toast } = useToast();
   const { user, isLoading: authLoading } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarkedQuestions();
+  const { saveState, loadState, clearState, hasSavedState } = useQuizAutoSave(quizId || "");
   
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -70,6 +73,10 @@ const QuizPractice = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [zoomedImageUrl, setZoomedImageUrl] = useState<string | null>(null);
+  // Track answers per question for restore
+  const [answersMap, setAnswersMap] = useState<Record<string, string>>({});
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [savedData, setSavedData] = useState<ReturnType<typeof loadState>>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -77,44 +84,75 @@ const QuizPractice = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Check for saved state before loading quiz
   useEffect(() => {
-    const fetchQuizData = async () => {
-      if (!quizId || !user) return;
+    if (!quizId || !user) return;
+    
+    if (hasSavedState()) {
+      const saved = loadState();
+      if (saved) {
+        setSavedData(saved);
+        setShowResumePrompt(true);
+      }
+    }
+  }, [quizId, user, hasSavedState, loadState]);
 
-      try {
-        // Fetch quiz details
-        const { data: quizData, error: quizError } = await supabase
-          .from("quizzes")
-          .select("*, courses(code, name)")
-          .eq("id", quizId)
-          .single();
+  const fetchQuizData = useCallback(async (resumeData?: { answers: Record<string, string>; currentIndex: number; attemptId: string | null }) => {
+    if (!quizId || !user) return;
 
-        if (quizError) throw quizError;
+    try {
+      const { data: quizData, error: quizError } = await supabase
+        .from("quizzes")
+        .select("*, courses(code, name)")
+        .eq("id", quizId)
+        .single();
 
-        // Platform is currently free - no premium purchase check needed
+      if (quizError) throw quizError;
 
-        setQuiz({
-          ...quizData,
-          course: quizData.courses as { code: string; name: string }
+      setQuiz({
+        ...quizData,
+        course: quizData.courses as { code: string; name: string }
+      });
+
+      const { data: questionsData, error: questionsError } = await supabase
+        .from("quiz_questions")
+        .select("questions(*, topics(name))")
+        .eq("quiz_id", quizId)
+        .order("order_index");
+
+      if (questionsError) throw questionsError;
+
+      const formattedQuestions = questionsData.map((qq: any) => ({
+        ...qq.questions,
+        topic: qq.questions.topics
+      }));
+
+      setQuestions(formattedQuestions);
+
+      if (resumeData?.attemptId) {
+        // Resume existing attempt
+        setAttemptId(resumeData.attemptId);
+        setAnswersMap(resumeData.answers);
+        setCurrentIndex(resumeData.currentIndex);
+        
+        // Calculate score from saved answers
+        let correct = 0;
+        let total = 0;
+        for (const [qId, answer] of Object.entries(resumeData.answers)) {
+          const q = formattedQuestions.find((fq: Question) => fq.id === qId);
+          if (q) {
+            total++;
+            if (answer === q.correct_option) correct++;
+          }
+        }
+        setScore({ correct, total });
+
+        toast({
+          title: "Progress Restored",
+          description: `Resuming from question ${resumeData.currentIndex + 1}. You've answered ${total} question(s) so far.`,
         });
-
-        // Fetch questions
-        const { data: questionsData, error: questionsError } = await supabase
-          .from("quiz_questions")
-          .select("questions(*, topics(name))")
-          .eq("quiz_id", quizId)
-          .order("order_index");
-
-        if (questionsError) throw questionsError;
-
-        const formattedQuestions = questionsData.map((qq: any) => ({
-          ...qq.questions,
-          topic: qq.questions.topics
-        }));
-
-        setQuestions(formattedQuestions);
-
-        // Create attempt
+      } else {
+        // Create new attempt
         const { data: attemptData, error: attemptError } = await supabase
           .from("quiz_attempts")
           .insert({
@@ -128,22 +166,41 @@ const QuizPractice = () => {
 
         if (attemptError) throw attemptError;
         setAttemptId(attemptData.id);
-
-      } catch (error) {
-        console.error("Error fetching quiz:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load quiz. Please try again.",
-        });
-        navigate("/student/dashboard");
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    fetchQuizData();
+    } catch (error) {
+      console.error("Error fetching quiz:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load quiz. Please try again.",
+      });
+      navigate("/student/dashboard");
+    } finally {
+      setIsLoading(false);
+    }
   }, [quizId, user, navigate, toast]);
+
+  // Auto-load quiz when no resume prompt needed
+  useEffect(() => {
+    if (!quizId || !user || showResumePrompt) return;
+    if (!quiz && !isLoading) return; // Already attempted
+    if (quiz) return; // Already loaded
+    
+    fetchQuizData();
+  }, [quizId, user, showResumePrompt, quiz, fetchQuizData, isLoading]);
+
+  // Auto-save progress whenever state changes
+  useEffect(() => {
+    if (!attemptId || !quizId) return;
+    
+    saveState({
+      answers: answersMap,
+      flagged: [],
+      currentIndex,
+      timeLeft: 0,
+      attemptId,
+    });
+  }, [answersMap, currentIndex, attemptId, quizId, saveState]);
 
   const currentQuestion = questions[currentIndex];
 
@@ -163,7 +220,10 @@ const QuizPractice = () => {
       total: prev.total + 1
     }));
 
-    // Save answer
+    // Track this answer
+    setAnswersMap(prev => ({ ...prev, [currentQuestion.id]: selectedAnswer }));
+
+    // Save answer to DB
     await supabase.from("quiz_answers").insert({
       attempt_id: attemptId,
       question_id: currentQuestion.id,
@@ -231,6 +291,9 @@ const QuizPractice = () => {
   const handleFinishQuiz = async () => {
     if (!attemptId) return;
 
+    // Clear auto-save on explicit finish
+    clearState();
+
     await supabase
       .from("quiz_attempts")
       .update({
@@ -242,6 +305,51 @@ const QuizPractice = () => {
 
     navigate(`/quiz/${quizId}/results/${attemptId}`);
   };
+
+  const handleResume = () => {
+    setShowResumePrompt(false);
+    setIsLoading(true);
+    fetchQuizData({
+      answers: savedData?.answers || {},
+      currentIndex: savedData?.currentIndex || 0,
+      attemptId: savedData?.attemptId || null,
+    });
+  };
+
+  const handleStartFresh = () => {
+    clearState();
+    setShowResumePrompt(false);
+    setSavedData(null);
+    setIsLoading(true);
+    fetchQuizData();
+  };
+
+  // Resume prompt screen
+  if (showResumePrompt) {
+    const answeredCount = Object.keys(savedData?.answers || {}).length;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="bg-card rounded-2xl border border-border p-8 max-w-md w-full text-center">
+          <RotateCcw className="w-12 h-12 text-primary mx-auto mb-4" />
+          <h2 className="font-display text-xl font-semibold text-foreground mb-2">
+            Resume Quiz?
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            You have saved progress for this quiz. You answered {answeredCount} question(s) and were on question {(savedData?.currentIndex || 0) + 1}.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button variant="hero" onClick={handleResume} className="w-full">
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Continue Where I Left Off
+            </Button>
+            <Button variant="outline" onClick={handleStartFresh} className="w-full">
+              Start Fresh
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (authLoading || isLoading) {
     return (
