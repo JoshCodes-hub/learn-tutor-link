@@ -224,6 +224,33 @@ export type Database = {
           },
         ]
       }
+      course_modes: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          preferred_mode: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          preferred_mode?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          preferred_mode?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           code: string
@@ -1084,6 +1111,96 @@ export type Database = {
           max_members?: number
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      theory_attempts: {
+        Row: {
+          ai_feedback: Json | null
+          ai_score: number | null
+          answer_text: string
+          created_at: string
+          id: string
+          question_id: string
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: Json | null
+          ai_score?: number | null
+          answer_text?: string
+          created_at?: string
+          id?: string
+          question_id: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: Json | null
+          ai_score?: number | null
+          answer_text?: string
+          created_at?: string
+          id?: string
+          question_id?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      theory_questions: {
+        Row: {
+          course_id: string
+          created_at: string
+          difficulty: string
+          id: string
+          is_approved: boolean
+          key_points: Json
+          marks: number
+          model_answer: string | null
+          question_text: string
+          source: string | null
+          topic_id: string | null
+          tutor_id: string | null
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          is_approved?: boolean
+          key_points?: Json
+          marks?: number
+          model_answer?: string | null
+          question_text: string
+          source?: string | null
+          topic_id?: string | null
+          tutor_id?: string | null
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          is_approved?: boolean
+          key_points?: Json
+          marks?: number
+          model_answer?: string | null
+          question_text?: string
+          source?: string | null
+          topic_id?: string | null
+          tutor_id?: string | null
+          updated_at?: string
+          year?: number | null
         }
         Relationships: []
       }

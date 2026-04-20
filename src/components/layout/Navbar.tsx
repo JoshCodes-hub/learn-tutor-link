@@ -27,7 +27,7 @@ const Navbar = () => {
     { name: "Features", href: "#features" },
     { name: "How It Works", href: "#how-it-works" },
     { name: "Tutors", href: "/tutors", isRoute: true },
-    { name: "For Tutors", href: "#become-tutor" },
+    { name: "Theory Prep", href: "/theory", isRoute: true },
     { name: "FAQ", href: "#faq" },
   ];
 

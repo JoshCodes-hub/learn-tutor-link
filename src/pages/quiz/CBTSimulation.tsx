@@ -63,7 +63,7 @@ const CBTSimulation = () => {
   const [questionTimes, setQuestionTimes] = useState<Record<string, number>>({});
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const questionStartTimeRef = useRef<number>(Date.now());
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
   
   const { saveState, loadState, clearState, hasSavedState } = useQuizAutoSave(quizId || "");
