@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.streak-milestone]
 verify_jwt = false
+
+[functions.evaluate-theory-answer]
+verify_jwt = true
+
+[functions.generate-ideal-answer]
+verify_jwt = true
