@@ -26,6 +26,9 @@ const Community = lazy(() => import("@/pages/Community"));
 const LeaderboardPage = lazy(() => import("@/pages/LeaderboardPage"));
 const TeamStatsPage = lazy(() => import("@/pages/TeamStatsPage"));
 const CommunityView = lazy(() => import("@/pages/community/CommunityView"));
+const TheoryPrep = lazy(() => import("@/pages/theory/TheoryPrep"));
+const TheoryCourseView = lazy(() => import("@/pages/theory/TheoryCourseView"));
+const TheoryQuestionView = lazy(() => import("@/pages/theory/TheoryQuestionView"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export const AnimatedRoutes = () => {
@@ -187,6 +190,9 @@ export const AnimatedRoutes = () => {
               </PageTransition>
             }
           />
+          <Route path="/theory" element={<PageTransition><TheoryPrep /></PageTransition>} />
+          <Route path="/theory/:courseId" element={<PageTransition><TheoryCourseView /></PageTransition>} />
+          <Route path="/theory/question/:questionId" element={<PageTransition><TheoryQuestionView /></PageTransition>} />
           <Route
             path="*"
             element={
