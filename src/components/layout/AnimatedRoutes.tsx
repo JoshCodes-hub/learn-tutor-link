@@ -29,6 +29,9 @@ const CommunityView = lazy(() => import("@/pages/community/CommunityView"));
 const TheoryPrep = lazy(() => import("@/pages/theory/TheoryPrep"));
 const TheoryCourseView = lazy(() => import("@/pages/theory/TheoryCourseView"));
 const TheoryQuestionView = lazy(() => import("@/pages/theory/TheoryQuestionView"));
+const StudyHub = lazy(() => import("@/pages/study-hub/StudyHub"));
+const StudyHubCourse = lazy(() => import("@/pages/study-hub/StudyHubCourse"));
+const PQIntelligence = lazy(() => import("@/pages/study-hub/PQIntelligence"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 export const AnimatedRoutes = () => {
@@ -193,6 +196,9 @@ export const AnimatedRoutes = () => {
           <Route path="/theory" element={<PageTransition><TheoryPrep /></PageTransition>} />
           <Route path="/theory/:courseId" element={<PageTransition><TheoryCourseView /></PageTransition>} />
           <Route path="/theory/question/:questionId" element={<PageTransition><TheoryQuestionView /></PageTransition>} />
+          <Route path="/study-hub" element={<PageTransition><StudyHub /></PageTransition>} />
+          <Route path="/study-hub/:courseId" element={<PageTransition><StudyHubCourse /></PageTransition>} />
+          <Route path="/pq-intelligence/:courseId" element={<PageTransition><PQIntelligence /></PageTransition>} />
           <Route
             path="*"
             element={
