@@ -897,6 +897,89 @@ export type Database = {
           },
         ]
       }
+      study_material_artifacts: {
+        Row: {
+          content: Json
+          generated_at: string
+          id: string
+          kind: string
+          material_id: string
+        }
+        Insert: {
+          content: Json
+          generated_at?: string
+          id?: string
+          kind: string
+          material_id: string
+        }
+        Update: {
+          content?: Json
+          generated_at?: string
+          id?: string
+          kind?: string
+          material_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_material_artifacts_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "study_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_materials: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          owner_id: string
+          tags: string[]
+          title: string
+          topic_id: string | null
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size?: number
+          file_type: string
+          file_url: string
+          id?: string
+          owner_id: string
+          tags?: string[]
+          title: string
+          topic_id?: string | null
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          owner_id?: string
+          tags?: string[]
+          title?: string
+          topic_id?: string | null
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       study_streaks: {
         Row: {
           created_at: string
