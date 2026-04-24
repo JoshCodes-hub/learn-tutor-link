@@ -28,6 +28,7 @@ const Navbar = () => {
     { name: "How It Works", href: "#how-it-works" },
     { name: "Tutors", href: "/tutors", isRoute: true },
     { name: "Theory Prep", href: "/theory", isRoute: true },
+    { name: "Study Hub", href: "/study-hub", isRoute: true },
     { name: "FAQ", href: "#faq" },
   ];
 
