@@ -10,6 +10,8 @@ import Index from "@/pages/Index";
 
 const ChoosePath = lazy(() => import("@/pages/onboarding/ChoosePath"));
 const RefinePath = lazy(() => import("@/pages/onboarding/RefinePath"));
+const SubjectBrowser = lazy(() => import("@/pages/subjects/SubjectBrowser"));
+const Flashcards = lazy(() => import("@/pages/flashcards/Flashcards"));
 
 // Lazy load all other pages for code splitting
 const Auth = lazy(() => import("@/pages/Auth"));
