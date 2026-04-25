@@ -3,9 +3,13 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import PageTransition from "./PageTransition";
+import { AcademicPathGate } from "@/components/auth/AcademicPathGate";
 
 // Eager load landing page for best LCP
 import Index from "@/pages/Index";
+
+const ChoosePath = lazy(() => import("@/pages/onboarding/ChoosePath"));
+const RefinePath = lazy(() => import("@/pages/onboarding/RefinePath"));
 
 // Lazy load all other pages for code splitting
 const Auth = lazy(() => import("@/pages/Auth"));
@@ -41,6 +45,7 @@ export const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Suspense fallback={<LoadingSpinner />} key={location.pathname}>
+       <AcademicPathGate>
         <Routes location={location}>
           <Route
             path="/"
@@ -208,6 +213,8 @@ export const AnimatedRoutes = () => {
           <Route path="/study-hub" element={<PageTransition><StudyHub /></PageTransition>} />
           <Route path="/study-hub/:courseId" element={<PageTransition><StudyHubCourse /></PageTransition>} />
           <Route path="/pq-intelligence/:courseId" element={<PageTransition><PQIntelligence /></PageTransition>} />
+          <Route path="/onboarding/path" element={<PageTransition><ChoosePath /></PageTransition>} />
+          <Route path="/onboarding/refine" element={<PageTransition><RefinePath /></PageTransition>} />
           <Route
             path="*"
             element={
@@ -217,6 +224,7 @@ export const AnimatedRoutes = () => {
             }
           />
         </Routes>
+       </AcademicPathGate>
       </Suspense>
     </AnimatePresence>
   );

@@ -261,6 +261,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          path_type: Database["public"]["Enums"]["academic_path"]
           updated_at: string
         }
         Insert: {
@@ -272,6 +273,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          path_type?: Database["public"]["Enums"]["academic_path"]
           updated_at?: string
         }
         Update: {
@@ -283,6 +285,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          path_type?: Database["public"]["Enums"]["academic_path"]
           updated_at?: string
         }
         Relationships: []
@@ -443,6 +446,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          academic_metadata: Json
+          academic_path: Database["public"]["Enums"]["academic_path"] | null
           avatar_url: string | null
           created_at: string
           department: string | null
@@ -456,6 +461,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          academic_metadata?: Json
+          academic_path?: Database["public"]["Enums"]["academic_path"] | null
           avatar_url?: string | null
           created_at?: string
           department?: string | null
@@ -469,6 +476,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          academic_metadata?: Json
+          academic_path?: Database["public"]["Enums"]["academic_path"] | null
           avatar_url?: string | null
           created_at?: string
           department?: string | null
@@ -551,6 +560,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_approved: boolean
+          is_past_question: boolean
           is_premium: boolean
           option_a: string
           option_b: string
@@ -559,6 +569,7 @@ export type Database = {
           question_text: string
           topic_id: string
           tutor_id: string | null
+          year: number | null
         }
         Insert: {
           correct_option: string
@@ -569,6 +580,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_approved?: boolean
+          is_past_question?: boolean
           is_premium?: boolean
           option_a: string
           option_b: string
@@ -577,6 +589,7 @@ export type Database = {
           question_text: string
           topic_id: string
           tutor_id?: string | null
+          year?: number | null
         }
         Update: {
           correct_option?: string
@@ -587,6 +600,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_approved?: boolean
+          is_past_question?: boolean
           is_premium?: boolean
           option_a?: string
           option_b?: string
@@ -595,6 +609,7 @@ export type Database = {
           question_text?: string
           topic_id?: string
           tutor_id?: string | null
+          year?: number | null
         }
         Relationships: [
           {
@@ -980,6 +995,36 @@ export type Database = {
         }
         Relationships: []
       }
+      study_plans: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          plan_data: Json
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          plan_data?: Json
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          plan_data?: Json
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_streaks: {
         Row: {
           created_at: string
@@ -1010,6 +1055,36 @@ export type Database = {
           longest_streak?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      subjects: {
+        Row: {
+          category: Database["public"]["Enums"]["academic_path"]
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          level: string | null
+          name: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["academic_path"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string | null
+          name: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["academic_path"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string | null
+          name?: string
         }
         Relationships: []
       }
@@ -1592,6 +1667,39 @@ export type Database = {
           },
         ]
       }
+      user_performance_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          metrics: Json
+          readiness_score: number
+          snapshot_date: string
+          strong_topics: Json
+          user_id: string
+          weak_topics: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metrics?: Json
+          readiness_score?: number
+          snapshot_date?: string
+          strong_topics?: Json
+          user_id: string
+          weak_topics?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metrics?: Json
+          readiness_score?: number
+          snapshot_date?: string
+          strong_topics?: Json
+          user_id?: string
+          weak_topics?: Json
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1691,6 +1799,7 @@ export type Database = {
       }
     }
     Enums: {
+      academic_path: "secondary" | "jamb" | "university"
       app_role: "student" | "tutor" | "admin"
       application_status: "pending" | "approved" | "rejected"
     }
@@ -1820,6 +1929,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      academic_path: ["secondary", "jamb", "university"],
       app_role: ["student", "tutor", "admin"],
       application_status: ["pending", "approved", "rejected"],
     },

@@ -13,22 +13,27 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  ScrollArea,
-  ScrollBar,
-} from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useAuth, AcademicPath } from "@/hooks/useAuth";
 
 type Role = "admin" | "tutor" | "student";
+
+interface NavLink {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  paths?: AcademicPath[]; // student-only: which academic_paths see this link
+}
 
 interface DashboardNavProps {
   role: Role;
 }
 
-const linksByRole: Record<Role, { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[]> = {
+const linksByRole: Record<Role, NavLink[]> = {
   student: [
     { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/study-hub", label: "Study Hub", icon: Library },
-    { to: "/theory", label: "Theory Prep", icon: BookOpen },
+    { to: "/theory", label: "Theory Prep", icon: BookOpen, paths: ["university"] },
     { to: "/tutors", label: "Tutors", icon: GraduationCap },
     { to: "/community", label: "Community", icon: Users },
     { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
@@ -56,7 +61,13 @@ const linksByRole: Record<Role, { to: string; label: string; icon: React.Compone
 
 export const DashboardNav = ({ role }: DashboardNavProps) => {
   const location = useLocation();
-  const links = linksByRole[role];
+  const { profile } = useAuth();
+  const academicPath = profile?.academic_path ?? null;
+
+  const links = linksByRole[role].filter((link) => {
+    if (role !== "student" || !link.paths) return true;
+    return academicPath ? link.paths.includes(academicPath) : true;
+  });
 
   return (
     <nav aria-label="Dashboard navigation" className="border-b border-border bg-card/50 backdrop-blur-sm">
