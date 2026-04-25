@@ -19,6 +19,7 @@ import { TeamChallenges } from "@/components/student/TeamChallenges";
 import { TeamChat } from "@/components/student/TeamChat";
 import { MyCommunities } from "@/components/student/MyCommunities";
 import { SEO } from "@/components/seo/SEO";
+import DashboardNav from "@/components/layout/DashboardNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
 import {
