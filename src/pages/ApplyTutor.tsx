@@ -420,6 +420,38 @@ const ApplyTutor = () => {
               </div>
 
               <div className="space-y-2">
+                <Label>Specialization (which track you'll teach) *</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { v: "secondary", label: "Secondary", sub: "WAEC / NECO" },
+                    { v: "jamb", label: "JAMB", sub: "UTME prep" },
+                    { v: "university", label: "University", sub: "100–500 level" },
+                  ] as const).map((opt) => {
+                    const current = form.watch("specialization");
+                    const active = current === opt.v;
+                    return (
+                      <button
+                        type="button"
+                        key={opt.v}
+                        onClick={() => form.setValue("specialization", opt.v, { shouldValidate: true })}
+                        className={`rounded-lg border p-3 text-left transition-all ${
+                          active
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/40"
+                        }`}
+                      >
+                        <div className="font-medium text-sm">{opt.label}</div>
+                        <div className="text-[11px] text-muted-foreground">{opt.sub}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {form.formState.errors.specialization && (
+                  <p className="text-sm text-destructive">{form.formState.errors.specialization.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="qualifications">Qualifications *</Label>
                 <Textarea
                   id="qualifications"
