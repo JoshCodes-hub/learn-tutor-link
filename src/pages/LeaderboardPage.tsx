@@ -36,6 +36,9 @@ const LeaderboardPage = () => {
           </div>
         </header>
 
+        <DashboardNav role={navRole} />
+        <DashboardBreadcrumb role={navRole} />
+
         <main className="container mx-auto px-4 py-8 max-w-3xl">
           <Leaderboard />
         </main>
