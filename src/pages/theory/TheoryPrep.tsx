@@ -59,7 +59,7 @@ const TheoryPrep = () => {
     <div className="min-h-screen bg-background">
       <SEO title="Theory Exam Prep | OverraPrep AI" description="Practice written/theory exam questions with AI-powered evaluation and feedback." />
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-16 md:pt-[72px]">
         <DashboardNav role={navRole} />
         <DashboardBreadcrumb role={navRole} />
       </div>
