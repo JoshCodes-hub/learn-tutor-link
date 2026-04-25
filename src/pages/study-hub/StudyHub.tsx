@@ -80,8 +80,10 @@ const StudyHub = () => {
         description="Upload notes and let AI generate summaries, flashcards, and likely exam questions."
       />
       <Navbar />
-      <DashboardNav role={navRole} />
-      <DashboardBreadcrumb role={navRole} />
+      <div className="pt-20">
+        <DashboardNav role={navRole} />
+        <DashboardBreadcrumb role={navRole} />
+      </div>
       <main className="container mx-auto px-4 pt-6 pb-16 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
