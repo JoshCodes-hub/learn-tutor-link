@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PenLine, ChevronRight, BookOpen } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
+import DashboardNav from "@/components/layout/DashboardNav";
+import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
+import { useAuth } from "@/hooks/useAuth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { SEO } from "@/components/seo/SEO";
 
@@ -20,6 +23,8 @@ interface Course {
 const TheoryPrep = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const { primaryRole } = useAuth();
+  const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
 
   useEffect(() => {
     (async () => {
@@ -54,7 +59,9 @@ const TheoryPrep = () => {
     <div className="min-h-screen bg-background">
       <SEO title="Theory Exam Prep | OverraPrep AI" description="Practice written/theory exam questions with AI-powered evaluation and feedback." />
       <Navbar />
-      <main className="container mx-auto px-4 pt-24 pb-16">
+      <DashboardNav role={navRole} />
+      <DashboardBreadcrumb role={navRole} />
+      <main className="container mx-auto px-4 pt-6 pb-16">
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <PenLine className="w-4 h-4" /> Theory Mode
