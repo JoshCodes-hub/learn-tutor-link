@@ -57,7 +57,7 @@ export default function SubjectBrowser() {
       <main className="min-h-screen bg-background">
         <DashboardNav role={(primaryRole as any) || "student"} />
         <div className="container mx-auto px-4 py-6">
-          <DashboardBreadcrumb />
+          <DashboardBreadcrumb role="student" />
 
           <div className="mt-4 mb-8">
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-3">

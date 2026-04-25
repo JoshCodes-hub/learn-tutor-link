@@ -132,7 +132,7 @@ export default function Flashcards() {
       <main className="min-h-screen bg-background">
         <DashboardNav role={(primaryRole as any) || "student"} />
         <div className="container mx-auto px-4 py-6">
-          <DashboardBreadcrumb />
+          <DashboardBreadcrumb role="student" />
 
           <div className="mt-4 mb-6 flex items-end justify-between gap-3 flex-wrap">
             <div>
