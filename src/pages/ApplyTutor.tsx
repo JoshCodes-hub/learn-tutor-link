@@ -29,6 +29,9 @@ const applicationSchema = z.object({
   phone: z.string().min(10, "Valid phone number is required").max(15),
   department: z.string().min(2, "Department is required").max(100),
   level: z.string().min(1, "Level is required"),
+  specialization: z.enum(["secondary", "jamb", "university"], {
+    errorMap: () => ({ message: "Pick which track you'll teach" }),
+  }),
   qualifications: z.string().min(20, "Please describe your qualifications (min 20 characters)").max(1000),
   experience: z.string().min(20, "Please describe your experience (min 20 characters)").max(1000),
   coursesToTeach: z.string().min(5, "Please list the courses you want to teach").max(500),
@@ -199,6 +202,7 @@ const ApplyTutor = () => {
         courses_to_teach: data.coursesToTeach,
         bio: data.bio || null,
         profile_image_url: profileImageUrl,
+        specialization: data.specialization,
       });
 
     if (error) {
