@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/layout/Navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { ChevronRight, ArrowLeft, Calendar } from "lucide-react";
+import { ChevronRight, ArrowLeft, Calendar, Plus, PenLine } from "lucide-react";
 import { SEO } from "@/components/seo/SEO";
+import { CreateTheoryQuestionDialog } from "@/components/theory/CreateTheoryQuestionDialog";
 
 interface TheoryQ {
   id: string;
@@ -20,26 +22,32 @@ interface TheoryQ {
 
 const TheoryCourseView = () => {
   const { courseId } = useParams<{ courseId: string }>();
+  const { hasRole } = useAuth();
+  const canCreate = hasRole("tutor") || hasRole("admin");
   const [course, setCourse] = useState<{ code: string; name: string } | null>(null);
   const [questions, setQuestions] = useState<TheoryQ[]>([]);
   const [loading, setLoading] = useState(true);
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const load = async () => {
+    if (!courseId) return;
+    const [{ data: c }, { data: qs }] = await Promise.all([
+      supabase.from("courses").select("code, name").eq("id", courseId).single(),
+      supabase
+        .from("theory_questions")
+        .select("id, question_text, difficulty, marks, year, source")
+        .eq("course_id", courseId)
+        .eq("is_approved", true)
+        .order("created_at", { ascending: false }),
+    ]);
+    setCourse(c);
+    setQuestions(qs ?? []);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!courseId) return;
-    (async () => {
-      const [{ data: c }, { data: qs }] = await Promise.all([
-        supabase.from("courses").select("code, name").eq("id", courseId).single(),
-        supabase
-          .from("theory_questions")
-          .select("id, question_text, difficulty, marks, year, source")
-          .eq("course_id", courseId)
-          .eq("is_approved", true)
-          .order("created_at", { ascending: false }),
-      ]);
-      setCourse(c);
-      setQuestions(qs ?? []);
-      setLoading(false);
-    })();
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
   return (
@@ -53,13 +61,35 @@ const TheoryCourseView = () => {
           <div className="flex justify-center py-20"><LoadingSpinner /></div>
         ) : (
           <>
-            <div className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-display font-bold">{course?.code}</h1>
-              <p className="text-muted-foreground">{course?.name}</p>
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-display font-bold">{course?.code}</h1>
+                <p className="text-muted-foreground">{course?.name}</p>
+              </div>
+              {canCreate && (
+                <Button onClick={() => setCreateOpen(true)}>
+                  <Plus className="w-4 h-4" /> Add Theory Question
+                </Button>
+              )}
             </div>
 
             {questions.length === 0 ? (
-              <Card className="glass-card"><CardContent className="py-12 text-center text-muted-foreground">No theory questions for this course yet.</CardContent></Card>
+              <Card className="glass-card">
+                <CardContent className="py-12 text-center">
+                  <PenLine className="w-10 h-10 text-primary mx-auto mb-3" />
+                  <p className="font-display text-lg mb-1">No theory questions yet</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {canCreate
+                      ? "Create the first written/essay question for this course."
+                      : "A tutor hasn't added theory questions for this course yet. Check back soon."}
+                  </p>
+                  {canCreate && (
+                    <Button onClick={() => setCreateOpen(true)}>
+                      <Plus className="w-4 h-4" /> Add First Question
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
             ) : (
               <div className="space-y-3">
                 {questions.map((q) => (
@@ -85,6 +115,15 @@ const TheoryCourseView = () => {
           </>
         )}
       </main>
+
+      {courseId && (
+        <CreateTheoryQuestionDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          courseId={courseId}
+          onCreated={load}
+        />
+      )}
     </div>
   );
 };

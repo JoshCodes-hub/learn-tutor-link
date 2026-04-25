@@ -85,9 +85,9 @@ const TheoryPrep = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="flex gap-2">
-                  <Button asChild className="flex-1" variant={c.question_count > 0 ? "default" : "outline"} disabled={c.question_count === 0}>
+                  <Button asChild className="flex-1" variant={c.question_count > 0 ? "default" : "outline"}>
                     <Link to={`/theory/${c.id}`}>
-                      <PenLine className="w-4 h-4" /> Practice <ChevronRight className="w-4 h-4 ml-auto" />
+                      <PenLine className="w-4 h-4" /> {c.question_count > 0 ? "Practice" : "Open"} <ChevronRight className="w-4 h-4 ml-auto" />
                     </Link>
                   </Button>
                 </CardContent>
