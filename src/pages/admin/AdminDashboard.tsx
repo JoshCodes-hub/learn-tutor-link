@@ -198,6 +198,8 @@ const AdminDashboard = () => {
         </div>
       </header>
 
+      <DashboardNav role="admin" />
+
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
