@@ -46,6 +46,8 @@ interface ImportedQuestion {
   explanation: string;
   difficulty: "easy" | "medium" | "hard";
   image_url?: string;
+  year?: number | null;
+  is_past_question?: boolean;
 }
 
 interface BulkQuestionImportProps {
@@ -242,6 +244,8 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
         const explanation = row.explanation || row.Explanation || "";
         const difficulty = row.difficulty || row.Difficulty || "medium";
         const imageUrl = row.image_url || row.Image_URL || row["Image URL"] || row.image || "";
+        const yearRaw = row.year || row.Year || row.YEAR || "";
+        const isPastQRaw = row.is_past_question ?? row.past_question ?? row["Past Question"] ?? row.past ?? "";
 
         if (!String(questionText).trim()) {
           parseErrors.push(`Row ${rowNum}: Missing question text`);
@@ -258,6 +262,10 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
           continue;
         }
 
+        const parsedYear = Number(String(yearRaw).trim());
+        const validYear = Number.isFinite(parsedYear) && parsedYear >= 1970 && parsedYear <= 2100 ? parsedYear : null;
+        const isPast = ["yes", "true", "1", "y"].includes(String(isPastQRaw).trim().toLowerCase()) || !!validYear;
+
         questions.push({
           question_text: String(questionText).trim(),
           option_a: String(optionA).trim(),
@@ -268,6 +276,8 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
           explanation: String(explanation).trim(),
           difficulty: normalizeDifficulty(difficulty),
           image_url: String(imageUrl).trim() || undefined,
+          year: validYear,
+          is_past_question: isPast,
         });
       }
 
@@ -807,7 +817,7 @@ export function BulkQuestionImport({ onImport, onClose, courseId, tutorId }: Bul
           <p className="font-medium mb-1">Required columns:</p>
           <p>question_text, option_a, option_b, option_c, option_d, correct_option (A/B/C/D)</p>
           <p className="mt-1 font-medium">Optional columns:</p>
-          <p>explanation, difficulty (easy/medium/hard), image_url (for diagrams)</p>
+          <p>explanation, difficulty (easy/medium/hard), image_url, year (e.g. 2022 — marks it as past question), is_past_question (yes/no)</p>
         </div>
       </div>
     );
