@@ -46,8 +46,9 @@ const CBTSimulation = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarkedQuestions();
+  const strictMode = profile?.academic_path === "jamb";
   
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
