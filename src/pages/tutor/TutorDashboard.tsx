@@ -292,6 +292,8 @@ const TutorDashboard = () => {
         </div>
       </header>
 
+      <DashboardNav role="tutor" />
+
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
