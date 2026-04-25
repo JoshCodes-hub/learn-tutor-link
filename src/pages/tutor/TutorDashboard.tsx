@@ -23,6 +23,7 @@ import {
   Sparkles
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import DashboardNav from "@/components/layout/DashboardNav";
 import { CreateCourseDialog } from "@/components/tutor/CreateCourseDialog";
 import { CreateQuizDialog } from "@/components/tutor/CreateQuizDialog";
 import { EditQuizDialog } from "@/components/tutor/EditQuizDialog";
