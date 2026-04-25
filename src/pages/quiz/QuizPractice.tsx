@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
+import { SpeakButton } from "@/components/audio/SpeakButton";
 
 interface Question {
   id: string;
