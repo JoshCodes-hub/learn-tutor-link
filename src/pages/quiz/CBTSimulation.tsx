@@ -511,6 +511,7 @@ const CBTSimulation = () => {
               </Button>
             </div>
           </div>
+          )}
         </div>
       </div>
 
