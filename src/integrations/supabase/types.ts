@@ -384,6 +384,45 @@ export type Database = {
         }
         Relationships: []
       }
+      flashcards: {
+        Row: {
+          academic_path: Database["public"]["Enums"]["academic_path"] | null
+          back: string
+          created_at: string
+          front: string
+          id: string
+          is_public: boolean
+          subject: string | null
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          academic_path?: Database["public"]["Enums"]["academic_path"] | null
+          back: string
+          created_at?: string
+          front: string
+          id?: string
+          is_public?: boolean
+          subject?: string | null
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          academic_path?: Database["public"]["Enums"]["academic_path"] | null
+          back?: string
+          created_at?: string
+          front?: string
+          id?: string
+          is_public?: boolean
+          subject?: string | null
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -458,6 +497,9 @@ export type Database = {
           referral_code: string | null
           referred_by: string | null
           tutor_code: string | null
+          tutor_specialization:
+            | Database["public"]["Enums"]["academic_path"]
+            | null
           updated_at: string
         }
         Insert: {
@@ -473,6 +515,9 @@ export type Database = {
           referral_code?: string | null
           referred_by?: string | null
           tutor_code?: string | null
+          tutor_specialization?:
+            | Database["public"]["Enums"]["academic_path"]
+            | null
           updated_at?: string
         }
         Update: {
@@ -488,6 +533,9 @@ export type Database = {
           referral_code?: string | null
           referred_by?: string | null
           tutor_code?: string | null
+          tutor_specialization?:
+            | Database["public"]["Enums"]["academic_path"]
+            | null
           updated_at?: string
         }
         Relationships: [
@@ -1524,6 +1572,7 @@ export type Database = {
           qualifications: string
           reviewed_at: string | null
           reviewed_by: string | null
+          specialization: Database["public"]["Enums"]["academic_path"] | null
           status: Database["public"]["Enums"]["application_status"]
           updated_at: string
           user_id: string
@@ -1541,6 +1590,7 @@ export type Database = {
           qualifications: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          specialization?: Database["public"]["Enums"]["academic_path"] | null
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
           user_id: string
@@ -1558,6 +1608,7 @@ export type Database = {
           qualifications?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          specialization?: Database["public"]["Enums"]["academic_path"] | null
           status?: Database["public"]["Enums"]["application_status"]
           updated_at?: string
           user_id?: string
