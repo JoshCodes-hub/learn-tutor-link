@@ -408,26 +408,38 @@ const CBTSimulation = () => {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center justify-between">
-              <Button
-                variant="secondary"
-                onClick={() => handleQuestionChange(Math.max(0, currentIndex - 1))}
-                disabled={currentIndex === 0}
-              >
-                Previous
-              </Button>
-              
-              <Button
-                variant="secondary"
-                onClick={() => handleQuestionChange(Math.min(questions.length - 1, currentIndex + 1))}
-                disabled={currentIndex === questions.length - 1}
-              >
-                Next
-              </Button>
+            <div className="flex items-center justify-between gap-2">
+              {strictMode ? (
+                <span className="text-xs text-muted-foreground italic">
+                  JAMB strict mode — you cannot return to previous questions.
+                </span>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => handleQuestionChange(Math.max(0, currentIndex - 1))}
+                  disabled={currentIndex === 0}
+                >
+                  Previous
+                </Button>
+              )}
+
+              {currentIndex === questions.length - 1 ? (
+                <Button variant="accent" onClick={handleSubmitExam} disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit Exam"}
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => handleQuestionChange(Math.min(questions.length - 1, currentIndex + 1))}
+                >
+                  Next
+                </Button>
+              )}
             </div>
           </div>
 
-          {/* Question Navigator */}
+          {/* Question Navigator — hidden in strict JAMB mode */}
+          {!strictMode && (
           <div className="lg:col-span-1 order-first lg:order-last">
             <div className="bg-card text-card-foreground rounded-xl p-4 lg:sticky lg:top-4">
               <h3 className="font-display font-semibold text-foreground mb-4">
