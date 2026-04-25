@@ -12,6 +12,7 @@ const ChoosePath = lazy(() => import("@/pages/onboarding/ChoosePath"));
 const RefinePath = lazy(() => import("@/pages/onboarding/RefinePath"));
 const SubjectBrowser = lazy(() => import("@/pages/subjects/SubjectBrowser"));
 const Flashcards = lazy(() => import("@/pages/flashcards/Flashcards"));
+const JambIntelligence = lazy(() => import("@/pages/jamb/JambIntelligence"));
 
 // Lazy load all other pages for code splitting
 const Auth = lazy(() => import("@/pages/Auth"));
@@ -219,6 +220,7 @@ export const AnimatedRoutes = () => {
           <Route path="/onboarding/refine" element={<PageTransition><RefinePath /></PageTransition>} />
           <Route path="/subjects" element={<PageTransition><SubjectBrowser /></PageTransition>} />
           <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
+          <Route path="/jamb-intelligence" element={<PageTransition><JambIntelligence /></PageTransition>} />
           <Route
             path="*"
             element={

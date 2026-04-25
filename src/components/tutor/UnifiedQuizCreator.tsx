@@ -50,6 +50,8 @@ interface Question {
   explanation: string;
   difficulty: "easy" | "medium" | "hard";
   image_url?: string;
+  year?: number | null;
+  is_past_question?: boolean;
 }
 
 interface UnifiedQuizCreatorProps {
@@ -319,6 +321,8 @@ export function UnifiedQuizCreator({
           explanation: q.explanation.trim() || null,
           difficulty: q.difficulty,
           image_url: q.image_url?.trim() || null,
+          year: q.year ?? null,
+          is_past_question: !!q.is_past_question || !!q.year,
           is_approved: true,
         }));
 
