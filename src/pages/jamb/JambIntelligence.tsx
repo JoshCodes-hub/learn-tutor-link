@@ -150,7 +150,7 @@ const JambIntelligence = () => {
     <div className="min-h-screen bg-background">
       <SEO title="JAMB Intelligence — OverraPrep AI" description="Repeated past questions, high-probability topics and UTME score predictor for JAMB candidates." />
       <DashboardNav role="student" />
-      <DashboardBreadcrumb segments={[{ label: "JAMB Intelligence" }]} />
+      <DashboardBreadcrumb role="student" />
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-start justify-between flex-wrap gap-4">
