@@ -11,22 +11,23 @@ serve(async (req) => {
   }
 
   try {
-    const { question, options, correctOption, userAnswer, topic } = await req.json();
+    const { question, options, correctOption, userAnswer, topic, tone } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating AI explanation for question:", question.substring(0, 50) + "...");
+    console.log("Generating AI explanation, tone:", tone || "default");
 
-    const systemPrompt = `You are an expert tutor helping Nigerian university students understand exam questions. 
-Your explanations should be:
-- Clear and easy to understand
-- Step-by-step when needed
-- Include relevant formulas or concepts
-- Encouraging and supportive
-Keep explanations concise but thorough (max 200 words).`;
+    const toneInstructions: Record<string, string> = {
+      simple: "You are explaining to a 12-year-old. Use very simple words, short sentences, fun analogies (food, football, everyday Nigerian life). Avoid jargon completely. Keep it under 150 words and make it feel friendly.",
+      deep: "You are a university lecturer. Provide a rigorous, structured explanation with proper terminology, derivations or proofs where applicable, and references to broader concepts. Aim for depth (250-300 words).",
+      default: "Explanations should be clear and easy to understand, step-by-step when needed, include relevant formulas or concepts, and be encouraging. Concise but thorough (max 200 words).",
+    };
+    const toneRule = toneInstructions[tone as string] ?? toneInstructions.default;
+
+    const systemPrompt = `You are an expert tutor helping Nigerian students understand exam questions. ${toneRule}`;
 
     const userPrompt = `Question: ${question}
 
