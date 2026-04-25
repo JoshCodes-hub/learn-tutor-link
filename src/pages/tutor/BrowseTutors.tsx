@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SEO } from "@/components/seo/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
+import DashboardNav from "@/components/layout/DashboardNav";
+import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 import {
   Select,
