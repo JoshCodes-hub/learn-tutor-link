@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/layout/Navbar";
+import DashboardNav from "@/components/layout/DashboardNav";
+import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,12 +22,13 @@ interface Course {
 }
 
 const StudyHub = () => {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, primaryRole } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -77,7 +80,11 @@ const StudyHub = () => {
         description="Upload notes and let AI generate summaries, flashcards, and likely exam questions."
       />
       <Navbar />
-      <main className="container mx-auto px-4 pt-24 pb-16 max-w-6xl">
+      <div className="pt-20">
+        <DashboardNav role={navRole} />
+        <DashboardBreadcrumb role={navRole} />
+      </div>
+      <main className="container mx-auto px-4 pt-6 pb-16 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-5 h-5 text-primary" />

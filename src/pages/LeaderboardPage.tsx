@@ -3,8 +3,13 @@ import { Leaderboard } from "@/components/student/Leaderboard";
 import { SEO } from "@/components/seo/SEO";
 import { ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
+import DashboardNav from "@/components/layout/DashboardNav";
+import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
+import { useAuth } from "@/hooks/useAuth";
 
 const LeaderboardPage = () => {
+  const { primaryRole } = useAuth();
+  const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
   return (
     <>
       <SEO
@@ -30,6 +35,9 @@ const LeaderboardPage = () => {
             </div>
           </div>
         </header>
+
+        <DashboardNav role={navRole} />
+        <DashboardBreadcrumb role={navRole} />
 
         <main className="container mx-auto px-4 py-8 max-w-3xl">
           <Leaderboard />

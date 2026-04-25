@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SEO } from "@/components/seo/SEO";
 import { Skeleton } from "@/components/ui/skeleton";
+import DashboardNav from "@/components/layout/DashboardNav";
+import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 import {
   Select,
@@ -46,6 +49,8 @@ const TUTORS_PER_PAGE = 9;
 
 const BrowseTutors = () => {
   const navigate = useNavigate();
+  const { primaryRole } = useAuth();
+  const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [filteredTutors, setFilteredTutors] = useState<Tutor[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
@@ -254,6 +259,9 @@ const BrowseTutors = () => {
           </div>
         </div>
       </header>
+
+      <DashboardNav role={navRole} />
+      <DashboardBreadcrumb role={navRole} />
 
       <main className="container mx-auto px-4 py-8">
         {/* Page Header */}
