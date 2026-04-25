@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import DashboardNav from "@/components/layout/DashboardNav";
+import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
 import { CreateCourseDialog } from "@/components/tutor/CreateCourseDialog";
 import { CreateQuizDialog } from "@/components/tutor/CreateQuizDialog";
 import { EditQuizDialog } from "@/components/tutor/EditQuizDialog";
@@ -293,6 +294,7 @@ const TutorDashboard = () => {
       </header>
 
       <DashboardNav role="tutor" />
+      <DashboardBreadcrumb role="tutor" />
 
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}

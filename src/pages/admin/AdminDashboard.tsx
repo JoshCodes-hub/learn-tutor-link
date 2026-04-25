@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import DashboardNav from "@/components/layout/DashboardNav";
+import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
 import { TutorManagement } from "@/components/admin/TutorManagement";
 import { CourseModeration } from "@/components/admin/CourseModeration";
 import { QuestionModeration } from "@/components/admin/QuestionModeration";
@@ -199,6 +200,7 @@ const AdminDashboard = () => {
       </header>
 
       <DashboardNav role="admin" />
+      <DashboardBreadcrumb role="admin" />
 
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
