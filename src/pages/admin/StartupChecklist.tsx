@@ -41,7 +41,7 @@ const categoryMeta: Record<CheckItem["category"], { label: string; icon: React.E
 };
 
 export default function StartupChecklist() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [data, setData] = useState<CheckResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
