@@ -123,6 +123,14 @@ export const AnimatedRoutes = () => {
             }
           />
           <Route
+            path="/admin/startup-checklist"
+            element={
+              <PageTransition>
+                <StartupChecklist />
+              </PageTransition>
+            }
+          />
+          <Route
             path="/quiz/:quizId"
             element={
               <PageTransition>
