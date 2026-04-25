@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { SEO } from "@/components/seo/SEO";
-import { ArrowLeft, FileText, Lock, Globe, Plus, Trash2, Sparkles } from "lucide-react";
+import { ArrowLeft, FileText, Lock, Globe, Plus, Trash2, Sparkles, Download } from "lucide-react";
 import { UploadMaterialDialog } from "@/components/study-hub/UploadMaterialDialog";
 import { MaterialAIPanel } from "@/components/study-hub/MaterialAIPanel";
+import { ExportStudyPackDialog } from "@/components/study-hub/ExportStudyPackDialog";
 import { toast } from "sonner";
 
 interface Material {
@@ -38,6 +39,7 @@ const StudyHubCourse = () => {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [openMaterial, setOpenMaterial] = useState<Material | null>(null);
 
   useEffect(() => {
@@ -107,9 +109,14 @@ const StudyHubCourse = () => {
             <h1 className="font-display text-3xl font-bold">{course.name}</h1>
             <p className="text-muted-foreground mt-1">Study materials & AI-generated study aids</p>
           </div>
-          <Button onClick={() => setUploadOpen(true)}>
-            <Plus className="w-4 h-4" /> Upload Material
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" onClick={() => setExportOpen(true)} disabled={materials.length === 0}>
+              <Download className="w-4 h-4" /> Export Study Pack
+            </Button>
+            <Button onClick={() => setUploadOpen(true)}>
+              <Plus className="w-4 h-4" /> Upload Material
+            </Button>
+          </div>
         </div>
 
         {materials.length === 0 ? (
@@ -173,6 +180,14 @@ const StudyHubCourse = () => {
         onOpenChange={setUploadOpen}
         courseId={courseId!}
         onUploaded={load}
+      />
+
+      <ExportStudyPackDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        courseCode={course.code}
+        courseName={course.name}
+        materials={materials.map((m) => ({ id: m.id, title: m.title, description: m.description }))}
       />
 
       {openMaterial && (
