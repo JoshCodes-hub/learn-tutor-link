@@ -682,6 +682,8 @@ const StudentDashboard = () => {
         </div>
       </header>
 
+      <DashboardNav role="student" />
+
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8">
