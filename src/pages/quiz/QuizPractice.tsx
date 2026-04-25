@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
+import { SpeakButton } from "@/components/audio/SpeakButton";
 
 interface Question {
   id: string;
@@ -56,7 +57,7 @@ const QuizPractice = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarkedQuestions();
   const { saveState, loadState, clearState, hasSavedState } = useQuizAutoSave(quizId || "");
   
@@ -68,6 +69,9 @@ const QuizPractice = () => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
+  const [explanationTone, setExplanationTone] = useState<"simple" | "default" | "deep">(
+    profile?.academic_path === "secondary" ? "simple" : profile?.academic_path === "university" ? "deep" : "default"
+  );
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -251,6 +255,7 @@ const QuizPractice = () => {
           correctOption: currentQuestion.correct_option,
           userAnswer: selectedAnswer,
           topic: currentQuestion.topic?.name,
+          tone: explanationTone,
         },
       });
 
@@ -561,26 +566,51 @@ const QuizPractice = () => {
 
             {/* AI Explanation */}
             {!aiExplanation ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGetAIExplanation}
-                disabled={isLoadingExplanation}
-              >
-                {isLoadingExplanation ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4 mr-2 text-accent" />
-                )}
-                Get AI Explanation
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGetAIExplanation}
+                  disabled={isLoadingExplanation}
+                >
+                  {isLoadingExplanation ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2 text-accent" />
+                  )}
+                  Get AI Explanation
+                </Button>
+                <div className="inline-flex rounded-md border border-border overflow-hidden text-xs">
+                  {(["simple", "default", "deep"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setExplanationTone(t)}
+                      className={`px-2.5 py-1.5 capitalize transition-colors ${
+                        explanationTone === t
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background text-muted-foreground hover:bg-muted"
+                      }`}
+                      aria-pressed={explanationTone === t}
+                    >
+                      {t === "simple" ? "Like I'm 12" : t === "deep" ? "Lecturer" : "Standard"}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ) : (
               <div className="mt-4 p-4 bg-card rounded-lg border border-border">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="w-4 h-4 text-accent" />
-                  <span className="font-medium text-foreground text-sm">AI Explanation</span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 text-accent" />
+                    <span className="font-medium text-foreground text-sm">AI Explanation</span>
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {explanationTone === "simple" ? "Like I'm 12" : explanationTone === "deep" ? "Lecturer" : "Standard"}
+                    </span>
+                  </div>
+                  <SpeakButton text={aiExplanation} />
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {aiExplanation}
                 </p>
               </div>
