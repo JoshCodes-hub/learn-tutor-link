@@ -71,11 +71,12 @@ export const DashboardNav = ({ role }: DashboardNavProps) => {
                 <Link
                   key={to}
                   to={to}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    "relative inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/30 scale-[1.02] ring-1 ring-primary/40 after:content-[''] after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:h-0.5 after:w-8 after:rounded-full after:bg-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground hover:scale-[1.01]"
                   )}
                 >
                   <Icon className="w-4 h-4" />
