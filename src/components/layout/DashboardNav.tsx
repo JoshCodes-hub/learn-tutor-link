@@ -11,6 +11,8 @@ import {
   Shield,
   ClipboardCheck,
   CheckCircle2,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -32,6 +34,8 @@ interface DashboardNavProps {
 const linksByRole: Record<Role, NavLink[]> = {
   student: [
     { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/subjects", label: "Subjects", icon: Layers, paths: ["secondary", "jamb"] },
+    { to: "/flashcards", label: "Flashcards", icon: Sparkles, paths: ["secondary", "jamb"] },
     { to: "/study-hub", label: "Study Hub", icon: Library },
     { to: "/theory", label: "Theory Prep", icon: BookOpen, paths: ["university"] },
     { to: "/tutors", label: "Tutors", icon: GraduationCap },
