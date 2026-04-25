@@ -22,6 +22,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import DashboardNav from "@/components/layout/DashboardNav";
 import { TutorManagement } from "@/components/admin/TutorManagement";
 import { CourseModeration } from "@/components/admin/CourseModeration";
 import { QuestionModeration } from "@/components/admin/QuestionModeration";
