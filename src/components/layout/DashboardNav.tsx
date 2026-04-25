@@ -61,7 +61,13 @@ const linksByRole: Record<Role, NavLink[]> = {
 
 export const DashboardNav = ({ role }: DashboardNavProps) => {
   const location = useLocation();
-  const links = linksByRole[role];
+  const { profile } = useAuth();
+  const academicPath = profile?.academic_path ?? null;
+
+  const links = linksByRole[role].filter((link) => {
+    if (role !== "student" || !link.paths) return true;
+    return academicPath ? link.paths.includes(academicPath) : true;
+  });
 
   return (
     <nav aria-label="Dashboard navigation" className="border-b border-border bg-card/50 backdrop-blur-sm">
