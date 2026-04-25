@@ -68,6 +68,9 @@ const QuizPractice = () => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
+  const [explanationTone, setExplanationTone] = useState<"simple" | "default" | "deep">(
+    profile?.academic_path === "secondary" ? "simple" : profile?.academic_path === "university" ? "deep" : "default"
+  );
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
