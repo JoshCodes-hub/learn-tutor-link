@@ -33,6 +33,7 @@ const StudyHub = lazy(() => import("@/pages/study-hub/StudyHub"));
 const StudyHubCourse = lazy(() => import("@/pages/study-hub/StudyHubCourse"));
 const PQIntelligence = lazy(() => import("@/pages/study-hub/PQIntelligence"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const StartupChecklist = lazy(() => import("@/pages/admin/StartupChecklist"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -118,6 +119,14 @@ export const AnimatedRoutes = () => {
             element={
               <PageTransition>
                 <AdminDashboard />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/admin/startup-checklist"
+            element={
+              <PageTransition>
+                <StartupChecklist />
               </PageTransition>
             }
           />
