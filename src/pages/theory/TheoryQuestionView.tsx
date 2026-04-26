@@ -39,6 +39,8 @@ const TheoryQuestionView = () => {
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showIdeal, setShowIdeal] = useState(false);
+  const [improving, setImproving] = useState(false);
+  const [improvement, setImprovement] = useState<AnswerImprovement | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -144,6 +146,7 @@ const TheoryQuestionView = () => {
   const handleRetry = async () => {
     if (!user || !questionId) return;
     setEvaluation(null);
+    setImprovement(null);
     setStatus("draft");
     setAnswer("");
     const { data: created } = await supabase
@@ -152,6 +155,33 @@ const TheoryQuestionView = () => {
       .select()
       .single();
     if (created) setAttemptId(created.id);
+  };
+
+  const handleImprove = async () => {
+    if (!question || answer.trim().length < 30) {
+      toast.error("Write at least 30 characters before requesting an improvement.");
+      return;
+    }
+    setImproving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("improve-theory-answer", {
+        body: {
+          question: question.question_text,
+          model_answer: question.model_answer,
+          key_points: Array.isArray(question.key_points) ? question.key_points : [],
+          student_answer: answer,
+          marks: question.marks,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setImprovement(data.improvement as AnswerImprovement);
+      toast.success("Improvement ready");
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to improve answer");
+    } finally {
+      setImproving(false);
+    }
   };
 
   if (authLoading || loading) {
