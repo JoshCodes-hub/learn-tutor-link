@@ -14,6 +14,7 @@ import {
   Layers,
   Sparkles,
   Flame,
+  LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -40,6 +41,7 @@ const linksByRole: Record<Role, NavLink[]> = {
     { to: "/flashcards", label: "Flashcards", icon: Sparkles, paths: ["secondary", "jamb"] },
     { to: "/study-hub", label: "Study Hub", icon: Library },
     { to: "/theory", label: "Theory Prep", icon: BookOpen, paths: ["university"] },
+    { to: "/survival-kits", label: "Survival Kits", icon: LifeBuoy, paths: ["university"] },
     { to: "/tutors", label: "Tutors", icon: GraduationCap },
     { to: "/community", label: "Community", icon: Users },
     { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
@@ -49,6 +51,7 @@ const linksByRole: Record<Role, NavLink[]> = {
     { to: "/tutor/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/study-hub", label: "Study Hub", icon: Library },
     { to: "/theory", label: "Theory Prep", icon: BookOpen },
+    { to: "/survival-kits", label: "Survival Kits", icon: LifeBuoy },
     { to: "/community", label: "Community", icon: Users },
     { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { to: "/profile/edit", label: "Profile", icon: User },
