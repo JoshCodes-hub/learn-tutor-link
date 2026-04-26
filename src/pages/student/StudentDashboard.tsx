@@ -11,6 +11,7 @@ import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { AIQuizRecommendations } from "@/components/student/AIQuizRecommendations";
 import { StudyStreak } from "@/components/student/StudyStreak";
 import { SubjectCombinationTracker } from "@/components/student/SubjectCombinationTracker";
+import { ReadinessRing } from "@/components/student/ReadinessRing";
 import { Achievements } from "@/components/student/Achievements";
 import { ReferralCard } from "@/components/student/ReferralCard";
 import { TeamCard } from "@/components/student/TeamCard";
@@ -830,6 +831,7 @@ const StudentDashboard = () => {
 
         {/* Referral & Team Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <ReadinessRing />
           <SubjectCombinationTracker />
           <ReferralCard />
           <TeamCard />
