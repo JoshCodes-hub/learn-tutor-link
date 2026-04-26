@@ -13,6 +13,8 @@ const RefinePath = lazy(() => import("@/pages/onboarding/RefinePath"));
 const SubjectBrowser = lazy(() => import("@/pages/subjects/SubjectBrowser"));
 const Flashcards = lazy(() => import("@/pages/flashcards/Flashcards"));
 const JambIntelligence = lazy(() => import("@/pages/jamb/JambIntelligence"));
+const SurvivalKits = lazy(() => import("@/pages/survival-kits/SurvivalKits"));
+const SurvivalKitView = lazy(() => import("@/pages/survival-kits/SurvivalKitView"));
 
 // Lazy load all other pages for code splitting
 const Auth = lazy(() => import("@/pages/Auth"));
@@ -221,6 +223,8 @@ export const AnimatedRoutes = () => {
           <Route path="/subjects" element={<PageTransition><SubjectBrowser /></PageTransition>} />
           <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
           <Route path="/jamb-intelligence" element={<PageTransition><JambIntelligence /></PageTransition>} />
+          <Route path="/survival-kits" element={<PageTransition><SurvivalKits /></PageTransition>} />
+          <Route path="/survival-kits/:kitId" element={<PageTransition><SurvivalKitView /></PageTransition>} />
           <Route
             path="*"
             element={
