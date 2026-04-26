@@ -15,6 +15,9 @@ const Flashcards = lazy(() => import("@/pages/flashcards/Flashcards"));
 const JambIntelligence = lazy(() => import("@/pages/jamb/JambIntelligence"));
 const SurvivalKits = lazy(() => import("@/pages/survival-kits/SurvivalKits"));
 const SurvivalKitView = lazy(() => import("@/pages/survival-kits/SurvivalKitView"));
+const Strategy = lazy(() => import("@/pages/strategy/Strategy"));
+const AITutor = lazy(() => import("@/pages/ai-tutor/AITutor"));
+const ViralMode = lazy(() => import("@/pages/viral/ViralMode"));
 
 // Lazy load all other pages for code splitting
 const Auth = lazy(() => import("@/pages/Auth"));
@@ -225,6 +228,11 @@ export const AnimatedRoutes = () => {
           <Route path="/jamb-intelligence" element={<PageTransition><JambIntelligence /></PageTransition>} />
           <Route path="/survival-kits" element={<PageTransition><SurvivalKits /></PageTransition>} />
           <Route path="/survival-kits/:kitId" element={<PageTransition><SurvivalKitView /></PageTransition>} />
+          <Route path="/strategy" element={<PageTransition><Strategy /></PageTransition>} />
+          <Route path="/ai-tutor" element={<PageTransition><AITutor /></PageTransition>} />
+          <Route path="/exam-tomorrow" element={<PageTransition><ViralMode /></PageTransition>} />
+          <Route path="/can-i-pass" element={<PageTransition><ViralMode /></PageTransition>} />
+          <Route path="/two-hours-left" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route
             path="*"
             element={
