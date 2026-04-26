@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Navigate } from "react-router-dom";
+import { useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardNav from "@/components/layout/DashboardNav";
@@ -18,7 +18,8 @@ const MODE_META: Record<string, { title: string; tagline: string; icon: any; mod
 };
 
 const ViralMode = () => {
-  const { mode = "" } = useParams();
+  const location = useLocation();
+  const mode = location.pathname.replace(/^\//, "");
   const { profile, primaryRole } = useAuth();
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
   const meta = MODE_META[mode];
