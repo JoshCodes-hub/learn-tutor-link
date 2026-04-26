@@ -1,10 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Sparkles, TrendingUp, Lightbulb } from "lucide-react";
+import { CheckCircle2, XCircle, Sparkles, TrendingUp, Lightbulb, FileText, ListOrdered, BookOpen, Flag } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+
+export interface RubricCriterion {
+  score: number;
+  comment: string;
+}
 
 export interface TheoryEvaluation {
   score: number;
+  rubric?: {
+    content: RubricCriterion;
+    structure: RubricCriterion;
+    examples: RubricCriterion;
+    conclusion: RubricCriterion;
+  };
   coverage: { points_hit: string[]; points_missed: string[] };
   strengths: string[];
   improvements: string[];
@@ -15,6 +26,13 @@ export interface TheoryEvaluation {
 interface Props {
   evaluation: TheoryEvaluation;
 }
+
+const rubricMeta = [
+  { key: "content" as const, label: "Content", icon: FileText },
+  { key: "structure" as const, label: "Structure", icon: ListOrdered },
+  { key: "examples" as const, label: "Examples", icon: BookOpen },
+  { key: "conclusion" as const, label: "Conclusion", icon: Flag },
+];
 
 export const AIFeedbackPanel = ({ evaluation }: Props) => {
   const scoreColor =
@@ -34,6 +52,30 @@ export const AIFeedbackPanel = ({ evaluation }: Props) => {
       </CardHeader>
       <CardContent className="space-y-5">
         <p className="text-sm text-muted-foreground italic">{evaluation.overall_feedback}</p>
+
+        {evaluation.rubric && (
+          <div>
+            <h4 className="font-semibold text-sm mb-3">Rubric Breakdown</h4>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {rubricMeta.map(({ key, label, icon: Icon }) => {
+                const c = evaluation.rubric![key];
+                const pct = (c.score / 25) * 100;
+                return (
+                  <div key={key} className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <Icon className="w-3.5 h-3.5 text-primary" /> {label}
+                      </div>
+                      <span className="text-xs font-mono">{c.score}/25</span>
+                    </div>
+                    <Progress value={pct} className="h-1.5 mb-1.5" />
+                    <p className="text-xs text-muted-foreground leading-snug">{c.comment}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {evaluation.coverage.points_hit.length > 0 && (
           <div>

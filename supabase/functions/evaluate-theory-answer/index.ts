@@ -23,7 +23,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are an experienced university lecturer grading written exam answers for Nigerian university students. Be fair, encouraging, and precise. Score on a 0-100 scale based on coverage of key points, clarity, structure, and depth.`;
+    const systemPrompt = `You are an experienced Nigerian university lecturer grading written exam answers for 300L–500L students. Be fair, encouraging, and precise. Grade across four rubric criteria — Content (knowledge accuracy & depth), Structure (logical flow, intro/body/conclusion), Examples (relevant illustrations, citations, real-world cases), and Conclusion (synthesis & closing). Each criterion is scored 0–25; the overall score is their sum (0–100).`;
 
     const userPrompt = `QUESTION (${marks ?? 10} marks):
 ${question}
@@ -34,7 +34,7 @@ ${Array.isArray(key_points) && key_points.length ? `KEY POINTS EXPECTED:\n${key_
 STUDENT ANSWER:
 ${student_answer}
 
-Evaluate the student's answer thoroughly.`;
+Evaluate the student's answer thoroughly using the 4-criterion rubric.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -43,7 +43,7 @@ Evaluate the student's answer thoroughly.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -57,7 +57,46 @@ Evaluate the student's answer thoroughly.`;
               parameters: {
                 type: "object",
                 properties: {
-                  score: { type: "number", description: "Overall score 0-100" },
+                  score: { type: "number", description: "Overall score 0-100 (sum of 4 rubric criteria)" },
+                  rubric: {
+                    type: "object",
+                    description: "Per-criterion scores out of 25 with brief justification",
+                    properties: {
+                      content: {
+                        type: "object",
+                        properties: {
+                          score: { type: "number", description: "0-25" },
+                          comment: { type: "string", description: "1 sentence on knowledge accuracy & depth" },
+                        },
+                        required: ["score", "comment"],
+                      },
+                      structure: {
+                        type: "object",
+                        properties: {
+                          score: { type: "number", description: "0-25" },
+                          comment: { type: "string", description: "1 sentence on logical flow / intro-body-conclusion" },
+                        },
+                        required: ["score", "comment"],
+                      },
+                      examples: {
+                        type: "object",
+                        properties: {
+                          score: { type: "number", description: "0-25" },
+                          comment: { type: "string", description: "1 sentence on use of examples / citations" },
+                        },
+                        required: ["score", "comment"],
+                      },
+                      conclusion: {
+                        type: "object",
+                        properties: {
+                          score: { type: "number", description: "0-25" },
+                          comment: { type: "string", description: "1 sentence on synthesis / closing" },
+                        },
+                        required: ["score", "comment"],
+                      },
+                    },
+                    required: ["content", "structure", "examples", "conclusion"],
+                  },
                   coverage: {
                     type: "object",
                     properties: {
@@ -71,7 +110,7 @@ Evaluate the student's answer thoroughly.`;
                   better_answer_outline: { type: "string", description: "Brief outline of how to structure a top-tier answer" },
                   overall_feedback: { type: "string", description: "1-2 sentence summary feedback" },
                 },
-                required: ["score", "coverage", "strengths", "improvements", "better_answer_outline", "overall_feedback"],
+                required: ["score", "rubric", "coverage", "strengths", "improvements", "better_answer_outline", "overall_feedback"],
               },
             },
           },
