@@ -38,12 +38,19 @@ const SurvivalKits = () => {
     setLoading(true);
     let q = supabase
       .from("course_survival_kits")
-      .select("*, course:courses(code, name)")
+      .select("*")
       .eq("is_active", true)
       .order("created_at", { ascending: false });
     if (courseFilter) q = q.eq("course_id", courseFilter);
     const { data } = await q;
-    setKits((data as Kit[]) ?? []);
+    const rows = (data ?? []) as any[];
+    const courseIds = Array.from(new Set(rows.map((r) => r.course_id)));
+    const courseMap = new Map<string, { code: string; name: string }>();
+    if (courseIds.length) {
+      const { data: cs } = await supabase.from("courses").select("id, code, name").in("id", courseIds);
+      (cs ?? []).forEach((c) => courseMap.set(c.id, { code: c.code, name: c.name }));
+    }
+    setKits(rows.map((r) => ({ ...r, course: courseMap.get(r.course_id) ?? null })) as Kit[]);
     setLoading(false);
   };
 
