@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Sparkles, Send, Loader2, Calendar } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Send, Loader2, Calendar, Wand2 } from "lucide-react";
 import { AIFeedbackPanel, TheoryEvaluation } from "@/components/theory/AIFeedbackPanel";
+import { ImproveAnswerPanel, AnswerImprovement } from "@/components/theory/ImproveAnswerPanel";
 import { IdealAnswerDialog } from "@/components/theory/IdealAnswerDialog";
 import { SEO } from "@/components/seo/SEO";
 
