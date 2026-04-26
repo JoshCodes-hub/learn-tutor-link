@@ -251,6 +251,45 @@ export type Database = {
         }
         Relationships: []
       }
+      course_survival_kits: {
+        Row: {
+          contents: Json
+          course_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          title: string
+          token_cost: number
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          contents?: Json
+          course_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          token_cost?: number
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          contents?: Json
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          token_cost?: number
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           code: string
