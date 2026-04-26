@@ -39,6 +39,7 @@ interface Tutor {
   tutor_code: string | null;
   department: string | null;
   bio: string | null;
+  specialization: string | null;
   quizCount: number;
   studentCount: number;
   averageRating: number;
@@ -49,13 +50,14 @@ const TUTORS_PER_PAGE = 9;
 
 const BrowseTutors = () => {
   const navigate = useNavigate();
-  const { primaryRole } = useAuth();
+  const { primaryRole, profile } = useAuth();
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [filteredTutors, setFilteredTutors] = useState<Tutor[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [selectedSpec, setSelectedSpec] = useState<string>(profile?.academic_path || "all");
   const [sortBy, setSortBy] = useState<string>("rating");
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,7 +87,7 @@ const BrowseTutors = () => {
         // Fetch tutor profiles
         const { data: profiles, error: profileError } = await supabase
           .from("profiles")
-          .select("id, full_name, profile_image_url, tutor_code, department")
+          .select("id, full_name, profile_image_url, tutor_code, department, tutor_specialization")
           .in("id", tutorIds);
 
         if (profileError) throw profileError;
@@ -158,6 +160,7 @@ const BrowseTutors = () => {
             profile_image_url: p.profile_image_url,
             tutor_code: p.tutor_code,
             department: p.department,
+            specialization: (p as any).tutor_specialization || null,
             bio: bioMap.get(p.id) || null,
             quizCount: quizCountMap.get(p.id) || 0,
             studentCount: studentsByTutor.get(p.id)?.size || 0,
@@ -201,6 +204,10 @@ const BrowseTutors = () => {
       filtered = filtered.filter((t) => t.department === selectedDepartment);
     }
 
+    if (selectedSpec && selectedSpec !== "all") {
+      filtered = filtered.filter((t) => t.specialization === selectedSpec);
+    }
+
     // Sort tutors
     switch (sortBy) {
       case "rating":
@@ -219,7 +226,7 @@ const BrowseTutors = () => {
 
     setFilteredTutors(filtered);
     setCurrentPage(1); // Reset to first page on filter change
-  }, [searchQuery, selectedDepartment, sortBy, tutors]);
+  }, [searchQuery, selectedDepartment, selectedSpec, sortBy, tutors]);
 
   if (isLoading) {
     return (
@@ -285,6 +292,17 @@ const BrowseTutors = () => {
               className="pl-10"
             />
           </div>
+          <Select value={selectedSpec} onValueChange={setSelectedSpec}>
+            <SelectTrigger className="w-full sm:w-[160px]">
+              <SelectValue placeholder="Path" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Paths</SelectItem>
+              <SelectItem value="secondary">Secondary</SelectItem>
+              <SelectItem value="jamb">JAMB</SelectItem>
+              <SelectItem value="university">University</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="All Departments" />

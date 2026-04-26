@@ -100,17 +100,17 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
           >
-            FUTA CBTs<br />
-            <span className="text-gradient-primary">Made Easy</span>
+            Learn. Practice.<br />
+            <span className="text-gradient-primary">Succeed.</span>
           </motion.h1>
 
           <motion.p
-            className="text-white/75 text-sm sm:text-base max-w-sm leading-relaxed font-light"
+            className="text-white/75 text-sm sm:text-base max-w-md leading-relaxed font-light"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
           >
-            Practice with AI-powered quizzes, get instant explanations, and ace your exams with confidence.
+            Learn. Practice. Understand. Write. Strategize. Succeed — across Secondary, JAMB and University.
           </motion.p>
 
           <motion.div
