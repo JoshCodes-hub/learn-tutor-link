@@ -63,7 +63,7 @@ export const CreateSurvivalKitDialog = ({ open, onOpenChange, onCreated }: Props
           summary: summary || undefined,
           likely_questions,
           model_answers: models.filter((m) => m.question && m.answer),
-        },
+        } as any,
       });
       if (error) throw error;
       toast.success("Survival Kit published");
