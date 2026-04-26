@@ -33,10 +33,13 @@ const SurvivalKitView = () => {
       if (!kitId) return;
       const { data } = await supabase
         .from("course_survival_kits")
-        .select("*, course:courses(code, name)")
+        .select("*")
         .eq("id", kitId)
         .single();
-      setKit(data as Kit);
+      if (data) {
+        const { data: c } = await supabase.from("courses").select("code, name").eq("id", (data as any).course_id).maybeSingle();
+        setKit({ ...(data as any), course: c ?? null });
+      }
       setLoading(false);
     })();
   }, [kitId]);
