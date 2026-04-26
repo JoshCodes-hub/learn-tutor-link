@@ -235,9 +235,12 @@ const TheoryQuestionView = () => {
             />
             <div className="flex flex-wrap gap-2 justify-between items-center">
               <div className="text-xs text-muted-foreground">{answer.length} characters · {answer.trim().split(/\s+/).filter(Boolean).length} words</div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={() => setShowIdeal(true)} disabled={submitting}>
                   <Sparkles className="w-4 h-4" /> Show Ideal Answer
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleImprove} disabled={improving || answer.trim().length < 30}>
+                  {improving ? (<><Loader2 className="w-4 h-4 animate-spin" /> Improving...</>) : (<><Wand2 className="w-4 h-4" /> Improve My Answer</>)}
                 </Button>
                 {status === "draft" ? (
                   <Button onClick={handleSubmit} disabled={submitting || answer.trim().length < 30}>
@@ -252,6 +255,7 @@ const TheoryQuestionView = () => {
         </Card>
 
         {evaluation && <AIFeedbackPanel evaluation={evaluation} />}
+        {improvement && <ImproveAnswerPanel improvement={improvement} />}
 
         <IdealAnswerDialog open={showIdeal} onOpenChange={setShowIdeal} question={question.question_text} marks={question.marks} />
       </main>
