@@ -44,7 +44,7 @@ export function OfflineBanner() {
   const { online } = useNetworkStatus();
   if (online) return null;
   return (
-    <div className="fixed top-[env(safe-area-inset-top)] inset-x-0 z-[200] bg-warning text-warning-foreground text-xs py-2 px-4 flex items-center justify-center gap-2 shadow-md backdrop-blur">
+    <div className="fixed top-[env(safe-area-inset-top)] inset-x-0 z-[200] bg-accent text-accent-foreground text-xs py-2 px-4 flex items-center justify-center gap-2 shadow-md backdrop-blur">
       <WifiOff className="w-3.5 h-3.5" />
       <span className="font-medium">You're offline — cached content available</span>
     </div>
