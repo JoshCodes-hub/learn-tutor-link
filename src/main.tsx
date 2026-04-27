@@ -1,8 +1,25 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
+import { Capacitor } from "@capacitor/core";
+import { SplashScreen } from "@capacitor/splash-screen";
+import { StatusBar, Style } from "@capacitor/status-bar";
 import App from "./App.tsx";
 import "./index.css";
+
+// Native mobile setup (only runs inside the Capacitor shell, not the web preview)
+if (Capacitor.isNativePlatform()) {
+  // Hide the native splash once the web app has hydrated
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      SplashScreen.hide({ fadeOutDuration: 300 }).catch(() => {});
+    }, 600);
+  });
+
+  // Match the dark luxury theme on the native status bar
+  StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+  StatusBar.setBackgroundColor({ color: "#0a0a0b" }).catch(() => {});
+}
 
 // Auto-recover from stale chunk references after a new deploy (PWA cache).
 // When a dynamic import fails because the hashed file no longer exists,
