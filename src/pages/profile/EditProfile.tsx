@@ -15,6 +15,7 @@ import {
   Save,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { NativeSettings } from "@/components/native/NativeSettings";
 import {
   Select,
   SelectContent,
@@ -285,6 +286,12 @@ const EditProfile = () => {
                 Email cannot be changed
               </p>
             </div>
+          </div>
+
+          {/* Native mobile features */}
+          <div className="space-y-3 pt-2">
+            <h3 className="font-display text-base font-semibold">Mobile app</h3>
+            <NativeSettings />
           </div>
 
           {/* Save Button */}

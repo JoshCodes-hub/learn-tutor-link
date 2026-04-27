@@ -10,6 +10,7 @@ import Index from "@/pages/Index";
 
 const ChoosePath = lazy(() => import("@/pages/onboarding/ChoosePath"));
 const RefinePath = lazy(() => import("@/pages/onboarding/RefinePath"));
+const TutorMatching = lazy(() => import("@/pages/onboarding/TutorMatching"));
 const SubjectBrowser = lazy(() => import("@/pages/subjects/SubjectBrowser"));
 const Flashcards = lazy(() => import("@/pages/flashcards/Flashcards"));
 const JambIntelligence = lazy(() => import("@/pages/jamb/JambIntelligence"));
@@ -223,6 +224,7 @@ export const AnimatedRoutes = () => {
           <Route path="/pq-intelligence/:courseId" element={<PageTransition><PQIntelligence /></PageTransition>} />
           <Route path="/onboarding/path" element={<PageTransition><ChoosePath /></PageTransition>} />
           <Route path="/onboarding/refine" element={<PageTransition><RefinePath /></PageTransition>} />
+          <Route path="/onboarding/match" element={<PageTransition><TutorMatching /></PageTransition>} />
           <Route path="/subjects" element={<PageTransition><SubjectBrowser /></PageTransition>} />
           <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
           <Route path="/jamb-intelligence" element={<PageTransition><JambIntelligence /></PageTransition>} />
