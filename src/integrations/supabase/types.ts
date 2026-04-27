@@ -532,10 +532,12 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          onboarding_completed: boolean
           profile_image_url: string | null
           referral_code: string | null
           referred_by: string | null
           tutor_code: string | null
+          tutor_match_prefs: Json
           tutor_specialization:
             | Database["public"]["Enums"]["academic_path"]
             | null
@@ -550,10 +552,12 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          onboarding_completed?: boolean
           profile_image_url?: string | null
           referral_code?: string | null
           referred_by?: string | null
           tutor_code?: string | null
+          tutor_match_prefs?: Json
           tutor_specialization?:
             | Database["public"]["Enums"]["academic_path"]
             | null
@@ -568,10 +572,12 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          onboarding_completed?: boolean
           profile_image_url?: string | null
           referral_code?: string | null
           referred_by?: string | null
           tutor_code?: string | null
+          tutor_match_prefs?: Json
           tutor_specialization?:
             | Database["public"]["Enums"]["academic_path"]
             | null
