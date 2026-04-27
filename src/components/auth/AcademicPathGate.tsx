@@ -19,11 +19,17 @@ export const AcademicPathGate = ({ children }: { children: ReactNode }) => {
   // Tutors & admins skip the gate
   if (primaryRole === "tutor" || primaryRole === "admin") return <>{children}</>;
 
-  const exemptPaths = ["/onboarding/path", "/onboarding/refine", "/auth"];
+  const exemptPaths = ["/onboarding/path", "/onboarding/refine", "/onboarding/match", "/auth"];
   const isExempt = exemptPaths.some((p) => location.pathname.startsWith(p));
 
   if (profile && !profile.academic_path && !isExempt) {
     return <Navigate to="/onboarding/path" replace />;
+  }
+
+  // After choosing path, send students through tutor-matching once
+  const onboardingDone = (profile as any)?.onboarding_completed;
+  if (profile?.academic_path && onboardingDone === false && !isExempt) {
+    return <Navigate to="/onboarding/match" replace />;
   }
 
   return <>{children}</>;
