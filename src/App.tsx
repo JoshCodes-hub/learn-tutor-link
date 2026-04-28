@@ -14,6 +14,7 @@ import OfflineBanner from "@/components/native/OfflineBanner";
 import BottomTabBar from "@/components/app-shell/BottomTabBar";
 import { NetworkStatus } from "@/components/system/NetworkStatus";
 import ScrollToTop from "@/components/system/ScrollToTop";
+import PageViewTracker from "@/components/system/PageViewTracker";
 import { initPushNotifications } from "@/lib/native/push";
 import { Capacitor } from "@capacitor/core";
 
@@ -62,6 +63,7 @@ const App = () => {
           {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
           <BrowserRouter>
             <ScrollToTop />
+            <PageViewTracker />
             <AuthProvider>
               <PushBootstrap />
               <BiometricUnlock>
