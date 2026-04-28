@@ -6,6 +6,8 @@
  */
 // jsPDF, jspdf-autotable, and qrcode are dynamically imported inside
 // generateReportCards() so they aren't included in the main bundle.
+import type { jsPDF as JsPDFType } from "jspdf";
+type JsPDFInstance = InstanceType<typeof JsPDFType>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let jsPDF: any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
