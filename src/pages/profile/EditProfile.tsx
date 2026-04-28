@@ -247,9 +247,32 @@ const EditProfile = () => {
           </p>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-6 space-y-6">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          {/* Cover photo banner */}
+          <div
+            className="relative h-36 sm:h-44 w-full bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5"
+            style={coverUrl ? { backgroundImage: `url(${coverUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+          >
+            <label
+              htmlFor="cover-upload"
+              className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 bg-background/90 hover:bg-background backdrop-blur text-foreground text-xs font-medium px-3 py-1.5 rounded-full border border-border cursor-pointer shadow-sm"
+            >
+              {isUploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />}
+              {coverUrl ? "Change cover" : "Add cover"}
+            </label>
+            <input
+              id="cover-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverUpload}
+              disabled={isUploadingCover}
+            />
+          </div>
+
+          <div className="p-6 space-y-6">
           {/* Avatar Section */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 -mt-16">
             <div className="relative">
               <Avatar className="w-24 h-24 border-4 border-border">
                 <AvatarImage src={avatarUrl || undefined} />
