@@ -141,6 +141,68 @@ export default function ExamReadiness() {
   const weakest = courseStats.filter((c) => c.attempted >= 3).slice().sort((a, b) => a.accuracy - b.accuracy)[0];
   const strongest = courseStats.filter((c) => c.attempted >= 3).slice().sort((a, b) => b.accuracy - a.accuracy)[0];
 
+  // Attempts in the last 7 calendar days for weekly plan progress
+  const weeklyCompleted = attempts.filter((a) => {
+    if (!a.completed_at) return false;
+    const t = new Date(a.completed_at).getTime();
+    return t >= Date.now() - 7 * 86400000;
+  }).length;
+
+  const downloadRecommended = async () => {
+    if (!user) return;
+    setDownloading(true);
+    try {
+      // Pick a quiz: weakest course active quiz, fall back to any active quiz
+      let quizQuery = supabase.from("quizzes").select("id, title, course_id, courses:course_id(name)").eq("is_active", true).limit(1);
+      if (weakest) {
+        const { data: courseRow } = await supabase.from("courses").select("id").eq("name", weakest.course).maybeSingle();
+        if (courseRow?.id) quizQuery = supabase.from("quizzes").select("id, title, course_id, courses:course_id(name)").eq("is_active", true).eq("course_id", courseRow.id).limit(1);
+      }
+      const { data: quizzes } = await quizQuery;
+      const quiz = quizzes?.[0] as any;
+      if (!quiz) { toast({ title: "No quiz to download yet", variant: "destructive" }); return; }
+
+      const { data: qq } = await supabase
+        .from("quiz_questions")
+        .select("question_id, order_index, questions:question_id(id, question_text, option_a, option_b, option_c, option_d, correct_option, explanation, image_url)")
+        .eq("quiz_id", quiz.id)
+        .order("order_index");
+
+      const questions = (qq || []).map((r: any) => ({
+        id: r.questions.id,
+        question_text: r.questions.question_text,
+        option_a: r.questions.option_a,
+        option_b: r.questions.option_b,
+        option_c: r.questions.option_c,
+        option_d: r.questions.option_d,
+        correct_option: r.questions.correct_option,
+        explanation: r.questions.explanation,
+        image_url: r.questions.image_url,
+        course_name: quiz.courses?.name || null,
+      }));
+
+      if (!questions.length) { toast({ title: "Quiz has no questions yet", variant: "destructive" }); return; }
+
+      await saveOfflineSet(
+        {
+          id: `set_${Date.now()}`,
+          title: quiz.title,
+          source: weakest ? "weak-area" : "recommended",
+          course_name: quiz.courses?.name || null,
+          question_count: questions.length,
+          downloaded_at: Date.now(),
+          user_id: user.id,
+        },
+        questions
+      );
+      toast({ title: "Saved offline ✅", description: `${quiz.title} is ready to practice without network.` });
+    } catch (e: any) {
+      toast({ title: "Download failed", description: e?.message || "Please try again", variant: "destructive" });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const verdict =
     avgScore >= 75 ? { label: "Exam Ready", color: "text-emerald-500", icon: CheckCircle2 }
     : avgScore >= 50 ? { label: "Building Up", color: "text-amber-500", icon: TrendingUp }
