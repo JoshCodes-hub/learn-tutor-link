@@ -41,6 +41,7 @@ const ViralMode = lazy(() => import("@/pages/viral/ViralMode"));
 const Auth = lazy(() => import("@/pages/Auth"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const StudentDashboard = lazy(() => import("@/pages/student/StudentDashboard"));
+const ExamReadiness = lazy(() => import("@/pages/student/ExamReadiness"));
 const TutorDashboard = lazy(() => import("@/pages/tutor/TutorDashboard"));
 const TutorProfile = lazy(() => import("@/pages/tutor/TutorProfile"));
 const BrowseTutors = lazy(() => import("@/pages/tutor/BrowseTutors"));
@@ -230,6 +231,7 @@ export const AnimatedRoutes = () => {
           <Route path="/theory" element={<PageTransition><TheoryPrep /></PageTransition>} />
           <Route path="/theory/:courseId" element={<PageTransition><TheoryCourseView /></PageTransition>} />
           <Route path="/theory/question/:questionId" element={<PageTransition><TheoryQuestionView /></PageTransition>} />
+          <Route path="/student/readiness" element={<PageTransition><ExamReadiness /></PageTransition>} />
           <Route path="/study-hub" element={<PageTransition><StudyHub /></PageTransition>} />
           <Route path="/study-hub/:courseId" element={<PageTransition><StudyHubCourse /></PageTransition>} />
           <Route path="/pq-intelligence/:courseId" element={<PageTransition><PQIntelligence /></PageTransition>} />
