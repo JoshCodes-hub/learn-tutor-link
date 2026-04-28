@@ -4,7 +4,8 @@ const BUCKET = "application-documents";
 
 /**
  * Upload a file to the user's application-documents folder.
- * Returns the public URL or null on failure.
+ * Bucket is PRIVATE — returns the storage path (not a public URL).
+ * Use getSignedApplicationUrl(path) to render the file when needed.
  */
 export async function uploadApplicationFile(
   userId: string,
@@ -23,8 +24,30 @@ export async function uploadApplicationFile(
     console.error(`upload ${kind} failed`, error);
     return null;
   }
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  // Store the storage path; signed URLs are generated on demand.
+  return path;
+}
+
+/** Generate a short-lived signed URL for a stored application document. */
+export async function getSignedApplicationUrl(
+  pathOrUrl: string,
+  expiresInSeconds = 60 * 10
+): Promise<string | null> {
+  if (!pathOrUrl) return null;
+  // Back-compat: if a legacy public URL was stored, extract the path part.
+  let path = pathOrUrl;
+  const marker = "/application-documents/";
+  const idx = pathOrUrl.indexOf(marker);
+  if (idx !== -1) path = pathOrUrl.substring(idx + marker.length);
+
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(path, expiresInSeconds);
+  if (error) {
+    console.error("createSignedUrl failed", error);
+    return null;
+  }
+  return data?.signedUrl ?? null;
 }
 
 export const MAX_DOC_BYTES = 10 * 1024 * 1024; // 10 MB

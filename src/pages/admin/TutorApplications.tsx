@@ -25,6 +25,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { sendNotification } from "@/hooks/useSendNotification";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { getSignedApplicationUrl } from "@/lib/applicationUploads";
+
+const openSignedDoc = async (pathOrUrl: string) => {
+  const url = await getSignedApplicationUrl(pathOrUrl);
+  if (url) window.open(url, "_blank", "noopener,noreferrer");
+};
 
 interface TutorApplication {
   id: string;
@@ -430,14 +436,14 @@ const TutorApplications = () => {
                       {(application.gov_id_url || application.certificate_url) && (
                         <div className="flex flex-wrap gap-2">
                           {application.gov_id_url && (
-                            <a href={application.gov_id_url} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                            <button type="button" onClick={() => openSignedDoc(application.gov_id_url!)} className="text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
                               📄 View Government ID
-                            </a>
+                            </button>
                           )}
                           {application.certificate_url && (
-                            <a href={application.certificate_url} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                            <button type="button" onClick={() => openSignedDoc(application.certificate_url!)} className="text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
                               🎓 View Certificate
-                            </a>
+                            </button>
                           )}
                           {application.sample_video_url && (
                             <a href={application.sample_video_url} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full bg-accent/10 text-accent hover:bg-accent/20 transition-colors">

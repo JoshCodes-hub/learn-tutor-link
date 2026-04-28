@@ -476,8 +476,49 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // --- AUTH GUARD ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ") || !SUPABASE_URL || !Deno.env.get("SUPABASE_ANON_KEY")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const authedClient = createClient(
+      SUPABASE_URL!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } = await authedClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const callerId = claimsData.claims.sub as string;
+
     const { type, to, data, userId }: EmailRequest = await req.json();
     console.log(`Sending ${type} notification to ${to}`, userId ? `(user: ${userId})` : "");
+
+    // Self-targeted "welcome" allowed; everything else requires admin role
+    const isSelfWelcome = type === "welcome" && userId && userId === callerId;
+    if (!isSelfWelcome) {
+      const adminClient = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+      const { data: roles } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callerId);
+      const isAdmin = roles?.some((r: any) => r.role === "admin");
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: "Forbidden — admin only" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
+    // --- END AUTH GUARD ---
 
     // Create in-app notification if userId is provided
     if (userId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
