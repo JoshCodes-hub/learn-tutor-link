@@ -129,6 +129,7 @@ const StudentDashboard = () => {
   const [courses, setCourses] = useState<{ id: string; code: string; name: string }[]>([]);
   const [purchasedQuizIds, setPurchasedQuizIds] = useState<Set<string>>(new Set());
   const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
+  const [lastSimulation, setLastSimulation] = useState<{ quizId: string; title: string; duration: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showBuyTokens, setShowBuyTokens] = useState(false);
