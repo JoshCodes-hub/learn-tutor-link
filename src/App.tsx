@@ -12,6 +12,7 @@ import AnimatedRoutes from "@/components/layout/AnimatedRoutes";
 import BiometricUnlock from "@/components/native/BiometricUnlock";
 import OfflineBanner from "@/components/native/OfflineBanner";
 import BottomTabBar from "@/components/app-shell/BottomTabBar";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { NetworkStatus } from "@/components/system/NetworkStatus";
 import ScrollToTop from "@/components/system/ScrollToTop";
 import PageViewTracker from "@/components/system/PageViewTracker";
@@ -67,6 +68,7 @@ const App = () => {
             <AuthProvider>
               <PushBootstrap />
               <BiometricUnlock>
+                <PaymentTestModeBanner />
                 <div className="pb-16 md:pb-0">
                   <AnimatedRoutes />
                 </div>
