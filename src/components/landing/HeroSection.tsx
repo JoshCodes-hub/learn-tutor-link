@@ -117,24 +117,85 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.5 }}
-            className="flex items-center gap-3 pt-2"
+            className="flex flex-col gap-3 pt-2"
           >
-            <Button 
-              size="lg"
-              className="h-12 sm:h-13 px-7 sm:px-9 text-sm sm:text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-xl shadow-primary/30 active:scale-95 transition-all"
-              onClick={() => navigate("/auth")}
+            <div className="flex items-center gap-3">
+              <Button
+                size="lg"
+                className="h-12 sm:h-13 px-7 sm:px-9 text-sm sm:text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-xl shadow-primary/30 active:scale-95 transition-all"
+                onClick={() => navigate("/auth?mode=signup&role=student")}
+              >
+                Create Free Account
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="h-12 sm:h-13 px-5 text-white/85 hover:text-white hover:bg-white/10 rounded-full border border-white/20"
+                onClick={() => navigate("/auth")}
+              >
+                Sign In
+              </Button>
+            </div>
+
+            {/* Quick role picker — self-explanatory registration */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+              className="mt-2"
             >
-              Start Learning Now
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-            <Button 
-              variant="ghost"
-              size="lg"
-              className="h-12 sm:h-13 px-6 text-white/80 hover:text-white hover:bg-white/10 rounded-full border border-white/20"
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              <p className="text-[11px] sm:text-xs uppercase tracking-[0.18em] text-white/55 mb-2 font-medium">
+                Join as
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => navigate("/auth?mode=signup&role=student")}
+                  className="group flex items-center gap-2 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 hover:border-primary/50 rounded-full pl-2 pr-3.5 py-1.5 transition-all active:scale-95"
+                >
+                  <span className="w-6 h-6 rounded-full bg-primary/25 flex items-center justify-center">
+                    <BookOpen className="w-3 h-3 text-primary" />
+                  </span>
+                  <span className="text-xs sm:text-sm font-medium text-white">Student</span>
+                </button>
+                <button
+                  onClick={() => navigate("/apply-tutor")}
+                  className="group flex items-center gap-2 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 hover:border-primary/50 rounded-full pl-2 pr-3.5 py-1.5 transition-all active:scale-95"
+                >
+                  <span className="w-6 h-6 rounded-full bg-primary/25 flex items-center justify-center">
+                    <GraduationCap className="w-3 h-3 text-primary" />
+                  </span>
+                  <span className="text-xs sm:text-sm font-medium text-white">Tutor</span>
+                </button>
+                <button
+                  onClick={() => navigate("/school/register")}
+                  className="group flex items-center gap-2 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 hover:border-primary/50 rounded-full pl-2 pr-3.5 py-1.5 transition-all active:scale-95"
+                >
+                  <span className="w-6 h-6 rounded-full bg-primary/25 flex items-center justify-center">
+                    <School className="w-3 h-3 text-primary" />
+                  </span>
+                  <span className="text-xs sm:text-sm font-medium text-white">School</span>
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Trust micro-row */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 0.6 }}
+              className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-[11px] sm:text-xs text-white/65"
             >
-              Learn More
-            </Button>
+              <span className="inline-flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-primary" /> Free to start
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="w-3 h-3 text-primary" /> Admin-verified tutors
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-1.5">
+                <Award className="w-3 h-3 text-primary" /> Built for FUTA & beyond
+              </span>
+            </motion.div>
           </motion.div>
         </div>
       </div>
