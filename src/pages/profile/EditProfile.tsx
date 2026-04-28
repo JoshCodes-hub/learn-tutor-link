@@ -13,6 +13,7 @@ import {
   Camera,
   User,
   Save,
+  Image as ImageIcon,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { NativeSettings } from "@/components/native/NativeSettings";
@@ -63,7 +64,9 @@ const EditProfile = () => {
   const [fullName, setFullName] = useState("");
   const [department, setDepartment] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -77,6 +80,7 @@ const EditProfile = () => {
       setFullName(profile.full_name || "");
       setDepartment(profile.department || "");
       setAvatarUrl(profile.avatar_url);
+      setCoverUrl((profile as any).cover_photo_url ?? null);
     }
   }, [profile]);
 
