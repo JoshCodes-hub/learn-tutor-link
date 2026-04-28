@@ -21,6 +21,7 @@ const SchoolAttendance = lazy(() => import("@/pages/school/Attendance"));
 const SchoolFees = lazy(() => import("@/pages/school/Fees"));
 const SchoolResults = lazy(() => import("@/pages/school/Results"));
 const SchoolAnnouncements = lazy(() => import("@/pages/school/Announcements"));
+const SchoolSettings = lazy(() => import("@/pages/school/Settings"));
 const SchoolStub = lazy(() => import("@/pages/school/Stub"));
 const AdminSchoolApplications = lazy(() => import("@/pages/admin/SchoolApplications"));
 const ParentDashboard = lazy(() => import("@/pages/parent/ParentDashboard"));
@@ -269,7 +270,7 @@ export const AnimatedRoutes = () => {
           <Route path="/school/fees" element={<PageTransition><SchoolFees /></PageTransition>} />
           <Route path="/school/timetable" element={<PageTransition><SchoolStub title="Timetable" /></PageTransition>} />
           <Route path="/school/announcements" element={<PageTransition><SchoolAnnouncements /></PageTransition>} />
-          <Route path="/school/settings" element={<PageTransition><SchoolStub title="School settings" /></PageTransition>} />
+          <Route path="/school/settings" element={<PageTransition><SchoolSettings /></PageTransition>} />
           <Route path="/admin/schools" element={<PageTransition><AdminSchoolApplications /></PageTransition>} />
           <Route path="/parent/dashboard" element={<PageTransition><ParentDashboard /></PageTransition>} />
           <Route path="/survival-kits" element={<PageTransition><SurvivalKits /></PageTransition>} />

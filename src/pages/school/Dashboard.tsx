@@ -68,14 +68,26 @@ const SchoolDashboard = () => {
     >
       <div className="max-w-2xl mx-auto">
         {/* Hero card */}
-        <div className="rounded-3xl p-5 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/20 mb-5">
+        <div
+          className="rounded-3xl p-5 mb-5 border relative overflow-hidden"
+          style={{
+            background: `linear-gradient(135deg, ${school.brand_color || "#1e3a8a"}18, ${school.brand_color || "#1e3a8a"}05 60%, transparent)`,
+            borderColor: `${school.brand_color || "#1e3a8a"}33`,
+          }}
+        >
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center">
-              <SchoolIcon className="w-6 h-6 text-primary" />
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden bg-card border-2 shrink-0"
+              style={{ borderColor: school.brand_color || "#1e3a8a" }}
+            >
+              {school.logo_url
+                ? <img src={school.logo_url} alt="" className="w-full h-full object-contain" />
+                : <SchoolIcon className="w-6 h-6" style={{ color: school.brand_color || "#1e3a8a" }} />}
             </div>
-            <div>
-              <div className="text-xs text-muted-foreground">School dashboard</div>
-              <div className="font-display text-lg font-semibold leading-tight">Good to see you</div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">School dashboard</div>
+              <div className="font-display text-lg font-semibold leading-tight truncate">{school.name}</div>
+              {school.motto && <div className="text-[11px] italic text-muted-foreground truncate">"{school.motto}"</div>}
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">

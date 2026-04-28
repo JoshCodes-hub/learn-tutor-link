@@ -20,6 +20,7 @@ import {
   Shield,
   Target,
   BookOpen,
+  Building2,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import DashboardNav from "@/components/layout/DashboardNav";
@@ -43,6 +44,7 @@ interface DashboardStats {
   pendingApplications: number;
   pendingPurchases: number;
   pendingWithdrawals: number;
+  pendingSchools: number;
   totalRevenue: number;
   platformRevenue: number;
 }
@@ -59,6 +61,7 @@ const AdminDashboard = () => {
     pendingApplications: 0,
     pendingPurchases: 0,
     pendingWithdrawals: 0,
+    pendingSchools: 0,
     totalRevenue: 0,
     platformRevenue: 0,
   });
@@ -89,6 +92,7 @@ const AdminDashboard = () => {
           purchasesResult,
           withdrawalsResult,
           commissionResult,
+          schoolsResult,
         ] = await Promise.all([
           supabase
             .from("user_roles")
@@ -118,6 +122,10 @@ const AdminDashboard = () => {
             .select("value")
             .eq("key", "tutor_commission_rate")
             .single(),
+          supabase
+            .from("schools")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
         ]);
 
         // Calculate revenue from premium quiz attempts
@@ -149,6 +157,7 @@ const AdminDashboard = () => {
           pendingApplications: applicationsResult.count || 0,
           pendingPurchases: purchasesResult.count || 0,
           pendingWithdrawals: withdrawalsResult.count || 0,
+          pendingSchools: schoolsResult.count || 0,
           totalRevenue,
           platformRevenue,
         });
@@ -256,9 +265,9 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Pending Applications Alert */}
+        {/* Pending Applications Alerts */}
         {stats.pendingApplications > 0 && (
-          <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-8 flex items-center justify-between">
+          <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <GraduationCap className="w-6 h-6 text-accent" />
               <div>
@@ -269,6 +278,23 @@ const AdminDashboard = () => {
               </div>
             </div>
             <Button variant="accent" onClick={() => setActiveTab("tutors")}>
+              Review Now
+            </Button>
+          </div>
+        )}
+
+        {stats.pendingSchools > 0 && (
+          <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Building2 className="w-6 h-6 text-primary" />
+              <div>
+                <p className="font-medium text-foreground">
+                  {stats.pendingSchools} pending school application{stats.pendingSchools > 1 ? "s" : ""}
+                </p>
+                <p className="text-sm text-muted-foreground">Review and approve new schools</p>
+              </div>
+            </div>
+            <Button onClick={() => navigate("/admin/schools")}>
               Review Now
             </Button>
           </div>
