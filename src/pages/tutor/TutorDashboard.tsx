@@ -42,6 +42,7 @@ import { OnboardingChecklist } from "@/components/tutor/OnboardingChecklist";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 import {
   DropdownMenu,
   DropdownMenuContent,
