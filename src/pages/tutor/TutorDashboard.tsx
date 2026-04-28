@@ -365,6 +365,7 @@ const TutorDashboard = () => {
                 <span className="text-muted-foreground">Attempts</span>
                 <span className="font-serif text-lg font-semibold text-foreground">{earnings.totalAttempts}</span>
               </div>
+              <LastUpdatedBadge timestamp={lastUpdated} className="ml-auto" />
             </div>
           }
           className="mb-6"
