@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,14 @@ import { ShieldCheck, ShieldX, Loader2, Search, BadgeCheck, School, GraduationCa
 import { lookupVerification } from "@/lib/reportCardVerification";
 import { motion } from "framer-motion";
 import { SEO } from "@/components/seo/SEO";
+import SiteFooter from "@/components/layout/SiteFooter";
 
 type Status = "idle" | "checking" | "valid" | "invalid";
 
 export default function VerifyReportCard() {
   const [params, setParams] = useSearchParams();
-  const [code, setCode] = useState(params.get("id") || "");
+  const routeParams = useParams<{ id?: string }>();
+  const [code, setCode] = useState(routeParams.id || params.get("id") || "");
   const [status, setStatus] = useState<Status>("idle");
   const [record, setRecord] = useState<any>(null);
 
