@@ -11,7 +11,17 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  type: "purchase_confirmation" | "application_approved" | "application_rejected" | "withdrawal_approved" | "withdrawal_rejected" | "quiz_purchased" | "welcome" | "question_reported";
+  type:
+    | "purchase_confirmation"
+    | "application_approved"
+    | "application_rejected"
+    | "withdrawal_approved"
+    | "withdrawal_rejected"
+    | "quiz_purchased"
+    | "welcome"
+    | "question_reported"
+    | "school_approved"
+    | "school_rejected";
   to: string;
   data: Record<string, any>;
   userId?: string;
