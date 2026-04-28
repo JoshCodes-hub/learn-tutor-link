@@ -43,6 +43,7 @@ import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { PullToRefresh } from "@/components/native/PullToRefresh";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -108,6 +109,7 @@ const TutorDashboard = () => {
   const [showUnifiedQuizCreator, setShowUnifiedQuizCreator] = useState(false);
   const [showBulkQuizImport, setShowBulkQuizImport] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -237,13 +239,12 @@ const TutorDashboard = () => {
     if (user) {
       fetchDashboardData();
     }
-  }, [user]);
+  }, [user, refreshKey]);
 
-  const refreshData = () => {
-    setIsLoading(true);
-    // Re-trigger the useEffect
-    const event = new Event("refresh");
-    window.dispatchEvent(event);
+  const refreshData = async () => {
+    setRefreshKey((k) => k + 1);
+    // Resolve when next render cycle completes
+    await new Promise((r) => setTimeout(r, 600));
   };
 
   if (authLoading || isLoading) {
@@ -262,6 +263,7 @@ const TutorDashboard = () => {
         noindex={true}
         url="https://overraprep.com/tutor/dashboard"
       />
+      <PullToRefresh onRefresh={refreshData}>
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
@@ -618,6 +620,7 @@ const TutorDashboard = () => {
         userName={profile?.full_name || undefined}
       />
     </div>
+    </PullToRefresh>
     </>
   );
 };
