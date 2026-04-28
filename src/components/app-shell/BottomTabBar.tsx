@@ -37,7 +37,7 @@ const PARENT_TABS: Tab[] = [
   { to: "/profile/edit", label: "Profile", icon: User },
 ];
 
-const HIDDEN_PREFIXES = ["/auth", "/onboarding", "/quiz/", "/school/register", "/school/pending", "/website"];
+const HIDDEN_PREFIXES = ["/auth", "/onboarding", "/start", "/quiz/", "/school/intro", "/school/register", "/school/pending", "/website", "/forgot-password", "/reset-password"];
 
 export const BottomTabBar = () => {
   const { primaryRole, user } = useAuth();

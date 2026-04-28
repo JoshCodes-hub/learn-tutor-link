@@ -1,153 +1,129 @@
-## Goal
+# Restructure: First-time visitor flow & role-aware onboarding
 
-Ship the three flows you described, with the headline being **standard, premium, branded report cards (PDF)** — the kind a real Nigerian secondary school would proudly hand to a parent. No generic templates. No childish icons. Strictly professional, decent, print-ready.
+## The problem today
 
----
+The current entry flow is muddled:
 
-## What's already correct (we keep, we don't rebuild)
+- `/` already renders `Welcome`, but `App.tsx` also fires a global `SplashScreen` overlay on top of it, gated by a 24h `localStorage` flag. Result: splash and welcome compete; first-time visitors don't get a clean "splash → welcome" sequence.
+- `Welcome` shows three persona tiles (Student / Tutor / School) but they all dump the user into `/auth` (or `/school/register`) without remembering the choice. After signup, everyone lands on `/dashboard` regardless of intent.
+- `Auth.tsx` ignores the `?intent=` query param entirely. A user who clicked "I'm a tutor" still creates a generic student account and has to discover the tutor application page later.
+- School registration is a separate flow (`/school/register`) that bypasses `/auth` — confusing because a school owner still needs an account.
+- The marketing landing (`/website`) is orphaned and `noindex`'d, so the only public-facing brand surface is essentially hidden.
+- The app supports two very different products (University CBT prep + School Management System), but nothing on the entry screen explains the split or routes users to the right product.
 
-- **Tutor flow** — apply at `/apply-tutor` → admin reviews at `/admin/applications` → on approve, `tutor` role is added → `/tutor/dashboard` works (create quiz, exams, communities, bulk imports). ✅
-- **Student flow** — full dashboard, CBT, readiness, mastery, offline practice. ✅
-- **School flow skeleton** — `/school/register` writes to `schools (status=pending)` → `/school/pending` polls → admin approves at `/admin/schools` → `school_owner` role added → `/school/dashboard` unlocks Students, Classes, Attendance, Results, Fees, Announcements. ✅
-
-So the architecture is right. Plan only fixes what's actually missing.
-
----
-
-## 1. Premium, branded Report Card (the headline)
-
-A new generator `src/lib/reportCard.ts` using **jsPDF + jspdf-autotable** (already in the project — no new deps, no childish clip-art). Designed to look like a real West-African secondary-school broadsheet:
+## Target experience (standard mobile-app pattern)
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│ [LOGO]   BRIGHT FUTURE COLLEGE                          │
-│          Motto: "Knowledge & Discipline"                │
-│          12 Awolowo Rd, Ikeja, Lagos · 0801 234 5678    │
-│ ════════════════ brand-color rule ═════════════════════ │
-│                                                         │
-│        STUDENT TERMINAL REPORT · 2025/2026 · TERM 2     │
-│                                                         │
-│  Name:        ADEBAYO MICHAEL OLAMIDE                   │
-│  Admission:   BFC/2024/0182      Class:    JSS 2 A      │
-│  Sex:         M                  Age:      13           │
-│  Position:    3rd of 42          No. in class: 42       │
-│                                                         │
-│  ┌──────────────────┬─────┬─────┬──────┬─────┬───┬────┐ │
-│  │ Subject          │ CA1 │ CA2 │ Exam │ Tot │ G │Rmk │ │
-│  │                  │ /20 │ /20 │ /60  │/100 │   │    │ │
-│  ├──────────────────┼─────┼─────┼──────┼─────┼───┼────┤ │
-│  │ English Language │ 18  │ 17  │  55  │  90 │ A │Excel│ │
-│  │ Mathematics      │ ... │ ... │ ...  │ ... │...│ ...│ │
-│  └──────────────────┴─────┴─────┴──────┴─────┴───┴────┘ │
-│                                                         │
-│  Total: 826 / 1000      Average: 78.7      Overall: A   │
-│  Attendance: 58 / 60    Conduct: Excellent              │
-│                                                         │
-│  GRADING KEY                                            │
-│  A 75–100  B 65–74  C 55–64  D 45–54  E 40–44  F 0–39   │
-│                                                         │
-│  Class Teacher's Remark:                                │
-│  ____________________________________________________   │
-│  Principal's Remark:                                    │
-│  ____________________________________________________   │
-│                                                         │
-│  ___________________          ___________________       │
-│   Class Teacher                Principal                │
-│                                                         │
-│  Issued: 28 Apr 2026 · ID: BFC-2T-0182 · overraprep.app │
-└─────────────────────────────────────────────────────────┘
+                  ┌──────────────────────┐
+   Cold open ───▶│   1. Splash (1.2s)    │  logo + tagline, auto-advances
+                  └──────────┬───────────┘
+                             ▼
+                  ┌──────────────────────┐
+   First visit ─▶│  2. Welcome carousel  │  3 swipeable slides:
+                  │   (skippable)         │   • "Ace your exams with AI"
+                  └──────────┬───────────┘   • "Run your school in one app"
+                             ▼                • "Join 1000s of FUTA students"
+                  ┌──────────────────────┐
+                  │  3. Choose your path  │  Two big cards:
+                  │                       │   A) University / Student prep
+                  └────┬─────────────┬───┘   B) School Management
+                       ▼             ▼
+              ┌─────────────┐ ┌──────────────┐
+              │ 4a. Persona │ │ 4b. School   │
+              │   picker    │ │   intro      │
+              │ Student /   │ │ "Register    │
+              │  Tutor /    │ │  your school"│
+              │  Parent     │ │              │
+              └──────┬──────┘ └──────┬───────┘
+                     ▼               ▼
+              ┌─────────────┐ ┌──────────────┐
+              │ 5a. Auth    │ │ 5b. Auth     │
+              │ (signup/    │ │  + School    │
+              │  signin)    │ │  registration│
+              └──────┬──────┘ └──────┬───────┘
+                     ▼               ▼
+              Role-correct     /school/pending
+              dashboard        → /school/dashboard
 ```
 
-Concrete details:
-- **Real, professional layout** — A4 portrait, 14 mm margins, serif title (Times — built into jsPDF, no font fetch), sans body.
-- School **logo loaded from `schools.logo_url`** (toDataURL on the fly) and rendered at top-left.
-- **Brand-color rule** under the header drawn from `schools.brand_color`.
-- **Auto-computed**: per-subject total, grade letter (existing 75/65/55/45/40 scale), per-student average, **position in class** (rank by total across all subjects in the term).
-- **Subtle watermark** of the school name diagonally behind the table (15% opacity grey) — looks formal, not gimmicky.
-- **Verification line**: `BFC-{termCode}-{lastFourOfStudentId}` so a parent can verify it's authentic.
-- **Bulk mode**: one PDF, one report per student, page-break per student → `${School} - ${Class} - Term X - Reports.pdf`.
-- **Single mode**: one student → opens print preview.
+Returning users (have a session) skip steps 2–4 entirely and go straight to their role dashboard. Returning-but-signed-out users skip the welcome carousel (seen-it flag) and land on step 3.
 
-No emojis. No cartoon icons. Lucide icons only on the app UI, never inside the printed PDF.
+## Plan
 
-## 2. Results page — wire up the report
+### 1. Fix the splash/welcome conflict
+- Remove the global `SplashScreen` overlay from `App.tsx`.
+- Make the splash a route-level concern: `Welcome` shows the splash inline on first paint, then fades into the welcome content. One screen, one transition.
+- Keep the `lastSplashShown` 24h throttle so returning users don't re-see it.
 
-Edit `src/pages/school/Results.tsx`:
-- Add a header action **"Generate report cards"** (Lucide `Printer` icon) → triggers the bulk PDF for the currently selected class + term.
-- Add a small **"Print"** button on each student row → single-student PDF.
-- After save, recompute and persist `results.position` per student per subject (rank by total in that class+subject+term — uses the existing `position` column).
-- Show a tiny "Average • Position" chip under the row total.
+### 2. Build a 3-slide welcome carousel
+- New component `src/components/onboarding/WelcomeCarousel.tsx` with swipeable slides (framer-motion + dots indicator + Skip button).
+- Slides:
+  1. "Ace your CBT exams" (University track)
+  2. "Run your school, end-to-end" (School track)
+  3. "Free to start. Built in Nigeria."
+- "Skip" and finishing the last slide both advance to the path picker.
+- Persist `welcomeSeen` in localStorage so it only appears once.
 
-## 3. School branding (logo + motto + brand color)
+### 3. New "Choose your path" screen
+- New route `/start` rendering `src/pages/onboarding/ChooseProduct.tsx`.
+- Two large cards:
+  - **University & Exam Prep** → `/start/persona`
+  - **School Management** → `/school/intro`
+- Includes a small "I already have an account" link that goes to `/auth`.
 
-New screen `src/pages/school/Settings.tsx`:
-- Upload **logo** to a new public bucket `school-logos` → save to `schools.logo_url`.
-- Edit motto, principal name, address, phone, email.
-- Pick **brand color** (small swatch grid: navy, emerald, burgundy, royal blue, gold — all decent, no neon).
-- Live preview of the report-card header.
+### 4. Persona picker (University track)
+- New route `/start/persona` rendering `ChoosePersona.tsx`.
+- Tiles: Student, Tutor, Parent.
+- Choosing a persona stores `signupIntent` in localStorage and navigates to `/auth?mode=signup&intent=<persona>`.
 
-Wire the existing "School settings" button on `SchoolDashboard.tsx` and surface the **logo + motto** in the dashboard hero. Add `schools.brand_color` (text, default `#1e3a8a` navy) via migration.
+### 5. School intro + registration entry
+- New route `/school/intro` with a short value-prop screen and a single CTA "Register my school".
+- CTA goes to `/auth?mode=signup&intent=school_owner&redirect=/school/register`.
+- After auth completes, `Auth.tsx` honours the `redirect` param and pushes school owners straight into the existing `/school/register` flow → `/school/pending` → `/school/dashboard`.
 
-## 4. Admin sees school applications
+### 6. Make `Auth.tsx` intent-aware
+- Read `intent` and `redirect` query params.
+- When `intent=tutor`, after a successful signup auto-navigate to `/apply-tutor` instead of `/dashboard`.
+- When `intent=school_owner`, auto-navigate to `/school/register`.
+- When `intent=parent`, navigate to `/parent/dashboard`.
+- Default (`student` or none) keeps current behaviour: role-correct dashboard via the existing redirect logic in `Welcome` / `Dashboard`.
+- Show the chosen intent as a small badge above the form ("Signing up as a Tutor — change") so users can back out.
 
-In `src/pages/admin/AdminDashboard.tsx`:
-- Add a **"School applications"** stat card with the count of `schools.status='pending'` linking to `/admin/schools`.
-- In `src/pages/admin/SchoolApplications.tsx`, on approve/reject: call `sendNotification` (new types `school_approved`, `school_rejected`) and `logAction` — mirroring the tutor approval flow.
-- Edge function `send-notification` gets two new email templates (clean, no emojis, school-letter tone).
+### 7. Rewire `/` and routing
+- `/` becomes a thin controller that decides what to render based on auth + flags:
+  - signed in → redirect to role dashboard (already implemented in `Welcome.tsx`, keep it)
+  - signed out + `welcomeSeen` not set → splash → welcome carousel → `/start`
+  - signed out + `welcomeSeen` set → straight to `/start`
+- Keep `/website` for the public marketing page (and remove `noindex` if you want SEO; flag this as optional).
+- Add the new routes (`/start`, `/start/persona`, `/school/intro`) into `AnimatedRoutes.tsx`.
 
-## 5. Welcome / entry visibility
+### 8. Bottom tab bar polish (small)
+- `BottomTabBar` currently shows on every page including the welcome funnel. Hide it on `/`, `/start*`, `/school/intro`, `/auth`, `/forgot-password`, `/reset-password`, and the splash so the onboarding feels like a real app and not a half-finished screen.
 
-`src/pages/app/Welcome.tsx` — keep design, add a third tile **"I want to teach"** routing to `/auth?intent=tutor` (post-signup → `/apply-tutor`). Three equal entries: **Student · Tutor · School**, all with proper Lucide icons (`GraduationCap`, `Presentation`, `Building2`) — professional, not playful.
+## Technical details
 
-## 6. Database migration (one file)
+**Files to create**
+- `src/components/onboarding/WelcomeCarousel.tsx`
+- `src/pages/onboarding/ChooseProduct.tsx` (route `/start`)
+- `src/pages/onboarding/ChoosePersona.tsx` (route `/start/persona`)
+- `src/pages/school/Intro.tsx` (route `/school/intro`)
 
-```sql
-ALTER TABLE public.schools
-  ADD COLUMN IF NOT EXISTS brand_color text DEFAULT '#1e3a8a',
-  ADD COLUMN IF NOT EXISTS report_footer text;
+**Files to modify**
+- `src/App.tsx` — remove global SplashScreen; let `Welcome` own it.
+- `src/pages/app/Welcome.tsx` — inline splash → carousel-or-redirect logic; persona tiles route to `/start/persona`, school tile routes to `/school/intro`.
+- `src/pages/Auth.tsx` — read `intent` + `redirect`; route post-signup accordingly; show intent badge.
+- `src/components/layout/AnimatedRoutes.tsx` — register `/start`, `/start/persona`, `/school/intro`.
+- `src/components/app-shell/BottomTabBar.tsx` — hide on onboarding/auth routes via `useLocation`.
 
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('school-logos', 'school-logos', true)
-ON CONFLICT (id) DO NOTHING;
+**State / storage**
+- `localStorage.welcomeSeen` — boolean, set after carousel finish/skip.
+- `localStorage.lastSplashShown` — keep existing 24h throttle.
+- `localStorage.signupIntent` — last chosen persona (used as fallback if URL param is lost on OAuth round-trip later).
 
--- public read, owner-only write (school_members owner/admin)
-CREATE POLICY "logos_public_read" ON storage.objects FOR SELECT
-  USING (bucket_id = 'school-logos');
-CREATE POLICY "logos_owner_write" ON storage.objects FOR INSERT
-  WITH CHECK (bucket_id = 'school-logos' AND auth.uid() IS NOT NULL);
-CREATE POLICY "logos_owner_update" ON storage.objects FOR UPDATE
-  USING (bucket_id = 'school-logos' AND auth.uid() IS NOT NULL);
-```
+**No DB or RLS changes required.** All work is client-side routing and UI; existing roles, profiles, and school-registration tables are untouched.
 
----
-
-## Files
-
-**New**
-- `src/lib/reportCard.ts` — premium jsPDF generator (single + bulk).
-- `src/pages/school/Settings.tsx` — branding + school info editor.
-- `supabase/migrations/<ts>_school_branding.sql`
-
-**Edited**
-- `src/pages/school/Results.tsx` — Generate-report-cards action + per-row print + position computation.
-- `src/pages/school/Dashboard.tsx` — render logo/motto in hero, link Settings.
-- `src/pages/admin/AdminDashboard.tsx` — school applications stat card.
-- `src/pages/admin/SchoolApplications.tsx` — notifications + audit log on decision.
-- `src/pages/app/Welcome.tsx` — three-persona entry.
-- `src/components/layout/AnimatedRoutes.tsx` — register `/school/settings`.
-- `supabase/functions/send-notification/index.ts` — `school_approved` + `school_rejected` templates.
-
-## Out of scope (deliberately)
-
-- No new icon library, no emojis in PDF, no rainbow themes.
-- No QR code on the report (would add a dep) — verification ID line is sufficient for v1.
-- No timetable, no SMS, no payments — ask separately if you want them next.
-
----
-
-## Acceptance
-
-- A school owner registers → sees Pending → admin approves → owner gets an email + in-app notice → lands on `/school/dashboard` with their **logo + motto** showing.
-- Owner enters CA1/CA2/Exam, hits **"Generate report cards"** → downloads a single PDF: one premium, branded, print-ready report card per student in that class+term, with their school's logo, brand color, motto, position, average, grading key, and signature lines. Looks like a real school document, not a web export.
-- Admin dashboard shows pending school applications at a glance.
-- Tutor entry is now visible from the Welcome screen alongside Student and School.
+## Out of scope (call out, don't do)
+- Restructuring `/dashboard` itself.
+- Changing the marketing landing (`/website`) content.
+- Adding Google OAuth (worth doing later — flag separately).
+- Renaming any existing routes (avoids breaking shared links and PWA caches).

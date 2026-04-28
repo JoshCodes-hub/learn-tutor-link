@@ -31,20 +31,38 @@ const signUpSchema = z.object({
 type SignInFormData = z.infer<typeof signInSchema>;
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
+const INTENT_LABELS: Record<string, string> = {
+  student: "Student",
+  tutor: "Tutor",
+  parent: "Parent",
+  school_owner: "School Owner",
+};
+
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const referralCodeFromUrl = searchParams.get("ref") || "";
   const modeFromUrl = searchParams.get("mode");
-  const [isSignUp, setIsSignUp] = useState(modeFromUrl === "signup" || !!referralCodeFromUrl);
+  const intent = searchParams.get("intent") || "";
+  const redirect = searchParams.get("redirect") || "";
+  const [isSignUp, setIsSignUp] = useState(modeFromUrl === "signup" || !!referralCodeFromUrl || !!intent);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
 
+  const postAuthDestination = () => {
+    if (redirect) return redirect;
+    if (intent === "tutor") return "/apply-tutor";
+    if (intent === "school_owner") return "/school/register";
+    if (intent === "parent") return "/parent/dashboard";
+    return "/dashboard";
+  };
+
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate(postAuthDestination());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   const signInForm = useForm<SignInFormData>({
@@ -74,7 +92,7 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      navigate("/dashboard");
+      navigate(postAuthDestination());
     }
     setIsSubmitting(false);
   };
@@ -101,7 +119,7 @@ const Auth = () => {
         title: "Account created!",
         description: welcomeMsg,
       });
-      navigate("/dashboard");
+      navigate(postAuthDestination());
     }
     setIsSubmitting(false);
   };
@@ -126,6 +144,21 @@ const Auth = () => {
             />
           </a>
         </div>
+
+        {isSignUp && intent && INTENT_LABELS[intent] && (
+          <div className="mb-4 flex items-center justify-center gap-2 text-xs">
+            <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary font-semibold">
+              Signing up as {INTENT_LABELS[intent]}
+            </span>
+            <button
+              type="button"
+              onClick={() => navigate(intent === "school_owner" ? "/school/intro" : "/start/persona")}
+              className="text-muted-foreground hover:text-foreground underline"
+            >
+              change
+            </button>
+          </div>
+        )}
 
         {/* Auth Card */}
         <div className="bg-card rounded-2xl border border-border shadow-xl p-8">

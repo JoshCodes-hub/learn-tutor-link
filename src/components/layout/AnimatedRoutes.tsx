@@ -29,6 +29,9 @@ const ParentDashboard = lazy(() => import("@/pages/parent/ParentDashboard"));
 const ChoosePath = lazy(() => import("@/pages/onboarding/ChoosePath"));
 const RefinePath = lazy(() => import("@/pages/onboarding/RefinePath"));
 const TutorMatching = lazy(() => import("@/pages/onboarding/TutorMatching"));
+const ChooseProduct = lazy(() => import("@/pages/onboarding/ChooseProduct"));
+const ChoosePersona = lazy(() => import("@/pages/onboarding/ChoosePersona"));
+const SchoolIntro = lazy(() => import("@/pages/school/Intro"));
 const SubjectBrowser = lazy(() => import("@/pages/subjects/SubjectBrowser"));
 const Flashcards = lazy(() => import("@/pages/flashcards/Flashcards"));
 const JambIntelligence = lazy(() => import("@/pages/jamb/JambIntelligence"));
@@ -87,6 +90,9 @@ export const AnimatedRoutes = () => {
        <AcademicPathGate>
         <Routes location={location}>
           <Route path="/" element={<PageTransition><Welcome /></PageTransition>} />
+          <Route path="/start" element={<PageTransition><ChooseProduct /></PageTransition>} />
+          <Route path="/start/persona" element={<PageTransition><ChoosePersona /></PageTransition>} />
+          <Route path="/school/intro" element={<PageTransition><SchoolIntro /></PageTransition>} />
           <Route path="/website" element={<PageTransition><Index /></PageTransition>} />
           <Route
             path="/auth"
