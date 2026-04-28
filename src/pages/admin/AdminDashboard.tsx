@@ -33,6 +33,7 @@ import { PlatformAnalytics } from "@/components/admin/PlatformAnalytics";
 import { TokenPurchaseManagement } from "@/components/admin/TokenPurchaseManagement";
 import { WithdrawalManagement } from "@/components/admin/WithdrawalManagement";
 import { AuditLogs } from "@/components/admin/AuditLogs";
+import { HealthDashboard } from "@/components/admin/HealthDashboard";
 import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
 import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
