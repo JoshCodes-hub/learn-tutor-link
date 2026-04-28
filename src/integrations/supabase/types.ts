@@ -1603,6 +1603,7 @@ export type Database = {
         Row: {
           address: string | null
           approval_number: string | null
+          brand_color: string | null
           created_at: string
           email: string | null
           id: string
@@ -1614,6 +1615,7 @@ export type Database = {
           phone: string | null
           principal_name: string | null
           rejection_reason: string | null
+          report_footer: string | null
           state: string | null
           status: string
           updated_at: string
@@ -1621,6 +1623,7 @@ export type Database = {
         Insert: {
           address?: string | null
           approval_number?: string | null
+          brand_color?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -1632,6 +1635,7 @@ export type Database = {
           phone?: string | null
           principal_name?: string | null
           rejection_reason?: string | null
+          report_footer?: string | null
           state?: string | null
           status?: string
           updated_at?: string
@@ -1639,6 +1643,7 @@ export type Database = {
         Update: {
           address?: string | null
           approval_number?: string | null
+          brand_color?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -1650,6 +1655,7 @@ export type Database = {
           phone?: string | null
           principal_name?: string | null
           rejection_reason?: string | null
+          report_footer?: string | null
           state?: string | null
           status?: string
           updated_at?: string
