@@ -6,6 +6,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppScreen } from "@/components/app-shell/AppScreen";
 import { ReadinessRing } from "@/components/student/ReadinessRing";
 import { AIQuizRecommendations } from "@/components/student/AIQuizRecommendations";
+import { ExamGoalDialog } from "@/components/student/ExamGoalDialog";
+import { WeeklyPlanCard } from "@/components/student/WeeklyPlanCard";
+import { useExamGoal } from "@/hooks/useExamGoal";
+import { saveOfflineSet } from "@/lib/offlineQuizStore";
+import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +20,10 @@ import {
   ArrowRight,
   Brain,
   CheckCircle2,
+  Download,
   Flame,
+  Gauge,
+  Loader2,
   Sparkles,
   Target,
   Timer,
@@ -49,6 +57,10 @@ export default function ExamReadiness() {
   const [courseStats, setCourseStats] = useState<CourseAccuracy[]>([]);
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [goalOpen, setGoalOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const { goal } = useExamGoal();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!user) return;
