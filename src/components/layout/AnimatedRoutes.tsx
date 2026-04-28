@@ -4,9 +4,21 @@ import { AnimatePresence } from "framer-motion";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import PageTransition from "./PageTransition";
 import { AcademicPathGate } from "@/components/auth/AcademicPathGate";
+import { FEATURES } from "@/config/features";
+import ComingSoon from "@/pages/ComingSoon";
 
-// Eager load landing page for best LCP
-import Index from "@/pages/Index";
+// Eager load the native welcome screen for best LCP (new `/`)
+import Welcome from "@/pages/app/Welcome";
+const Index = lazy(() => import("@/pages/Index"));
+
+// School module
+const SchoolRegister = lazy(() => import("@/pages/school/Register"));
+const SchoolPending = lazy(() => import("@/pages/school/Pending"));
+const SchoolDashboard = lazy(() => import("@/pages/school/Dashboard"));
+const SchoolClasses = lazy(() => import("@/pages/school/Classes"));
+const SchoolStub = lazy(() => import("@/pages/school/Stub"));
+const AdminSchoolApplications = lazy(() => import("@/pages/admin/SchoolApplications"));
+const ParentDashboard = lazy(() => import("@/pages/parent/ParentDashboard"));
 
 const ChoosePath = lazy(() => import("@/pages/onboarding/ChoosePath"));
 const RefinePath = lazy(() => import("@/pages/onboarding/RefinePath"));
@@ -56,14 +68,8 @@ export const AnimatedRoutes = () => {
       <Suspense fallback={<LoadingSpinner />} key={location.pathname}>
        <AcademicPathGate>
         <Routes location={location}>
-          <Route
-            path="/"
-            element={
-              <PageTransition>
-                <Index />
-              </PageTransition>
-            }
-          />
+          <Route path="/" element={<PageTransition><Welcome /></PageTransition>} />
+          <Route path="/website" element={<PageTransition><Index /></PageTransition>} />
           <Route
             path="/auth"
             element={
@@ -227,7 +233,30 @@ export const AnimatedRoutes = () => {
           <Route path="/onboarding/match" element={<PageTransition><TutorMatching /></PageTransition>} />
           <Route path="/subjects" element={<PageTransition><SubjectBrowser /></PageTransition>} />
           <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
-          <Route path="/jamb-intelligence" element={<PageTransition><JambIntelligence /></PageTransition>} />
+          <Route
+            path="/jamb-intelligence"
+            element={
+              <PageTransition>
+                {FEATURES.jamb ? <JambIntelligence /> : <ComingSoon title="JAMB Intelligence" note="We're putting the finishing touches on the JAMB track. It'll be back soon." />}
+              </PageTransition>
+            }
+          />
+
+          {/* School Management */}
+          <Route path="/school/register" element={<PageTransition><SchoolRegister /></PageTransition>} />
+          <Route path="/school/pending" element={<PageTransition><SchoolPending /></PageTransition>} />
+          <Route path="/school/dashboard" element={<PageTransition><SchoolDashboard /></PageTransition>} />
+          <Route path="/school/classes" element={<PageTransition><SchoolClasses /></PageTransition>} />
+          <Route path="/school/students" element={<PageTransition><SchoolStub title="Students" /></PageTransition>} />
+          <Route path="/school/teachers" element={<PageTransition><SchoolStub title="Teachers" /></PageTransition>} />
+          <Route path="/school/attendance" element={<PageTransition><SchoolStub title="Attendance" /></PageTransition>} />
+          <Route path="/school/results" element={<PageTransition><SchoolStub title="Results & report cards" /></PageTransition>} />
+          <Route path="/school/fees" element={<PageTransition><SchoolStub title="Fees" /></PageTransition>} />
+          <Route path="/school/timetable" element={<PageTransition><SchoolStub title="Timetable" /></PageTransition>} />
+          <Route path="/school/announcements" element={<PageTransition><SchoolStub title="Announcements" /></PageTransition>} />
+          <Route path="/school/settings" element={<PageTransition><SchoolStub title="School settings" /></PageTransition>} />
+          <Route path="/admin/schools" element={<PageTransition><AdminSchoolApplications /></PageTransition>} />
+          <Route path="/parent/dashboard" element={<PageTransition><ParentDashboard /></PageTransition>} />
           <Route path="/survival-kits" element={<PageTransition><SurvivalKits /></PageTransition>} />
           <Route path="/survival-kits/:kitId" element={<PageTransition><SurvivalKitView /></PageTransition>} />
           <Route path="/strategy" element={<PageTransition><Strategy /></PageTransition>} />
