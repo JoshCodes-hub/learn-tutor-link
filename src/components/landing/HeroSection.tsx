@@ -31,25 +31,28 @@ const HeroSection = () => {
         <AnimatePresence mode="popLayout">
           <motion.img
             key={currentImageIndex}
-            src={heroImages[currentImageIndex]}
-            alt="Students studying with OverraPrep AI"
-            className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1.03,
+            src={heroImages[currentImageIndex].src}
+            alt="Students preparing for CBT exams with OverraPrep AI"
+            className={`absolute inset-0 w-full h-full object-cover ${heroImages[currentImageIndex].focal}`}
+            initial={{ opacity: 0, scale: 1.08 }}
+            animate={{
+              opacity: 1,
+              scale: 1.02,
               transition: {
-                opacity: { duration: 1.2, ease: "easeInOut" },
-                scale: { duration: 5, ease: "easeOut" }
+                opacity: { duration: 1.4, ease: "easeInOut" },
+                scale: { duration: 6, ease: "easeOut" }
               }
             }}
             exit={{ opacity: 0, transition: { duration: 1 } }}
           />
         </AnimatePresence>
-        {/* Luxury gold-tinted overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(30,20%,6%)] via-[hsl(30,15%,8%,0.65)] to-[hsl(43,30%,15%,0.3)]" />
+        {/* Editorial gradient stack — keeps text crisp without flattening the photo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(30,25%,4%)] via-[hsl(30,20%,6%,0.7)] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(30,25%,4%,0.55)] via-transparent to-transparent" />
+        {/* Subtle film grain via radial vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,hsl(30,25%,4%,0.45)_100%)]" />
         {/* Gold accent line at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-60" />
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-70" />
       </div>
 
       {/* Image indicators */}
