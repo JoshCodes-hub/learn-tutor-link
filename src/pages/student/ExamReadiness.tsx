@@ -336,10 +336,30 @@ export default function ExamReadiness() {
               title="Target Weak Topics"
               desc={weakest ? `Drill ${weakest.course}` : "Auto-pick based on your gaps"}
               icon={Brain}
-              onClick={() => navigate("/study-hub")}
+              onClick={() => weakest ? navigate(`/student/weak/${encodeURIComponent(weakest.course)}`) : navigate("/study-hub")}
               highlight
             />
+            <ActionTile
+              title="Mastery Breakdown"
+              desc="Concept vs speed gaps per course"
+              icon={Gauge}
+              onClick={() => navigate("/student/mastery")}
+            />
+            <ActionTile
+              title={downloading ? "Downloading…" : "Download for Offline"}
+              desc={weakest ? `Save a ${weakest.course} set` : "Save a recommended set to your device"}
+              icon={downloading ? Loader2 : Download}
+              onClick={() => !downloading && downloadRecommended()}
+            />
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full mt-3 text-xs"
+            onClick={() => navigate("/student/offline")}
+          >
+            View saved offline sets <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
         </Card>
 
         {/* AI recommendations */}
@@ -353,6 +373,8 @@ export default function ExamReadiness() {
 
         {loading && <p className="text-center text-xs text-muted-foreground">Loading your insights…</p>}
       </div>
+
+      <ExamGoalDialog open={goalOpen} onOpenChange={setGoalOpen} />
     </AppScreen>
   );
 }
