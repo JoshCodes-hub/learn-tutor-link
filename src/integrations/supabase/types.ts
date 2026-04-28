@@ -1757,63 +1757,105 @@ export type Database = {
       schools: {
         Row: {
           address: string | null
+          admin_notes: string | null
+          approval_letter_url: string | null
           approval_number: string | null
           brand_color: string | null
+          cac_document_url: string | null
+          classes_offered: string[] | null
           created_at: string
           email: string | null
+          established_year: number | null
           id: string
           lga: string | null
           logo_url: string | null
           motto: string | null
           name: string
+          official_email: string | null
+          official_phone: string | null
           owner_id: string
+          owner_id_url: string | null
           phone: string | null
           principal_name: string | null
+          principal_phone: string | null
           rejection_reason: string | null
           report_footer: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          social_link: string | null
           state: string | null
           status: string
+          student_count: number | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           address?: string | null
+          admin_notes?: string | null
+          approval_letter_url?: string | null
           approval_number?: string | null
           brand_color?: string | null
+          cac_document_url?: string | null
+          classes_offered?: string[] | null
           created_at?: string
           email?: string | null
+          established_year?: number | null
           id?: string
           lga?: string | null
           logo_url?: string | null
           motto?: string | null
           name: string
+          official_email?: string | null
+          official_phone?: string | null
           owner_id: string
+          owner_id_url?: string | null
           phone?: string | null
           principal_name?: string | null
+          principal_phone?: string | null
           rejection_reason?: string | null
           report_footer?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_link?: string | null
           state?: string | null
           status?: string
+          student_count?: number | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           address?: string | null
+          admin_notes?: string | null
+          approval_letter_url?: string | null
           approval_number?: string | null
           brand_color?: string | null
+          cac_document_url?: string | null
+          classes_offered?: string[] | null
           created_at?: string
           email?: string | null
+          established_year?: number | null
           id?: string
           lga?: string | null
           logo_url?: string | null
           motto?: string | null
           name?: string
+          official_email?: string | null
+          official_phone?: string | null
           owner_id?: string
+          owner_id_url?: string | null
           phone?: string | null
           principal_name?: string | null
+          principal_phone?: string | null
           rejection_reason?: string | null
           report_footer?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          social_link?: string | null
           state?: string | null
           status?: string
+          student_count?: number | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -2512,56 +2554,98 @@ export type Database = {
         Row: {
           admin_notes: string | null
           bio: string | null
+          certificate_url: string | null
           courses_to_teach: string
           created_at: string
+          current_position: string | null
           email: string
           experience: string
           full_name: string
+          gov_id_url: string | null
+          highest_qualification: string | null
           id: string
+          institution: string | null
+          phone: string | null
           profile_image_url: string | null
           qualifications: string
           reviewed_at: string | null
           reviewed_by: string | null
+          sample_explanation: string | null
+          sample_question_1: string | null
+          sample_question_2: string | null
+          sample_question_3: string | null
+          sample_video_url: string | null
           specialization: Database["public"]["Enums"]["academic_path"] | null
           status: Database["public"]["Enums"]["application_status"]
+          subjects_taught: string[] | null
           updated_at: string
           user_id: string
+          why_join: string | null
+          years_experience: number | null
         }
         Insert: {
           admin_notes?: string | null
           bio?: string | null
+          certificate_url?: string | null
           courses_to_teach: string
           created_at?: string
+          current_position?: string | null
           email: string
           experience: string
           full_name: string
+          gov_id_url?: string | null
+          highest_qualification?: string | null
           id?: string
+          institution?: string | null
+          phone?: string | null
           profile_image_url?: string | null
           qualifications: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          sample_explanation?: string | null
+          sample_question_1?: string | null
+          sample_question_2?: string | null
+          sample_question_3?: string | null
+          sample_video_url?: string | null
           specialization?: Database["public"]["Enums"]["academic_path"] | null
           status?: Database["public"]["Enums"]["application_status"]
+          subjects_taught?: string[] | null
           updated_at?: string
           user_id: string
+          why_join?: string | null
+          years_experience?: number | null
         }
         Update: {
           admin_notes?: string | null
           bio?: string | null
+          certificate_url?: string | null
           courses_to_teach?: string
           created_at?: string
+          current_position?: string | null
           email?: string
           experience?: string
           full_name?: string
+          gov_id_url?: string | null
+          highest_qualification?: string | null
           id?: string
+          institution?: string | null
+          phone?: string | null
           profile_image_url?: string | null
           qualifications?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          sample_explanation?: string | null
+          sample_question_1?: string | null
+          sample_question_2?: string | null
+          sample_question_3?: string | null
+          sample_video_url?: string | null
           specialization?: Database["public"]["Enums"]["academic_path"] | null
           status?: Database["public"]["Enums"]["application_status"]
+          subjects_taught?: string[] | null
           updated_at?: string
           user_id?: string
+          why_join?: string | null
+          years_experience?: number | null
         }
         Relationships: []
       }
