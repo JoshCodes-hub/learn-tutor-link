@@ -6,6 +6,7 @@
  */
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import QRCode from "qrcode";
 
 export type ReportSchool = {
   id: string;
@@ -259,9 +260,18 @@ function drawFooter(doc: jsPDF, school: ReportSchool, term: ReportTerm, student:
   doc.text("Class Teacher", M + 30, y + 4, { align: "center" });
   doc.text(school.principal_name || "Principal", W - M - 30, y + 4, { align: "center" });
 
-  // Verification line
+  // Verification line + QR code
   const issued = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   const verifyId = `${(school.name.replace(/[^A-Z]/gi, "").slice(0, 3) || "SCH").toUpperCase()}-${term.term}T-${student.id.slice(-4).toUpperCase()}`;
+  const verifyUrl = `${typeof window !== "undefined" ? window.location.origin : "https://overraprep.com"}/verify/${verifyId}`;
+
+  try {
+    const qrData = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 160, color: { dark: "#1a1a1a", light: "#ffffff" } });
+    doc.addImage(qrData, "PNG", W - M - 22, H - 32, 18, 18);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setTextColor(110, 110, 110);
+    doc.text("Scan to verify", W - M - 13, H - 12, { align: "center" });
+  } catch (_) { /* QR optional */ }
+
   doc.setFont("helvetica", "italic"); doc.setFontSize(7.5); doc.setTextColor(120, 120, 120);
   const footer = school.report_footer ? ` · ${school.report_footer}` : "";
   doc.text(`Issued ${issued}  ·  Verification ID: ${verifyId}${footer}`, W / 2, H - 10, { align: "center" });
