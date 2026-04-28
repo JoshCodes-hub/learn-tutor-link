@@ -43,6 +43,7 @@ interface DashboardStats {
   pendingApplications: number;
   pendingPurchases: number;
   pendingWithdrawals: number;
+  pendingSchools: number;
   totalRevenue: number;
   platformRevenue: number;
 }
@@ -59,6 +60,7 @@ const AdminDashboard = () => {
     pendingApplications: 0,
     pendingPurchases: 0,
     pendingWithdrawals: 0,
+    pendingSchools: 0,
     totalRevenue: 0,
     platformRevenue: 0,
   });
@@ -89,6 +91,7 @@ const AdminDashboard = () => {
           purchasesResult,
           withdrawalsResult,
           commissionResult,
+          schoolsResult,
         ] = await Promise.all([
           supabase
             .from("user_roles")
@@ -118,6 +121,10 @@ const AdminDashboard = () => {
             .select("value")
             .eq("key", "tutor_commission_rate")
             .single(),
+          supabase
+            .from("schools")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "pending"),
         ]);
 
         // Calculate revenue from premium quiz attempts
@@ -149,6 +156,7 @@ const AdminDashboard = () => {
           pendingApplications: applicationsResult.count || 0,
           pendingPurchases: purchasesResult.count || 0,
           pendingWithdrawals: withdrawalsResult.count || 0,
+          pendingSchools: schoolsResult.count || 0,
           totalRevenue,
           platformRevenue,
         });
