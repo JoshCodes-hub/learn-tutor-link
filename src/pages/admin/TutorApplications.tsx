@@ -572,4 +572,11 @@ const TutorApplications = () => {
   );
 };
 
+const Info = ({ label, value }: { label: string; value: string }) => (
+  <div className="bg-muted/30 rounded-lg p-2">
+    <div className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">{label}</div>
+    <div className="text-sm text-foreground truncate">{value}</div>
+  </div>
+);
+
 export default TutorApplications;
