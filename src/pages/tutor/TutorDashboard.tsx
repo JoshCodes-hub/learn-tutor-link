@@ -39,6 +39,7 @@ import TutorAnalytics from "@/components/tutor/TutorAnalytics";
 import QuizManagement from "@/components/tutor/QuizManagement";
 import { TutorCommunityManager } from "@/components/tutor/TutorCommunityManager";
 import { OnboardingChecklist } from "@/components/tutor/OnboardingChecklist";
+import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -244,11 +245,8 @@ const TutorDashboard = () => {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <SkeletonDashboard />
       </div>
     );
   }

@@ -35,6 +35,7 @@ import { WithdrawalManagement } from "@/components/admin/WithdrawalManagement";
 import { AuditLogs } from "@/components/admin/AuditLogs";
 import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
 import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
+import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 
 interface DashboardStats {
   totalStudents: number;
@@ -176,11 +177,8 @@ const AdminDashboard = () => {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading admin dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <SkeletonDashboard />
       </div>
     );
   }
