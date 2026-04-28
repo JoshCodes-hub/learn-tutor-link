@@ -40,6 +40,7 @@ window.addEventListener("unhandledrejection", (e) => {
     sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
     window.location.reload();
   }
+});
 
 // Manually register the PWA service worker with an ABSOLUTE path so it works
 // regardless of the current route (vite `base: "./"` would otherwise resolve
@@ -55,6 +56,7 @@ if ("serviceWorker" in navigator && !Capacitor.isNativePlatform()) {
       });
   });
 }
+
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
