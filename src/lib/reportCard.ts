@@ -4,9 +4,27 @@
  * serif title, school logo, brand-colour rule, watermark, position in class,
  * grading key, signature lines, verification ID. No emojis, no childish glyphs.
  */
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import QRCode from "qrcode";
+// jsPDF, jspdf-autotable, and qrcode are dynamically imported inside
+// generateReportCards() so they aren't included in the main bundle.
+import type { jsPDF as JsPDFType } from "jspdf";
+type JsPDFInstance = InstanceType<typeof JsPDFType>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let jsPDF: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let autoTable: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let QRCode: any;
+async function loadReportDeps() {
+  if (jsPDF && autoTable && QRCode) return;
+  const [jsPDFMod, autoTableMod, qrMod] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+    import("qrcode"),
+  ]);
+  jsPDF = jsPDFMod.default;
+  autoTable = autoTableMod.default;
+  QRCode = qrMod.default;
+}
 
 export type ReportSchool = {
   id: string;
@@ -91,7 +109,7 @@ async function loadImage(url: string): Promise<string | null> {
   }
 }
 
-function drawHeader(doc: jsPDF, school: ReportSchool, term: ReportTerm, logoData: string | null, brand: [number, number, number]) {
+function drawHeader(doc: JsPDFInstance, school: ReportSchool, term: ReportTerm, logoData: string | null, brand: [number, number, number]) {
   const W = doc.internal.pageSize.getWidth();
   const M = 14;
 
@@ -136,7 +154,7 @@ function drawHeader(doc: jsPDF, school: ReportSchool, term: ReportTerm, logoData
   doc.text(title, W / 2, 48, { align: "center" });
 }
 
-function drawWatermark(doc: jsPDF, school: ReportSchool) {
+function drawWatermark(doc: JsPDFInstance, school: ReportSchool) {
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const txt = school.name.toUpperCase();
@@ -150,7 +168,7 @@ function drawWatermark(doc: jsPDF, school: ReportSchool) {
   doc.restoreGraphicsState();
 }
 
-function drawStudentBlock(doc: jsPDF, student: ReportStudent, klass: ReportClass) {
+function drawStudentBlock(doc: JsPDFInstance, student: ReportStudent, klass: ReportClass) {
   const M = 14;
   const yStart = 56;
   doc.setFont("helvetica", "normal");
@@ -181,7 +199,7 @@ function drawStudentBlock(doc: jsPDF, student: ReportStudent, klass: ReportClass
   });
 }
 
-function drawScoresTable(doc: jsPDF, student: ReportStudent, brand: [number, number, number]) {
+function drawScoresTable(doc: JsPDFInstance, student: ReportStudent, brand: [number, number, number]) {
   const totals = student.rows.reduce((a, r) => a + r.total, 0);
   const max = student.rows.length * 100;
   const avg = student.rows.length ? totals / student.rows.length : 0;
@@ -221,7 +239,7 @@ function drawScoresTable(doc: jsPDF, student: ReportStudent, brand: [number, num
   });
 }
 
-async function drawFooter(doc: jsPDF, school: ReportSchool, term: ReportTerm, student: ReportStudent, brand: [number, number, number]) {
+async function drawFooter(doc: JsPDFInstance, school: ReportSchool, term: ReportTerm, student: ReportStudent, brand: [number, number, number]) {
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 14;
@@ -281,7 +299,7 @@ async function drawFooter(doc: jsPDF, school: ReportSchool, term: ReportTerm, st
   doc.rect(0, H - 4, W, 4, "F");
 }
 
-async function renderOne(doc: jsPDF, school: ReportSchool, term: ReportTerm, klass: ReportClass, student: ReportStudent, logoData: string | null) {
+async function renderOne(doc: JsPDFInstance, school: ReportSchool, term: ReportTerm, klass: ReportClass, student: ReportStudent, logoData: string | null) {
   const brand = hexToRgb(school.brand_color || "#1e3a8a");
   drawWatermark(doc, school);
   drawHeader(doc, school, term, logoData, brand);
@@ -298,6 +316,7 @@ export async function generateReportCards(opts: {
   students: ReportStudent[];
 }): Promise<Blob> {
   const { school, term, klass, students } = opts;
+  await loadReportDeps();
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   const logoData = school.logo_url ? await loadImage(school.logo_url) : null;
 

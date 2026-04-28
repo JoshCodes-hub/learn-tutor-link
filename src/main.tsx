@@ -34,11 +34,25 @@ window.addEventListener("error", (e) => {
     window.location.reload();
   }
 });
+window.addEventListener("error", (e) => {
+  // Log uncaught runtime errors for admin observability (skip chunk-load reload path)
+  if (e?.message && !isChunkLoadError(e.message)) {
+    import("@/lib/analytics").then(({ logClientError }) => {
+      void logClientError({ message: e.message, stack: e.error?.stack });
+    }).catch(() => {});
+  }
+});
 window.addEventListener("unhandledrejection", (e) => {
   const msg = String(e?.reason?.message ?? e?.reason ?? "");
   if (isChunkLoadError(msg) && !sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
     sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
     window.location.reload();
+    return;
+  }
+  if (msg) {
+    import("@/lib/analytics").then(({ logClientError }) => {
+      void logClientError({ message: msg, stack: e?.reason?.stack });
+    }).catch(() => {});
   }
 });
 

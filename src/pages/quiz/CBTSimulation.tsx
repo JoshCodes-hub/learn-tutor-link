@@ -121,6 +121,8 @@ const CBTSimulation = () => {
         if (attemptError) throw attemptError;
         setAttemptId(attemptData.id);
         startTimeRef.current = Date.now();
+        const { track } = await import("@/lib/analytics");
+        void track("quiz_started", { quiz_id: quizId, mode: "simulation", total_questions: formattedQuestions.length });
 
       } catch (error) {
         console.error("Error fetching quiz:", error);
@@ -247,6 +249,16 @@ const CBTSimulation = () => {
           time_spent_seconds: timeSpent,
         })
         .eq("id", attemptId);
+
+      const { track } = await import("@/lib/analytics");
+      void track("quiz_completed", {
+        quiz_id: quizId,
+        mode: "simulation",
+        score: Math.round((correctCount / questions.length) * 100),
+        correct: correctCount,
+        total: questions.length,
+        time_spent_seconds: timeSpent,
+      });
 
       // Clear auto-save on successful submit
       clearState();

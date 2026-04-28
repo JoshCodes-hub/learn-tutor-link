@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+// jsPDF is loaded lazily inside exportStudyPackPdf()
 
 export interface StudyPackMaterial {
   title: string;
@@ -95,8 +95,9 @@ export function exportStudyPackMarkdown(input: StudyPackInput) {
 }
 
 // ---------- PDF ----------
-export function exportStudyPackPdf(input: StudyPackInput) {
+export async function exportStudyPackPdf(input: StudyPackInput) {
   const { courseCode, courseName, materials, include } = input;
+  const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();

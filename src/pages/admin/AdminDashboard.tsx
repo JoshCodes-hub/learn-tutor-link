@@ -21,6 +21,7 @@ import {
   Target,
   BookOpen,
   Building2,
+  Activity,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import DashboardNav from "@/components/layout/DashboardNav";
@@ -33,6 +34,7 @@ import { PlatformAnalytics } from "@/components/admin/PlatformAnalytics";
 import { TokenPurchaseManagement } from "@/components/admin/TokenPurchaseManagement";
 import { WithdrawalManagement } from "@/components/admin/WithdrawalManagement";
 import { AuditLogs } from "@/components/admin/AuditLogs";
+import { HealthDashboard } from "@/components/admin/HealthDashboard";
 import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
 import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
@@ -387,6 +389,11 @@ const AdminDashboard = () => {
                 <span className="hidden sm:inline">Audit Logs</span>
                 <span className="sm:hidden">Logs</span>
               </TabsTrigger>
+              <TabsTrigger value="health" className="flex items-center gap-2 text-xs md:text-sm">
+                <Activity className="w-4 h-4" />
+                <span className="hidden sm:inline">Health</span>
+                <span className="sm:hidden">❤</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -428,6 +435,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="audit">
             <AuditLogs />
+          </TabsContent>
+
+          <TabsContent value="health">
+            <HealthDashboard />
           </TabsContent>
         </Tabs>
       </main>
