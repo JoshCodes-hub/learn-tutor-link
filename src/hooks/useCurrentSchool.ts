@@ -14,6 +14,8 @@ export function useCurrentSchool() {
   const navigate = useNavigate();
   const [school, setSchool] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [tick, setTick] = useState(0);
+  const refetch = () => setTick((t) => t + 1);
 
   useEffect(() => {
     if (!user) return;
@@ -48,7 +50,7 @@ export function useCurrentSchool() {
       }
       setLoading(false);
     })();
-  }, [user, primaryRole, navigate]);
+  }, [user, primaryRole, navigate, tick]);
 
-  return { school, loading };
+  return { school, loading, refetch };
 }
