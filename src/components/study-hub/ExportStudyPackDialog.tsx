@@ -105,7 +105,7 @@ export const ExportStudyPackDialog = ({ open, onOpenChange, courseCode, courseNa
         },
       };
 
-      if (format === "pdf") exportStudyPackPdf(payload);
+      if (format === "pdf") await exportStudyPackPdf(payload);
       else exportStudyPackMarkdown(payload);
 
       toast.success("Study pack downloaded");
