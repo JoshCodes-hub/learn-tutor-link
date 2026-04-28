@@ -36,6 +36,8 @@ import { AuditLogs } from "@/components/admin/AuditLogs";
 import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
 import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
+import { DashboardHero } from "@/components/dashboard/DashboardHero";
+import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 
 interface DashboardStats {
   totalStudents: number;
@@ -211,57 +213,59 @@ const AdminDashboard = () => {
       <DashboardBreadcrumb role="admin" />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-            Admin Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Manage tutors, moderate content, and monitor platform performance.
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-primary" />
+        {/* Hero */}
+        <DashboardHero
+          role="admin"
+          fullName={profile?.full_name || "Admin"}
+          avatarUrl={profile?.avatar_url}
+          subtitle="Steward the platform — review tutors, moderate content, and watch the empire grow."
+          footer={
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-muted-foreground">All systems operational</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-amber-600" />
+                <span className="text-muted-foreground">Platform revenue</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{stats.platformRevenue}</span>
               </div>
             </div>
-            <p className="font-display text-2xl font-bold text-foreground">{stats.totalStudents}</p>
-            <p className="text-sm text-muted-foreground">Students</p>
-          </div>
+          }
+          className="mb-6"
+        />
 
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-accent" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{stats.totalTutors}</p>
-            <p className="text-sm text-muted-foreground">Tutors</p>
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-success" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{stats.totalQuizAttempts}</p>
-            <p className="text-sm text-muted-foreground">Quiz Attempts</p>
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-destructive/10 rounded-lg flex items-center justify-center">
-                <Coins className="w-5 h-5 text-destructive" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{stats.platformRevenue}</p>
-            <p className="text-sm text-muted-foreground">Platform Revenue</p>
-          </div>
+        {/* Premium Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+          <PremiumStatCard
+            icon={Users}
+            label="Students"
+            value={stats.totalStudents}
+            tone="sapphire"
+            delay={0}
+          />
+          <PremiumStatCard
+            icon={GraduationCap}
+            label="Tutors"
+            value={stats.totalTutors}
+            tone="violet"
+            delay={0.05}
+          />
+          <PremiumStatCard
+            icon={Brain}
+            label="Quiz attempts"
+            value={stats.totalQuizAttempts}
+            tone="emerald"
+            delay={0.1}
+          />
+          <PremiumStatCard
+            icon={Coins}
+            label="Platform revenue"
+            value={stats.platformRevenue}
+            tone="gold"
+            hint="tokens earned"
+            delay={0.15}
+          />
         </div>
 
         {/* Pending Applications Alerts */}

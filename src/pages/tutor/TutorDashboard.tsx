@@ -40,6 +40,8 @@ import QuizManagement from "@/components/tutor/QuizManagement";
 import { TutorCommunityManager } from "@/components/tutor/TutorCommunityManager";
 import { OnboardingChecklist } from "@/components/tutor/OnboardingChecklist";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
+import { DashboardHero } from "@/components/dashboard/DashboardHero";
+import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -296,15 +298,43 @@ const TutorDashboard = () => {
       <DashboardBreadcrumb role="tutor" />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-            Welcome, {profile?.full_name || "Tutor"}! 👨‍🏫
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your courses, upload questions, and track student performance.
-          </p>
-        </div>
+        {/* Hero */}
+        <DashboardHero
+          role="tutor"
+          fullName={profile?.full_name}
+          avatarUrl={profile?.avatar_url}
+          subtitle="Curate your courses, craft world-class quizzes, and watch your students rise."
+          actions={
+            <Button
+              size="lg"
+              onClick={() => setShowUnifiedQuizCreator(true)}
+              className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-lg shadow-amber-500/25"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Quiz
+            </Button>
+          }
+          footer={
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-amber-600" />
+                <span className="text-muted-foreground">This month</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{earnings.thisMonthEarnings}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-violet-600" />
+                <span className="text-muted-foreground">Students</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{earnings.totalStudents}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-600" />
+                <span className="text-muted-foreground">Attempts</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{earnings.totalAttempts}</span>
+              </div>
+            </div>
+          }
+          className="mb-6"
+        />
 
         {/* Onboarding Checklist */}
         <OnboardingChecklist
@@ -351,47 +381,37 @@ const TutorDashboard = () => {
           </Button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                <Coins className="w-5 h-5 text-accent" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{earnings.totalEarnings}</p>
-            <p className="text-sm text-muted-foreground">Total Earnings (tokens)</p>
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-success" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{earnings.thisMonthEarnings}</p>
-            <p className="text-sm text-muted-foreground">This Month</p>
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{earnings.totalStudents}</p>
-            <p className="text-sm text-muted-foreground">Students Reached</p>
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{earnings.totalAttempts}</p>
-            <p className="text-sm text-muted-foreground">Quiz Attempts</p>
-          </div>
+        {/* Premium Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
+          <PremiumStatCard
+            icon={Coins}
+            label="Total earnings"
+            value={earnings.totalEarnings}
+            tone="gold"
+            hint="lifetime tokens"
+            delay={0}
+          />
+          <PremiumStatCard
+            icon={TrendingUp}
+            label="This month"
+            value={earnings.thisMonthEarnings}
+            tone="emerald"
+            delay={0.05}
+          />
+          <PremiumStatCard
+            icon={Users}
+            label="Students reached"
+            value={earnings.totalStudents}
+            tone="violet"
+            delay={0.1}
+          />
+          <PremiumStatCard
+            icon={BarChart3}
+            label="Quiz attempts"
+            value={earnings.totalAttempts}
+            tone="sapphire"
+            delay={0.15}
+          />
         </div>
 
         {/* Courses Section */}

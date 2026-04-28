@@ -44,6 +44,7 @@ import {
   XCircle,
   ChevronRight,
   Loader2,
+  Sparkles,
   Play,
   Lock,
   Coins,
@@ -63,6 +64,8 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
+import { DashboardHero } from "@/components/dashboard/DashboardHero";
+import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 
 interface Stats {
   totalAttempts: number;
@@ -687,75 +690,82 @@ const StudentDashboard = () => {
       <DashboardBreadcrumb role="student" />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-2">
-            Welcome back, {profile?.full_name || "Student"}! 👋
-          </h1>
-          <p className="text-muted-foreground">
-            Ready to ace your exams? Let's continue your preparation journey.
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {/* Exam Readiness Score */}
-          <div className="col-span-2 lg:col-span-1 bg-card rounded-xl border border-border p-5">
-            <div className="text-center">
-              <div className={`font-display text-4xl font-bold ${getReadinessColor()} mb-1`}>
-                {readinessScore}%
+        {/* Hero */}
+        <DashboardHero
+          role="student"
+          fullName={profile?.full_name}
+          avatarUrl={profile?.avatar_url}
+          subtitle={
+            <>
+              You're <span className="font-semibold text-amber-700">{getReadinessLabel().toLowerCase()}</span> — keep the streak alive and your readiness will rise to the top.
+            </>
+          }
+          footer={
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                <span className="text-muted-foreground">Exam readiness</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{readinessScore}%</span>
               </div>
-              <p className="text-sm text-muted-foreground mb-2">Exam Readiness</p>
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                readinessScore >= 80 ? "bg-success/10 text-success" :
-                readinessScore >= 60 ? "bg-accent/10 text-accent" :
-                readinessScore >= 40 ? "bg-primary/10 text-primary" :
-                "bg-destructive/10 text-destructive"
-              }`}>
-                {getReadinessLabel()}
-              </span>
-            </div>
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-amber-600" />
+                <span className="text-muted-foreground">Tokens</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{wallet?.balance ?? 0}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-violet-600" />
+                <span className="text-muted-foreground">Accuracy</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{stats.averageScore}%</span>
               </div>
             </div>
-            <p className="font-display text-2xl font-bold text-foreground">{stats.averageScore}%</p>
-            <p className="text-sm text-muted-foreground">Accuracy</p>
-          </div>
+          }
+          className="mb-6"
+        />
 
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-success" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{stats.correctAnswers}</p>
-            <p className="text-sm text-muted-foreground">Correct Answers</p>
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-accent" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{stats.totalAttempts}</p>
-            <p className="text-sm text-muted-foreground">Quizzes Taken</p>
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                <Clock className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </div>
-            <p className="font-display text-2xl font-bold text-foreground">{stats.practiceTime}m</p>
-            <p className="text-sm text-muted-foreground">Practice Time</p>
-          </div>
+        {/* Premium Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-8">
+          <PremiumStatCard
+            icon={Sparkles}
+            label="Readiness"
+            value={readinessScore}
+            suffix="%"
+            tone="gold"
+            progress={readinessScore}
+            hint={getReadinessLabel()}
+            delay={0}
+            className="col-span-2 lg:col-span-1"
+          />
+          <PremiumStatCard
+            icon={Target}
+            label="Accuracy"
+            value={stats.averageScore}
+            suffix="%"
+            tone="sapphire"
+            progress={stats.averageScore}
+            delay={0.05}
+          />
+          <PremiumStatCard
+            icon={CheckCircle2}
+            label="Correct"
+            value={stats.correctAnswers}
+            tone="emerald"
+            delay={0.1}
+          />
+          <PremiumStatCard
+            icon={Brain}
+            label="Quizzes"
+            value={stats.totalAttempts}
+            tone="violet"
+            delay={0.15}
+          />
+          <PremiumStatCard
+            icon={Clock}
+            label="Practice"
+            value={stats.practiceTime}
+            suffix="m"
+            tone="rose"
+            delay={0.2}
+          />
         </div>
 
         {/* Token Wallet Card */}
