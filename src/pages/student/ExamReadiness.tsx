@@ -6,6 +6,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppScreen } from "@/components/app-shell/AppScreen";
 import { ReadinessRing } from "@/components/student/ReadinessRing";
 import { AIQuizRecommendations } from "@/components/student/AIQuizRecommendations";
+import { ExamGoalDialog } from "@/components/student/ExamGoalDialog";
+import { WeeklyPlanCard } from "@/components/student/WeeklyPlanCard";
+import { useExamGoal } from "@/hooks/useExamGoal";
+import { saveOfflineSet } from "@/lib/offlineQuizStore";
+import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +20,10 @@ import {
   ArrowRight,
   Brain,
   CheckCircle2,
+  Download,
   Flame,
+  Gauge,
+  Loader2,
   Sparkles,
   Target,
   Timer,
@@ -49,6 +57,10 @@ export default function ExamReadiness() {
   const [courseStats, setCourseStats] = useState<CourseAccuracy[]>([]);
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [goalOpen, setGoalOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const { goal } = useExamGoal();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!user) return;
@@ -56,18 +68,13 @@ export default function ExamReadiness() {
       const since = new Date();
       since.setDate(since.getDate() - 30);
 
-      const [{ data: atts }, { data: ans }, { data: streakRow }] = await Promise.all([
+      const [{ data: atts }, { data: streakRow }] = await Promise.all([
         supabase
           .from("quiz_attempts")
           .select("id,score,total_questions,correct_answers,completed_at,started_at,quiz_id")
           .eq("user_id", user.id)
           .gte("started_at", since.toISOString())
           .order("started_at", { ascending: false }),
-        supabase
-          .from("quiz_answers")
-          .select("is_correct, question_id, attempt_id, questions:question_id(course_id, courses:course_id(name))")
-          .eq("questions.tutor_id", user.id) // harmless filter; ignored if null
-          .limit(0),
         supabase.from("study_streaks" as any).select("current_streak").eq("user_id", user.id).maybeSingle(),
       ]);
 
@@ -129,6 +136,68 @@ export default function ExamReadiness() {
   const weakest = courseStats.filter((c) => c.attempted >= 3).slice().sort((a, b) => a.accuracy - b.accuracy)[0];
   const strongest = courseStats.filter((c) => c.attempted >= 3).slice().sort((a, b) => b.accuracy - a.accuracy)[0];
 
+  // Attempts in the last 7 calendar days for weekly plan progress
+  const weeklyCompleted = attempts.filter((a) => {
+    if (!a.completed_at) return false;
+    const t = new Date(a.completed_at).getTime();
+    return t >= Date.now() - 7 * 86400000;
+  }).length;
+
+  const downloadRecommended = async () => {
+    if (!user) return;
+    setDownloading(true);
+    try {
+      // Pick a quiz: weakest course active quiz, fall back to any active quiz
+      let quizQuery = supabase.from("quizzes").select("id, title, course_id, courses:course_id(name)").eq("is_active", true).limit(1);
+      if (weakest) {
+        const { data: courseRow } = await supabase.from("courses").select("id").eq("name", weakest.course).maybeSingle();
+        if (courseRow?.id) quizQuery = supabase.from("quizzes").select("id, title, course_id, courses:course_id(name)").eq("is_active", true).eq("course_id", courseRow.id).limit(1);
+      }
+      const { data: quizzes } = await quizQuery;
+      const quiz = quizzes?.[0] as any;
+      if (!quiz) { toast({ title: "No quiz to download yet", variant: "destructive" }); return; }
+
+      const { data: qq } = await supabase
+        .from("quiz_questions")
+        .select("question_id, order_index, questions:question_id(id, question_text, option_a, option_b, option_c, option_d, correct_option, explanation, image_url)")
+        .eq("quiz_id", quiz.id)
+        .order("order_index");
+
+      const questions = (qq || []).map((r: any) => ({
+        id: r.questions.id,
+        question_text: r.questions.question_text,
+        option_a: r.questions.option_a,
+        option_b: r.questions.option_b,
+        option_c: r.questions.option_c,
+        option_d: r.questions.option_d,
+        correct_option: r.questions.correct_option,
+        explanation: r.questions.explanation,
+        image_url: r.questions.image_url,
+        course_name: quiz.courses?.name || null,
+      }));
+
+      if (!questions.length) { toast({ title: "Quiz has no questions yet", variant: "destructive" }); return; }
+
+      await saveOfflineSet(
+        {
+          id: `set_${Date.now()}`,
+          title: quiz.title,
+          source: weakest ? "weak-area" : "recommended",
+          course_name: quiz.courses?.name || null,
+          question_count: questions.length,
+          downloaded_at: Date.now(),
+          user_id: user.id,
+        },
+        questions
+      );
+      toast({ title: "Saved offline ✅", description: `${quiz.title} is ready to practice without network.` });
+    } catch (e: any) {
+      toast({ title: "Download failed", description: e?.message || "Please try again", variant: "destructive" });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const verdict =
     avgScore >= 75 ? { label: "Exam Ready", color: "text-emerald-500", icon: CheckCircle2 }
     : avgScore >= 50 ? { label: "Building Up", color: "text-amber-500", icon: TrendingUp }
@@ -168,7 +237,13 @@ export default function ExamReadiness() {
           <StatTile icon={Timer} label="Practice" value={`${totalMinutes}m`} accent="text-emerald-500" />
         </div>
 
-        {/* 7-day momentum */}
+        {/* Weekly plan from exam goal */}
+        <WeeklyPlanCard
+          goal={goal}
+          currentScore={avgScore}
+          weeklyCompleted={weeklyCompleted}
+          onSetGoal={() => setGoalOpen(true)}
+        />
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -200,20 +275,29 @@ export default function ExamReadiness() {
 
         {/* Strength & weakness */}
         <div className="grid sm:grid-cols-2 gap-3">
-          <Card className="p-4 border-rose-500/20 bg-rose-500/5">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-rose-500" />
-              <h4 className="text-sm font-semibold">Weakest Area</h4>
+          <button
+            type="button"
+            disabled={!weakest}
+            onClick={() => weakest && navigate(`/student/weak/${encodeURIComponent(weakest.course)}`)}
+            className="text-left p-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 transition-all hover:border-rose-500/40 active:scale-[0.98] disabled:opacity-100 disabled:cursor-default"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-500" />
+                <h4 className="text-sm font-semibold">Weakest Area</h4>
+              </div>
+              {weakest && <ArrowRight className="w-4 h-4 text-rose-500/70" />}
             </div>
             {weakest ? (
               <>
                 <p className="font-display text-lg font-semibold leading-tight">{weakest.course}</p>
                 <p className="text-xs text-muted-foreground mt-1">{weakest.accuracy}% accuracy across {weakest.attempted} questions</p>
+                <p className="text-[11px] text-rose-600 mt-2 font-medium">Tap to review wrong answers →</p>
               </>
             ) : (
               <p className="text-xs text-muted-foreground">Take a few more quizzes to surface weak areas.</p>
             )}
-          </Card>
+          </button>
           <Card className="p-4 border-emerald-500/20 bg-emerald-500/5">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-emerald-500" />
@@ -247,10 +331,30 @@ export default function ExamReadiness() {
               title="Target Weak Topics"
               desc={weakest ? `Drill ${weakest.course}` : "Auto-pick based on your gaps"}
               icon={Brain}
-              onClick={() => navigate("/study-hub")}
+              onClick={() => weakest ? navigate(`/student/weak/${encodeURIComponent(weakest.course)}`) : navigate("/study-hub")}
               highlight
             />
+            <ActionTile
+              title="Mastery Breakdown"
+              desc="Concept vs speed gaps per course"
+              icon={Gauge}
+              onClick={() => navigate("/student/mastery")}
+            />
+            <ActionTile
+              title={downloading ? "Downloading…" : "Download for Offline"}
+              desc={weakest ? `Save a ${weakest.course} set` : "Save a recommended set to your device"}
+              icon={downloading ? Loader2 : Download}
+              onClick={() => !downloading && downloadRecommended()}
+            />
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full mt-3 text-xs"
+            onClick={() => navigate("/student/offline")}
+          >
+            View saved offline sets <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
         </Card>
 
         {/* AI recommendations */}
@@ -264,6 +368,8 @@ export default function ExamReadiness() {
 
         {loading && <p className="text-center text-xs text-muted-foreground">Loading your insights…</p>}
       </div>
+
+      <ExamGoalDialog open={goalOpen} onOpenChange={setGoalOpen} />
     </AppScreen>
   );
 }

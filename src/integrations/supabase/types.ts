@@ -509,6 +509,42 @@ export type Database = {
           },
         ]
       }
+      exam_goals: {
+        Row: {
+          created_at: string
+          exam_label: string | null
+          id: string
+          is_active: boolean
+          target_date: string
+          target_score: number
+          updated_at: string
+          user_id: string
+          weekly_quiz_target: number
+        }
+        Insert: {
+          created_at?: string
+          exam_label?: string | null
+          id?: string
+          is_active?: boolean
+          target_date: string
+          target_score?: number
+          updated_at?: string
+          user_id: string
+          weekly_quiz_target?: number
+        }
+        Update: {
+          created_at?: string
+          exam_label?: string | null
+          id?: string
+          is_active?: boolean
+          target_date?: string
+          target_score?: number
+          updated_at?: string
+          user_id?: string
+          weekly_quiz_target?: number
+        }
+        Relationships: []
+      }
       favorite_tutors: {
         Row: {
           created_at: string
