@@ -9,14 +9,13 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { generateReportCards, gradeFor, remarkFor, type ReportStudent } from "@/lib/reportCard";
 
-const grade = (t: number) => {
-  if (t >= 75) return { g: "A", c: "bg-success text-success-foreground" };
-  if (t >= 65) return { g: "B", c: "bg-emerald-500 text-white" };
-  if (t >= 55) return { g: "C", c: "bg-amber-500 text-white" };
-  if (t >= 45) return { g: "D", c: "bg-orange-500 text-white" };
-  if (t >= 40) return { g: "E", c: "bg-rose-500 text-white" };
-  return { g: "F", c: "bg-destructive text-destructive-foreground" };
-};
+const gradeColor = (t: number) =>
+  t >= 75 ? "bg-success text-success-foreground" :
+  t >= 65 ? "bg-emerald-500 text-white" :
+  t >= 55 ? "bg-amber-500 text-white" :
+  t >= 45 ? "bg-orange-500 text-white" :
+  t >= 40 ? "bg-rose-500 text-white" :
+  "bg-destructive text-destructive-foreground";
 
 export default function SchoolResults() {
   const { school, loading: sloading } = useCurrentSchool();
@@ -227,7 +226,7 @@ export default function SchoolResults() {
             <div className="space-y-1.5">
               {students.map((s, i) => {
                 const total = totals[s.id] || 0;
-                const g = grade(total);
+                const g = gradeFor(total);
                 return (
                   <motion.div
                     key={s.id}
@@ -247,7 +246,7 @@ export default function SchoolResults() {
                     <div className="col-span-2"><NumCell wide v={scores[s.id]?.exam} max={60} onChange={(v) => setVal(s.id, "exam", v)} /></div>
                     <div className="col-span-3 flex items-center justify-end gap-2">
                       <div className="font-display font-bold text-sm">{total}</div>
-                      <span className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold", g.c)}>{g.g}</span>
+                      <span className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold", gradeColor(total))}>{g}</span>
                     </div>
                   </motion.div>
                 );
@@ -259,9 +258,12 @@ export default function SchoolResults() {
 
       {students.length > 0 && (
         <div className="fixed bottom-16 inset-x-0 px-4 pb-3 bg-gradient-to-t from-background via-background to-transparent z-30 md:bottom-0" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 4.5rem)" }}>
-          <div className="max-w-3xl mx-auto">
-            <Button onClick={save} disabled={saving} className="w-full h-12 rounded-2xl bg-gradient-primary text-primary-foreground font-semibold shadow-glow">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save broadsheet</>}
+          <div className="max-w-3xl mx-auto flex gap-2">
+            <Button onClick={save} disabled={saving} className="flex-1 h-12 rounded-2xl bg-gradient-primary text-primary-foreground font-semibold shadow-glow">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save</>}
+            </Button>
+            <Button onClick={generatePDF} disabled={generating} variant="outline" className="h-12 rounded-2xl px-4 font-semibold border-2">
+              {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Printer className="w-4 h-4 mr-2" /> Report cards</>}
             </Button>
           </div>
         </div>
