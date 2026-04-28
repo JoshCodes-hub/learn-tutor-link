@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type AppRole = "student" | "tutor" | "admin";
+type AppRole = "student" | "tutor" | "admin" | "school_owner" | "school_admin" | "teacher" | "parent";
 export type AcademicPath = "secondary" | "jamb" | "university";
 
 export interface AcademicMetadata {
@@ -137,8 +137,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasRole = (role: AppRole) => roles.includes(role);
 
-  const primaryRole = roles.includes("admin")
+  const primaryRole: AppRole | null = roles.includes("admin")
     ? "admin"
+    : roles.includes("school_owner")
+    ? "school_owner"
+    : roles.includes("school_admin")
+    ? "school_admin"
+    : roles.includes("teacher")
+    ? "teacher"
+    : roles.includes("parent")
+    ? "parent"
     : roles.includes("tutor")
     ? "tutor"
     : roles.includes("student")
