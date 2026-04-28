@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RotateCw, Home } from "lucide-react";
+import { logClientError } from "@/lib/analytics";
 
 interface State { hasError: boolean; error: Error | null; }
 
@@ -12,8 +13,13 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // Surface to console for debugging; could be wired to an error reporter later.
     console.error("[ErrorBoundary]", error, info);
+    // Persist for admin visibility (fire-and-forget)
+    void logClientError({
+      message: error.message || "Unknown error",
+      stack: error.stack,
+      component_stack: info.componentStack ?? undefined,
+    });
   }
 
   reset = () => this.setState({ hasError: false, error: null });
