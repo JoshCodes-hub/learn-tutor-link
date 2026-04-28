@@ -67,6 +67,7 @@ import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { PullToRefresh } from "@/components/native/PullToRefresh";
 
 interface Stats {
   totalAttempts: number;
@@ -649,6 +650,7 @@ const StudentDashboard = () => {
         noindex={true}
         url="https://overraprep.com/student/dashboard"
       />
+      <PullToRefresh onRefresh={refreshQuizzes}>
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
@@ -1293,6 +1295,7 @@ const StudentDashboard = () => {
         userName={profile?.full_name || undefined}
       />
     </div>
+    </PullToRefresh>
     </>
   );
 };
