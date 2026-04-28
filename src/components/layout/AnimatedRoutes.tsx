@@ -40,6 +40,8 @@ const ViralMode = lazy(() => import("@/pages/viral/ViralMode"));
 
 // Lazy load all other pages for code splitting
 const Auth = lazy(() => import("@/pages/Auth"));
+const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const StudentDashboard = lazy(() => import("@/pages/student/StudentDashboard"));
 const ExamReadiness = lazy(() => import("@/pages/student/ExamReadiness"));
@@ -91,6 +93,8 @@ export const AnimatedRoutes = () => {
               </PageTransition>
             }
           />
+          <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+          <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
           <Route
             path="/dashboard"
             element={

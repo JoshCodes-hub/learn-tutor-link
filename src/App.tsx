@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import SplashScreen from "@/components/SplashScreen";
 import AnimatedRoutes from "@/components/layout/AnimatedRoutes";
 import BiometricUnlock from "@/components/native/BiometricUnlock";
@@ -48,26 +49,28 @@ const App = () => {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <InstallPrompt />
-        <OfflineBanner />
-        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-        <BrowserRouter>
-          <AuthProvider>
-            <PushBootstrap />
-            <BiometricUnlock>
-              <div className="pb-16 md:pb-0">
-                <AnimatedRoutes />
-              </div>
-              <BottomTabBar />
-            </BiometricUnlock>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <InstallPrompt />
+          <OfflineBanner />
+          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+          <BrowserRouter>
+            <AuthProvider>
+              <PushBootstrap />
+              <BiometricUnlock>
+                <div className="pb-16 md:pb-0">
+                  <AnimatedRoutes />
+                </div>
+                <BottomTabBar />
+              </BiometricUnlock>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
