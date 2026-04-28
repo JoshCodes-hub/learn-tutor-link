@@ -67,7 +67,7 @@ const HeroSection = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col justify-end min-h-[480px] sm:min-h-[520px] md:min-h-[560px] px-5 sm:px-8 lg:px-12 pt-24 pb-10 sm:pb-12">
+      <div className="relative z-10 flex flex-col justify-end min-h-[640px] sm:min-h-[640px] md:min-h-[640px] px-5 sm:px-8 lg:px-12 pt-24 pb-10 sm:pb-12">
         {/* Trust badge */}
         <motion.div 
           className="absolute top-24 sm:top-28 right-4 sm:right-8 lg:right-12"
