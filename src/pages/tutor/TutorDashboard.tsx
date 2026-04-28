@@ -296,15 +296,43 @@ const TutorDashboard = () => {
       <DashboardBreadcrumb role="tutor" />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-            Welcome, {profile?.full_name || "Tutor"}! 👨‍🏫
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your courses, upload questions, and track student performance.
-          </p>
-        </div>
+        {/* Hero */}
+        <DashboardHero
+          role="tutor"
+          fullName={profile?.full_name}
+          avatarUrl={profile?.avatar_url}
+          subtitle="Curate your courses, craft world-class quizzes, and watch your students rise."
+          actions={
+            <Button
+              size="lg"
+              onClick={() => setShowUnifiedQuizCreator(true)}
+              className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-lg shadow-amber-500/25"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Quiz
+            </Button>
+          }
+          footer={
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-amber-600" />
+                <span className="text-muted-foreground">This month</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{earnings.thisMonthEarnings}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-violet-600" />
+                <span className="text-muted-foreground">Students</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{earnings.totalStudents}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-emerald-600" />
+                <span className="text-muted-foreground">Attempts</span>
+                <span className="font-serif text-lg font-semibold text-foreground">{earnings.totalAttempts}</span>
+              </div>
+            </div>
+          }
+          className="mb-6"
+        />
 
         {/* Onboarding Checklist */}
         <OnboardingChecklist
