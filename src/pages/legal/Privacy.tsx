@@ -62,6 +62,7 @@ export default function Privacy() {
           </Button>
         </Card>
       </div>
+      <SiteFooter />
     </div>
   );
 }

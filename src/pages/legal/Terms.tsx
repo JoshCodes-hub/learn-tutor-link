@@ -80,6 +80,7 @@ export default function Terms() {
           </p>
         </div>
       </div>
+      <SiteFooter />
     </div>
   );
 }
