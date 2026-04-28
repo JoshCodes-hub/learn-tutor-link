@@ -763,6 +763,7 @@ const StudentDashboard = () => {
                 <span className="text-muted-foreground">Accuracy</span>
                 <span className="font-serif text-lg font-semibold text-foreground">{stats.averageScore}%</span>
               </div>
+              <LastUpdatedBadge timestamp={lastUpdated} className="ml-auto" />
             </div>
           }
           className="mb-6"
