@@ -55,22 +55,8 @@ export const HealthDashboard = () => {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const since = new Date();
-      since.setDate(since.getDate() - (DAYS - 1));
-      since.setHours(0, 0, 0, 0);
-      const sinceISO = since.toISOString();
-
-      const [eventsRes, errorsRes, recentErrRes] = await Promise.all([
-        supabase
-          .from("analytics_events")
-          .select("event_name, user_id, created_at")
-          .gte("created_at", sinceISO)
-          .limit(20000),
-        supabase
-          .from("client_errors")
-          .select("created_at")
-          .gte("created_at", sinceISO)
-          .limit(20000),
+      const [metricsRes, recentErrRes] = await Promise.all([
+        (supabase as any).rpc("get_health_metrics", { days: DAYS }),
         supabase
           .from("client_errors")
           .select("id, message, path, created_at, user_id, resolved")
@@ -78,39 +64,23 @@ export const HealthDashboard = () => {
           .limit(25),
       ]);
 
-      const events = eventsRes.data ?? [];
-      const errors = errorsRes.data ?? [];
+      const rows = (metricsRes.data ?? []) as Array<{
+        day: string;
+        active_users: number;
+        quizzes_started: number;
+        quizzes_completed: number;
+        errors: number;
+      }>;
 
-      // Build empty buckets for last N days
-      const buckets = new Map<string, DailyPoint>();
-      const userByDay = new Map<string, Set<string>>();
-      for (let i = 0; i < DAYS; i++) {
-        const d = new Date(since);
-        d.setDate(since.getDate() + i);
-        const k = dayKey(d);
-        buckets.set(k, { day: k.slice(5), active_users: 0, quizzes_started: 0, quizzes_completed: 0, errors: 0 });
-        userByDay.set(k, new Set<string>());
-      }
-
-      for (const e of events) {
-        const k = dayKey(new Date(e.created_at));
-        const b = buckets.get(k);
-        if (!b) continue;
-        if (e.user_id) userByDay.get(k)?.add(e.user_id);
-        if (e.event_name === "quiz_started") b.quizzes_started += 1;
-        if (e.event_name === "quiz_completed") b.quizzes_completed += 1;
-      }
-      for (const er of errors) {
-        const k = dayKey(new Date(er.created_at));
-        const b = buckets.get(k);
-        if (b) b.errors += 1;
-      }
-      for (const [k, set] of userByDay.entries()) {
-        const b = buckets.get(k);
-        if (b) b.active_users = set.size;
-      }
-
-      setSeries(Array.from(buckets.values()));
+      setSeries(
+        rows.map((r) => ({
+          day: String(r.day).slice(5),
+          active_users: r.active_users ?? 0,
+          quizzes_started: r.quizzes_started ?? 0,
+          quizzes_completed: r.quizzes_completed ?? 0,
+          errors: r.errors ?? 0,
+        }))
+      );
       setRecentErrors(recentErrRes.data ?? []);
     } catch (err) {
       console.error("[HealthDashboard]", err);
