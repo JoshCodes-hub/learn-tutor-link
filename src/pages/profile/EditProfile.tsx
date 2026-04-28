@@ -128,7 +128,38 @@ const EditProfile = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Cover image must be less than 5MB");
+      return;
+    }
+    setIsUploadingCover(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/cover.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("profile-covers")
+        .upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage
+        .from("profile-covers")
+        .getPublicUrl(fileName);
+      const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setCoverUrl(newUrl);
+      toast.success("Cover photo uploaded");
+    } catch (err) {
+      console.error("Error uploading cover:", err);
+      toast.error("Failed to upload cover photo");
+    } finally {
+      setIsUploadingCover(false);
+    }
+  };
     if (!user) return;
 
     if (!fullName.trim()) {
