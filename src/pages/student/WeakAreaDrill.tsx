@@ -92,12 +92,12 @@ export default function WeakAreaDrill() {
         body: {
           question: q.question_text,
           options: { A: q.option_a, B: q.option_b, C: q.option_c, D: q.option_d },
-          correctAnswer: q.correct_option,
+          correctOption: q.correct_option,
           userAnswer: q.selected_option,
         },
       });
       if (error) throw error;
-      setAiText((m) => ({ ...m, [q.id]: data?.explanation || data?.text || "No explanation generated." }));
+      setAiText((m) => ({ ...m, [q.id]: data?.explanation || "No explanation generated." }));
     } catch (e: any) {
       setAiText((m) => ({ ...m, [q.id]: "Couldn't generate AI explanation right now." }));
     } finally {
