@@ -39,7 +39,8 @@ const linksByRole: Record<Role, NavLink[]> = {
   student: [
     { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/subjects", label: "Subjects", icon: Layers, paths: ["secondary", "jamb"] },
-    { to: "/jamb-intelligence", label: "JAMB Intel", icon: Flame, paths: ["jamb"] },
+    // JAMB Intel paused — focus on University + School
+    // { to: "/jamb-intelligence", label: "JAMB Intel", icon: Flame, paths: ["jamb"] },
     { to: "/flashcards", label: "Flashcards", icon: Sparkles, paths: ["secondary", "jamb"] },
     { to: "/study-hub", label: "Study Hub", icon: Library },
     { to: "/theory", label: "Theory Prep", icon: BookOpen, paths: ["university"] },
@@ -62,7 +63,8 @@ const linksByRole: Record<Role, NavLink[]> = {
   ],
   admin: [
     { to: "/admin/dashboard", label: "Dashboard", icon: Shield },
-    { to: "/admin/applications", label: "Applications", icon: ClipboardCheck },
+    { to: "/admin/applications", label: "Tutors", icon: ClipboardCheck },
+    { to: "/admin/schools", label: "Schools", icon: School },
     { to: "/admin/startup-checklist", label: "Startup Check", icon: CheckCircle2 },
     { to: "/tutors", label: "Tutors", icon: GraduationCap },
     { to: "/study-hub", label: "Study Hub", icon: Library },
