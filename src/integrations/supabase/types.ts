@@ -2475,6 +2475,45 @@ export type Database = {
         }
         Relationships: []
       }
+      token_purchases: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          environment: string
+          id: string
+          paddle_transaction_id: string
+          price_id: string
+          status: string
+          tokens_credited: number
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency: string
+          environment?: string
+          id?: string
+          paddle_transaction_id: string
+          price_id: string
+          status?: string
+          tokens_credited: number
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          environment?: string
+          id?: string
+          paddle_transaction_id?: string
+          price_id?: string
+          status?: string
+          tokens_credited?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       token_transactions: {
         Row: {
           amount: number
@@ -2991,6 +3030,18 @@ export type Database = {
       }
     }
     Functions: {
+      credit_tokens_for_purchase: {
+        Args: {
+          p_amount_cents: number
+          p_currency: string
+          p_environment: string
+          p_paddle_transaction_id: string
+          p_price_id: string
+          p_tokens: number
+          p_user_id: string
+        }
+        Returns: string
+      }
       generate_community_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_team_code: { Args: never; Returns: string }
