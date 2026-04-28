@@ -38,6 +38,7 @@ import QuestionReports from "@/components/tutor/QuestionReports";
 import TutorAnalytics from "@/components/tutor/TutorAnalytics";
 import QuizManagement from "@/components/tutor/QuizManagement";
 import { TutorCommunityManager } from "@/components/tutor/TutorCommunityManager";
+import { OnboardingChecklist } from "@/components/tutor/OnboardingChecklist";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -306,6 +307,12 @@ const TutorDashboard = () => {
             Manage your courses, upload questions, and track student performance.
           </p>
         </div>
+
+        {/* Onboarding Checklist */}
+        <OnboardingChecklist
+          onCreateCourse={() => setShowCreateCourse(true)}
+          onCreateQuiz={() => setShowUnifiedQuizCreator(true)}
+        />
 
         {/* Create Quiz/Exam Banner */}
         <div className="mb-6 p-5 rounded-xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20">
