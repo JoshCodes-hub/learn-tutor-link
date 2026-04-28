@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -44,6 +44,7 @@ import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
+import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,6 +111,8 @@ const TutorDashboard = () => {
   const [showBulkQuizImport, setShowBulkQuizImport] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -231,8 +234,15 @@ const TutorDashboard = () => {
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
+        pendingRefreshRef.current?.reject(error);
+        pendingRefreshRef.current = null;
       } finally {
         setIsLoading(false);
+        if (pendingRefreshRef.current) {
+          setLastUpdated(Date.now());
+          pendingRefreshRef.current.resolve();
+          pendingRefreshRef.current = null;
+        }
       }
     };
 
@@ -241,10 +251,31 @@ const TutorDashboard = () => {
     }
   }, [user, refreshKey]);
 
+  // Bridges the imperative pull-to-refresh promise to the effect-based fetch.
+  const pendingRefreshRef = useRef<{ resolve: () => void; reject: (e: unknown) => void } | null>(
+    null
+  );
+  const refreshingRef = useRef(false);
+
   const refreshData = async () => {
-    setRefreshKey((k) => k + 1);
-    // Resolve when next render cycle completes
-    await new Promise((r) => setTimeout(r, 600));
+    // Coalesce concurrent calls
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
+    try {
+      await new Promise<void>((resolve, reject) => {
+        pendingRefreshRef.current = { resolve, reject };
+        setRefreshKey((k) => k + 1);
+        // Safety timeout in case the effect never reports back
+        setTimeout(() => {
+          if (pendingRefreshRef.current) {
+            pendingRefreshRef.current.resolve();
+            pendingRefreshRef.current = null;
+          }
+        }, 8000);
+      });
+    } finally {
+      refreshingRef.current = false;
+    }
   };
 
   if (authLoading || isLoading) {
@@ -334,6 +365,7 @@ const TutorDashboard = () => {
                 <span className="text-muted-foreground">Attempts</span>
                 <span className="font-serif text-lg font-semibold text-foreground">{earnings.totalAttempts}</span>
               </div>
+              <LastUpdatedBadge timestamp={lastUpdated} className="ml-auto" />
             </div>
           }
           className="mb-6"

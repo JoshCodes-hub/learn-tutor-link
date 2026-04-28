@@ -68,6 +68,7 @@ import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
+import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 
 interface Stats {
   totalAttempts: number;
@@ -137,6 +138,7 @@ const StudentDashboard = () => {
   const [showPurchaseQuiz, setShowPurchaseQuiz] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [purchaseRequests, setPurchaseRequests] = useState<any[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -482,7 +484,8 @@ const StudentDashboard = () => {
 
       if (error) {
         console.error("Error refreshing quizzes:", error);
-        return;
+        // Surface failure to PullToRefresh so it can show retry UI
+        throw error;
       }
 
       if (quizzesData) {
@@ -561,6 +564,33 @@ const StudentDashboard = () => {
           rating: null
         })));
       }
+
+      // Also refresh wallet + recent attempts so widgets update immediately
+      const [walletRes, attemptsRes] = await Promise.all([
+        supabase.from("token_wallets").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase
+          .from("quiz_attempts")
+          .select("*, quizzes(id, title, course_id, duration_minutes, is_simulation, is_active, courses(code, name))")
+          .eq("user_id", user.id)
+          .order("started_at", { ascending: false })
+          .limit(20),
+      ]);
+      if (walletRes.data) setWallet(walletRes.data);
+      if (attemptsRes.data) {
+        const completed = attemptsRes.data.filter((a: any) => a.completed_at);
+        const totalCorrect = completed.reduce((s: number, a: any) => s + a.correct_answers, 0);
+        const totalQuestions = completed.reduce((s: number, a: any) => s + a.total_questions, 0);
+        const totalTime = completed.reduce((s: number, a: any) => s + (a.time_spent_seconds || 0), 0);
+        setStats({
+          totalAttempts: completed.length,
+          totalQuestions,
+          correctAnswers: totalCorrect,
+          averageScore: totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0,
+          practiceTime: Math.round(totalTime / 60),
+        });
+        setRecentAttempts(attemptsRes.data.slice(0, 5));
+      }
+      setLastUpdated(Date.now());
     } finally {
       setIsRefreshing(false);
     }
@@ -733,6 +763,7 @@ const StudentDashboard = () => {
                 <span className="text-muted-foreground">Accuracy</span>
                 <span className="font-serif text-lg font-semibold text-foreground">{stats.averageScore}%</span>
               </div>
+              <LastUpdatedBadge timestamp={lastUpdated} className="ml-auto" />
             </div>
           }
           className="mb-6"
