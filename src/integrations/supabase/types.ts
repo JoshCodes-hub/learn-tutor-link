@@ -327,6 +327,13 @@ export type Database = {
             referencedRelation: "tutor_communities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "community_announcements_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_communities_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       community_members: {
@@ -354,6 +361,13 @@ export type Database = {
             columns: ["community_id"]
             isOneToOne: false
             referencedRelation: "tutor_communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_members_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_communities_public"
             referencedColumns: ["id"]
           },
         ]
@@ -386,6 +400,13 @@ export type Database = {
             columns: ["community_id"]
             isOneToOne: false
             referencedRelation: "tutor_communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_shared_quizzes_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_communities_public"
             referencedColumns: ["id"]
           },
           {
@@ -917,6 +938,13 @@ export type Database = {
             columns: ["referred_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "tutor_public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2886,7 +2914,81 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      tutor_communities_public: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          tutor_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          tutor_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          tutor_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tutor_public_profiles: {
+        Row: {
+          academic_path: Database["public"]["Enums"]["academic_path"] | null
+          avatar_url: string | null
+          cover_photo_url: string | null
+          created_at: string | null
+          department: string | null
+          full_name: string | null
+          id: string | null
+          profile_image_url: string | null
+          tutor_code: string | null
+          tutor_specialization:
+            | Database["public"]["Enums"]["academic_path"]
+            | null
+        }
+        Insert: {
+          academic_path?: Database["public"]["Enums"]["academic_path"] | null
+          avatar_url?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          department?: string | null
+          full_name?: string | null
+          id?: string | null
+          profile_image_url?: string | null
+          tutor_code?: string | null
+          tutor_specialization?:
+            | Database["public"]["Enums"]["academic_path"]
+            | null
+        }
+        Update: {
+          academic_path?: Database["public"]["Enums"]["academic_path"] | null
+          avatar_url?: string | null
+          cover_photo_url?: string | null
+          created_at?: string | null
+          department?: string | null
+          full_name?: string | null
+          id?: string | null
+          profile_image_url?: string | null
+          tutor_code?: string | null
+          tutor_specialization?:
+            | Database["public"]["Enums"]["academic_path"]
+            | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_community_code: { Args: never; Returns: string }
