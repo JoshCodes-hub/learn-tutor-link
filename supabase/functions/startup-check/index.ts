@@ -1,5 +1,8 @@
 // Verifies presence of required environment secrets/keys.
 // Never returns secret values — only booleans and friendly status info.
+// ADMIN ONLY: requires authenticated admin caller.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
