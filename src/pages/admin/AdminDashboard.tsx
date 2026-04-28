@@ -34,6 +34,7 @@ import { TokenPurchaseManagement } from "@/components/admin/TokenPurchaseManagem
 import { WithdrawalManagement } from "@/components/admin/WithdrawalManagement";
 import { AuditLogs } from "@/components/admin/AuditLogs";
 import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
+import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
 
 interface DashboardStats {
   totalStudents: number;
@@ -337,6 +338,12 @@ const AdminDashboard = () => {
                 <span className="hidden sm:inline">Settings</span>
                 <span className="sm:hidden">⚙️</span>
               </TabsTrigger>
+              <TabsTrigger value="schools" className="flex items-center gap-2 text-xs md:text-sm">
+                <Building2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Schools</span>
+                <span className="sm:hidden">Sch</span>
+                {stats.pendingSchools > 0 && ` (${stats.pendingSchools})`}
+              </TabsTrigger>
               <TabsTrigger value="challenges" className="flex items-center gap-2 text-xs md:text-sm">
                 <Target className="w-4 h-4" />
                 <span className="hidden sm:inline">Challenges</span>
@@ -380,6 +387,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="challenges">
             <ChallengeManagement />
+          </TabsContent>
+
+          <TabsContent value="schools">
+            <SchoolApplicationsTab />
           </TabsContent>
 
           <TabsContent value="audit">
