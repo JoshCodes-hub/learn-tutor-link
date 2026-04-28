@@ -1,6 +1,7 @@
 import { SEO } from "@/components/seo/SEO";
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
+import TrustStrip from "@/components/landing/TrustStrip";
 import StatsSection from "@/components/landing/StatsSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
