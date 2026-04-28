@@ -193,6 +193,12 @@ const Auth = () => {
                 )}
               </div>
 
+              <div className="flex justify-end -mt-2">
+                <a href="/forgot-password" className="text-xs font-semibold text-primary hover:underline">
+                  Forgot password?
+                </a>
+              </div>
+
               <Button variant="hero" size="lg" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
