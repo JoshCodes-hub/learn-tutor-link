@@ -42,9 +42,6 @@ interface ErrorRow {
 
 const DAYS = 14;
 
-function dayKey(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
 
 export const HealthDashboard = () => {
   const [loading, setLoading] = useState(true);
