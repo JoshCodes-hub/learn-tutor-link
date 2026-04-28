@@ -38,10 +38,11 @@ const Index = () => {
     <>
       <SEO
         title="AI-Powered CBT Exam Preparation"
-        description="Ace your FUTA CBT exams with AI-powered practice questions, instant explanations, and personalized learning paths. Join thousands of students preparing smarter."
-        keywords="FUTA, CBT, exam preparation, past questions, AI tutoring, online learning, Nigeria university, Federal University of Technology Akure"
-        url="https://overraprepaifuta.vercel.app/"
+        description="Ace your FUTA CBT exams with AI-powered practice questions, instant explanations, and personalized learning paths."
+        keywords="FUTA, CBT, exam preparation, past questions, AI tutoring"
+        url="https://overraprepaifuta.vercel.app/website"
         structuredData={homepageStructuredData}
+        noindex
       />
       <OnboardingTour />
       <div className="min-h-screen">
