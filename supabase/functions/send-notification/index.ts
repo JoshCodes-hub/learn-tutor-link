@@ -83,6 +83,20 @@ const getNotificationContent = (type: string, data: Record<string, any>): { titl
         notificationType: "warning",
         link: "/tutor/dashboard",
       };
+    case "school_approved":
+      return {
+        title: "School Approved!",
+        message: `${data.schoolName} has been approved. You can now access the full school management dashboard.`,
+        notificationType: "success",
+        link: "/school/dashboard",
+      };
+    case "school_rejected":
+      return {
+        title: "School Application Update",
+        message: `Your application for ${data.schoolName} was not approved at this time. ${data.adminNotes || "Please contact support."}`,
+        notificationType: "warning",
+        link: "/school/register",
+      };
     default:
       return {
         title: "Notification",
