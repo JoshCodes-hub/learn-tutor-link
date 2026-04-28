@@ -1,18 +1,11 @@
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-
-declare module "jspdf" {
-  interface jsPDF {
-    autoTable: (options: unknown) => jsPDF;
-  }
-}
+// jsPDF is loaded lazily so it doesn't ship in the main bundle.
 
 interface Column {
   key: string;
   label: string;
 }
 
-export function exportToPdf(
+export async function exportToPdf(
   data: Record<string, unknown>[],
   filename: string,
   title: string,
@@ -20,7 +13,12 @@ export function exportToPdf(
 ) {
   if (data.length === 0) return;
 
-  const doc = new jsPDF();
+  const [{ default: jsPDF }] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
+
+  const doc = new jsPDF() as any;
   
   // Add title
   doc.setFontSize(18);
