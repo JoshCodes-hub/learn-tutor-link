@@ -221,7 +221,7 @@ function drawScoresTable(doc: jsPDF, student: ReportStudent, brand: [number, num
   });
 }
 
-function drawFooter(doc: jsPDF, school: ReportSchool, term: ReportTerm, student: ReportStudent, brand: [number, number, number]) {
+async function drawFooter(doc: jsPDF, school: ReportSchool, term: ReportTerm, student: ReportStudent, brand: [number, number, number]) {
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 14;
@@ -287,7 +287,7 @@ async function renderOne(doc: jsPDF, school: ReportSchool, term: ReportTerm, kla
   drawHeader(doc, school, term, logoData, brand);
   drawStudentBlock(doc, student, klass);
   drawScoresTable(doc, student, brand);
-  drawFooter(doc, school, term, student, brand);
+  await drawFooter(doc, school, term, student, brand);
 }
 
 /** Generate one report card per student in a single PDF (one page each). */
