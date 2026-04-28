@@ -12,6 +12,7 @@ import DashboardNav from "@/components/layout/DashboardNav";
 import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
+import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import {
   Select,
   SelectContent,
