@@ -15,6 +15,7 @@ import {
   Loader2, MessageCircle, Calendar, User
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { SkeletonListItem } from "@/components/ui/premium-skeletons";
 import { formatDistanceToNow } from "date-fns";
 
 interface Discussion {
