@@ -50,6 +50,7 @@ const Index = () => {
         <Navbar />
         <main role="main" aria-label="Main content">
           <HeroSection />
+          <TrustStrip />
           <StatsSection />
           <FeaturesSection />
           <HowItWorksSection />
