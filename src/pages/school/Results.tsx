@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Award, Save } from "lucide-react";
+import { Loader2, Save, Printer, FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentSchool } from "@/hooks/useCurrentSchool";
 import AppScreen from "@/components/app-shell/AppScreen";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { generateReportCards, gradeFor, remarkFor, type ReportStudent } from "@/lib/reportCard";
 
 const grade = (t: number) => {
   if (t >= 75) return { g: "A", c: "bg-success text-success-foreground" };
