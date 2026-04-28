@@ -4,9 +4,25 @@
  * serif title, school logo, brand-colour rule, watermark, position in class,
  * grading key, signature lines, verification ID. No emojis, no childish glyphs.
  */
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import QRCode from "qrcode";
+// jsPDF, jspdf-autotable, and qrcode are dynamically imported inside
+// generateReportCards() so they aren't included in the main bundle.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let jsPDF: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let autoTable: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let QRCode: any;
+async function loadReportDeps() {
+  if (jsPDF && autoTable && QRCode) return;
+  const [jsPDFMod, autoTableMod, qrMod] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+    import("qrcode"),
+  ]);
+  jsPDF = jsPDFMod.default;
+  autoTable = autoTableMod.default;
+  QRCode = qrMod.default;
+}
 
 export type ReportSchool = {
   id: string;
@@ -298,6 +314,7 @@ export async function generateReportCards(opts: {
   students: ReportStudent[];
 }): Promise<Blob> {
   const { school, term, klass, students } = opts;
+  await loadReportDeps();
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
   const logoData = school.logo_url ? await loadImage(school.logo_url) : null;
 
