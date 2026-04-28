@@ -25,6 +25,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { sendNotification } from "@/hooks/useSendNotification";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { getSignedApplicationUrl } from "@/lib/applicationUploads";
+
+const openSignedDoc = async (pathOrUrl: string) => {
+  const url = await getSignedApplicationUrl(pathOrUrl);
+  if (url) window.open(url, "_blank", "noopener,noreferrer");
+};
 
 interface TutorApplication {
   id: string;
