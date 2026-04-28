@@ -2806,6 +2806,16 @@ export type Database = {
       generate_referral_code: { Args: never; Returns: string }
       generate_team_code: { Args: never; Returns: string }
       generate_tutor_code: { Args: never; Returns: string }
+      get_health_metrics: {
+        Args: { days?: number }
+        Returns: {
+          active_users: number
+          day: string
+          errors: number
+          quizzes_completed: number
+          quizzes_started: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
