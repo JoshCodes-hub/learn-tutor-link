@@ -16,6 +16,11 @@ const SchoolRegister = lazy(() => import("@/pages/school/Register"));
 const SchoolPending = lazy(() => import("@/pages/school/Pending"));
 const SchoolDashboard = lazy(() => import("@/pages/school/Dashboard"));
 const SchoolClasses = lazy(() => import("@/pages/school/Classes"));
+const SchoolStudents = lazy(() => import("@/pages/school/Students"));
+const SchoolAttendance = lazy(() => import("@/pages/school/Attendance"));
+const SchoolFees = lazy(() => import("@/pages/school/Fees"));
+const SchoolResults = lazy(() => import("@/pages/school/Results"));
+const SchoolAnnouncements = lazy(() => import("@/pages/school/Announcements"));
 const SchoolStub = lazy(() => import("@/pages/school/Stub"));
 const AdminSchoolApplications = lazy(() => import("@/pages/admin/SchoolApplications"));
 const ParentDashboard = lazy(() => import("@/pages/parent/ParentDashboard"));
@@ -247,13 +252,13 @@ export const AnimatedRoutes = () => {
           <Route path="/school/pending" element={<PageTransition><SchoolPending /></PageTransition>} />
           <Route path="/school/dashboard" element={<PageTransition><SchoolDashboard /></PageTransition>} />
           <Route path="/school/classes" element={<PageTransition><SchoolClasses /></PageTransition>} />
-          <Route path="/school/students" element={<PageTransition><SchoolStub title="Students" /></PageTransition>} />
+          <Route path="/school/students" element={<PageTransition><SchoolStudents /></PageTransition>} />
           <Route path="/school/teachers" element={<PageTransition><SchoolStub title="Teachers" /></PageTransition>} />
-          <Route path="/school/attendance" element={<PageTransition><SchoolStub title="Attendance" /></PageTransition>} />
-          <Route path="/school/results" element={<PageTransition><SchoolStub title="Results & report cards" /></PageTransition>} />
-          <Route path="/school/fees" element={<PageTransition><SchoolStub title="Fees" /></PageTransition>} />
+          <Route path="/school/attendance" element={<PageTransition><SchoolAttendance /></PageTransition>} />
+          <Route path="/school/results" element={<PageTransition><SchoolResults /></PageTransition>} />
+          <Route path="/school/fees" element={<PageTransition><SchoolFees /></PageTransition>} />
           <Route path="/school/timetable" element={<PageTransition><SchoolStub title="Timetable" /></PageTransition>} />
-          <Route path="/school/announcements" element={<PageTransition><SchoolStub title="Announcements" /></PageTransition>} />
+          <Route path="/school/announcements" element={<PageTransition><SchoolAnnouncements /></PageTransition>} />
           <Route path="/school/settings" element={<PageTransition><SchoolStub title="School settings" /></PageTransition>} />
           <Route path="/admin/schools" element={<PageTransition><AdminSchoolApplications /></PageTransition>} />
           <Route path="/parent/dashboard" element={<PageTransition><ParentDashboard /></PageTransition>} />
