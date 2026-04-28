@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +7,6 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import SplashScreen from "@/components/SplashScreen";
 import AnimatedRoutes from "@/components/layout/AnimatedRoutes";
 import BiometricUnlock from "@/components/native/BiometricUnlock";
 import OfflineBanner from "@/components/native/OfflineBanner";
@@ -40,18 +39,6 @@ function PushBootstrap() {
 }
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(() => {
-    const lastSplash = localStorage.getItem("lastSplashShown");
-    if (!lastSplash) return true;
-    const hoursSinceLastSplash = (Date.now() - parseInt(lastSplash)) / (1000 * 60 * 60);
-    return hoursSinceLastSplash > 24;
-  });
-
-  const handleSplashComplete = () => {
-    localStorage.setItem("lastSplashShown", Date.now().toString());
-    setShowSplash(false);
-  };
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -61,7 +48,6 @@ const App = () => {
           <InstallPrompt />
           <OfflineBanner />
           <NetworkStatus />
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
           <BrowserRouter>
             <ScrollToTop />
             <PageViewTracker />
