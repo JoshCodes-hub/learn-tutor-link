@@ -1,15 +1,78 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// In-memory token bucket (per worker instance — best-effort cost protection only)
+const buckets = new Map<string, { count: number; resetAt: number }>();
+const LIMIT = 30; // 30 requests
+const WINDOW_MS = 60_000; // per minute
+
+function checkLimit(key: string): boolean {
+  const now = Date.now();
+  const b = buckets.get(key);
+  if (!b || b.resetAt < now) {
+    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  if (b.count >= LIMIT) return false;
+  b.count++;
+  return true;
+}
+
+const BodySchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["system", "user", "assistant"]),
+        content: z.string().min(1).max(8000),
+      })
+    )
+    .min(1)
+    .max(40),
+  academic_path: z.enum(["secondary", "jamb", "university"]).optional().default("university"),
+});
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, academic_path = "university" } = await req.json();
+    // Identify caller (auth user > IP)
+    let callerKey = req.headers.get("x-forwarded-for") || "anon";
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      try {
+        const supabase = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_ANON_KEY")!,
+          { global: { headers: { Authorization: authHeader } } }
+        );
+        const { data } = await supabase.auth.getUser();
+        if (data.user) callerKey = `u:${data.user.id}`;
+      } catch (_) { /* fall back to IP */ }
+    }
+
+    if (!checkLimit(callerKey)) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please slow down and try again in a minute." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const raw = await req.json();
+    const parsed = BodySchema.safeParse(raw);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const { messages, academic_path } = parsed.data;
+
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -32,8 +95,8 @@ Deno.serve(async (req) => {
       }),
     });
 
-    if (upstream.status === 429) return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    if (upstream.status === 402) return new Response(JSON.stringify({ error: "Payment required - add credits" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (upstream.status === 429) return new Response(JSON.stringify({ error: "AI service busy. Try again in a moment." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (upstream.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted. Please contact support." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     if (!upstream.ok || !upstream.body) throw new Error(`AI gateway error ${upstream.status}`);
 
     return new Response(upstream.body, {
