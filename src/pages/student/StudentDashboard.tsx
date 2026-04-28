@@ -66,6 +66,7 @@ import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 
 interface Stats {
   totalAttempts: number;
@@ -768,7 +769,34 @@ const StudentDashboard = () => {
           />
         </div>
 
-        {/* Token Wallet Card */}
+        {/* Quick Actions */}
+        <QuickActions
+          subtitle="Jump straight back into your prep"
+          actions={[
+            {
+              icon: Play,
+              label: "Start CBT Simulation",
+              description: "Full timed practice — JAMB-style",
+              to: "/student/readiness",
+              tone: "gold",
+            },
+            {
+              icon: Target,
+              label: "Practice Weak Areas",
+              description: "Drill the topics you struggle with most",
+              to: "/student/mastery",
+              tone: "rose",
+            },
+            {
+              icon: GraduationCap,
+              label: "Buy Tutor Pack",
+              description: "Browse top tutors & unlock survival kits",
+              to: "/tutors",
+              tone: "violet",
+            },
+          ]}
+        />
+
         <div className="bg-gradient-card rounded-2xl border border-border p-6 mb-8">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">

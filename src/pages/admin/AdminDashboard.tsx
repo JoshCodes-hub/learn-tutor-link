@@ -38,6 +38,7 @@ import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 
 interface DashboardStats {
   totalStudents: number;
@@ -268,7 +269,37 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Pending Applications Alerts */}
+        {/* Quick Actions */}
+        <QuickActions
+          subtitle="Triage the platform from one place"
+          actions={[
+            {
+              icon: FileText,
+              label: "Review Reports",
+              description: "Inspect flagged questions & content reports",
+              onClick: () => setActiveTab("questions"),
+              tone: "rose",
+              badge: stats.pendingPurchases > 0 ? stats.pendingPurchases : undefined,
+            },
+            {
+              icon: GraduationCap,
+              label: "Approve Tutors",
+              description: "Review pending tutor applications",
+              onClick: () => setActiveTab("tutors"),
+              tone: "violet",
+              badge: stats.pendingApplications > 0 ? stats.pendingApplications : undefined,
+            },
+            {
+              icon: Building2,
+              label: "Manage Schools",
+              description: "Approve and oversee school accounts",
+              onClick: () => setActiveTab("schools"),
+              tone: "emerald",
+              badge: stats.pendingSchools > 0 ? stats.pendingSchools : undefined,
+            },
+          ]}
+        />
+
         {stats.pendingApplications > 0 && (
           <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">

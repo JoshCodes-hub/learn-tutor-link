@@ -42,13 +42,14 @@ import { OnboardingChecklist } from "@/components/tutor/OnboardingChecklist";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, AlertCircle } from "lucide-react";
 
 interface Course {
   id: string;
@@ -414,7 +415,38 @@ const TutorDashboard = () => {
           />
         </div>
 
-        {/* Courses Section */}
+        {/* Quick Actions */}
+        <QuickActions
+          subtitle="Run your studio in three clicks"
+          actions={[
+            {
+              icon: Plus,
+              label: "Create Quiz or Exam",
+              description: "Author a new CBT in minutes",
+              onClick: () => setShowUnifiedQuizCreator(true),
+              tone: "gold",
+            },
+            {
+              icon: AlertCircle,
+              label: "Review Pending Reports",
+              description: "Address student-flagged questions",
+              onClick: () => {
+                document
+                  .getElementById("question-reports")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              },
+              tone: "rose",
+            },
+            {
+              icon: Users,
+              label: "View Your Students",
+              description: "See who's practicing your content",
+              to: user?.id ? `/tutor/${user.id}` : "/tutors",
+              tone: "violet",
+            },
+          ]}
+        />
+
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-xl font-bold text-foreground">Your Courses</h2>
@@ -498,8 +530,7 @@ const TutorDashboard = () => {
         </div>
 
         {/* Question Reports Section */}
-        <div className="mb-8">
-          <QuestionReports />
+        <div id="question-reports" className="mb-8 scroll-mt-24">
         </div>
       </main>
 
