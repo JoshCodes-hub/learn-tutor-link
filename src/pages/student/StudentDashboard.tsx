@@ -68,6 +68,7 @@ import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
+import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 
 interface Stats {
   totalAttempts: number;
@@ -137,6 +138,7 @@ const StudentDashboard = () => {
   const [showPurchaseQuiz, setShowPurchaseQuiz] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [purchaseRequests, setPurchaseRequests] = useState<any[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
