@@ -117,7 +117,15 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("@radix-ui")) return "vendor-radix";
           if (id.includes("@supabase")) return "vendor-supabase";
           if (id.includes("lucide-react")) return "vendor-icons";
-          if (id.includes("react-router") || id.includes("react-dom") || id.includes("/react/")) return "vendor-react";
+          // Keep react, react-dom, scheduler, and react-router in ONE chunk so
+          // scheduler initializes before react-dom calls unstable_scheduleCallback.
+          if (
+            id.includes("react-router") ||
+            id.includes("react-dom") ||
+            id.includes("/react/") ||
+            id.includes("/scheduler/") ||
+            id.includes("\\scheduler\\")
+          ) return "vendor-react";
           return "vendor";
         },
       },
