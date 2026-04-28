@@ -8,7 +8,7 @@ import { School, Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminSchoolApplications() {
-  const { hasRole } = useAuth();
+  const { user, hasRole } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,9 +19,35 @@ export default function AdminSchoolApplications() {
   };
   useEffect(() => { load(); }, []);
 
-  const act = async (id: string, status: "approved" | "rejected") => {
-    const { error } = await supabase.from("schools").update({ status }).eq("id", id);
+  const act = async (school: any, status: "approved" | "rejected") => {
+    const { error } = await supabase.from("schools").update({ status }).eq("id", school.id);
     if (error) return toast.error(error.message);
+
+    // Audit log
+    if (user) {
+      await supabase.rpc("log_admin_action", {
+        p_admin_id: user.id,
+        p_action: status === "approved" ? "approve_school" : "reject_school",
+        p_table_name: "schools",
+        p_record_id: school.id,
+        p_old_data: { status: school.status } as any,
+        p_new_data: { status } as any,
+      });
+    }
+
+    // In-app notification to the school owner
+    if (school.owner_id) {
+      await supabase.from("notifications").insert({
+        user_id: school.owner_id,
+        title: status === "approved" ? "School approved" : "School application update",
+        message: status === "approved"
+          ? `${school.name} has been approved. You can now access your full school management dashboard.`
+          : `Your application for ${school.name} was not approved at this time. Please contact support for next steps.`,
+        type: status === "approved" ? "success" : "warning",
+        link: status === "approved" ? "/school/dashboard" : "/school/register",
+      });
+    }
+
     toast.success(`School ${status}`);
     load();
   };
@@ -42,8 +68,8 @@ export default function AdminSchoolApplications() {
                 </div>
                 {s.status === "pending" && (
                   <div className="flex gap-2 mt-3">
-                    <Button size="sm" onClick={() => act(s.id, "approved")}><Check className="w-4 h-4 mr-1" />Approve</Button>
-                    <Button size="sm" variant="outline" onClick={() => act(s.id, "rejected")}><X className="w-4 h-4 mr-1" />Reject</Button>
+                    <Button size="sm" onClick={() => act(s, "approved")}><Check className="w-4 h-4 mr-1" />Approve</Button>
+                    <Button size="sm" variant="outline" onClick={() => act(s, "rejected")}><X className="w-4 h-4 mr-1" />Reject</Button>
                   </div>
                 )}
               </div>
