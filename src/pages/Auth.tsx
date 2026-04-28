@@ -31,20 +31,38 @@ const signUpSchema = z.object({
 type SignInFormData = z.infer<typeof signInSchema>;
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
+const INTENT_LABELS: Record<string, string> = {
+  student: "Student",
+  tutor: "Tutor",
+  parent: "Parent",
+  school_owner: "School Owner",
+};
+
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const referralCodeFromUrl = searchParams.get("ref") || "";
   const modeFromUrl = searchParams.get("mode");
-  const [isSignUp, setIsSignUp] = useState(modeFromUrl === "signup" || !!referralCodeFromUrl);
+  const intent = searchParams.get("intent") || "";
+  const redirect = searchParams.get("redirect") || "";
+  const [isSignUp, setIsSignUp] = useState(modeFromUrl === "signup" || !!referralCodeFromUrl || !!intent);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
 
+  const postAuthDestination = () => {
+    if (redirect) return redirect;
+    if (intent === "tutor") return "/apply-tutor";
+    if (intent === "school_owner") return "/school/register";
+    if (intent === "parent") return "/parent/dashboard";
+    return "/dashboard";
+  };
+
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate(postAuthDestination());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   const signInForm = useForm<SignInFormData>({
