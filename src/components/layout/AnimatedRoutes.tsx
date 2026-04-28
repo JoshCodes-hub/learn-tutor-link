@@ -74,6 +74,9 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const StartupChecklist = lazy(() => import("@/pages/admin/StartupChecklist"));
 const VerifyReportCard = lazy(() => import("@/pages/verify/VerifyReportCard"));
 const MyReportCard = lazy(() => import("@/pages/student/MyReportCard"));
+const Terms = lazy(() => import("@/pages/legal/Terms"));
+const Privacy = lazy(() => import("@/pages/legal/Privacy"));
+const PrivacySettings = lazy(() => import("@/pages/settings/PrivacySettings"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -287,6 +290,9 @@ export const AnimatedRoutes = () => {
           <Route path="/survival-kits/:kitId" element={<PageTransition><SurvivalKitView /></PageTransition>} />
           <Route path="/strategy" element={<PageTransition><Strategy /></PageTransition>} />
           <Route path="/ai-tutor" element={<PageTransition><AITutor /></PageTransition>} />
+          <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
+          <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
+          <Route path="/settings/privacy" element={<PageTransition><PrivacySettings /></PageTransition>} />
           <Route path="/exam-tomorrow" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route path="/can-i-pass" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route path="/two-hours-left" element={<PageTransition><ViralMode /></PageTransition>} />
