@@ -34,7 +34,8 @@ type SignUpFormData = z.infer<typeof signUpSchema>;
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const referralCodeFromUrl = searchParams.get("ref") || "";
-  const [isSignUp, setIsSignUp] = useState(!!referralCodeFromUrl);
+  const modeFromUrl = searchParams.get("mode");
+  const [isSignUp, setIsSignUp] = useState(modeFromUrl === "signup" || !!referralCodeFromUrl);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
