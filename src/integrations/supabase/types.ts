@@ -1896,7 +1896,14 @@ export type Database = {
     }
     Enums: {
       academic_path: "secondary" | "jamb" | "university"
-      app_role: "student" | "tutor" | "admin"
+      app_role:
+        | "student"
+        | "tutor"
+        | "admin"
+        | "school_owner"
+        | "school_admin"
+        | "teacher"
+        | "parent"
       application_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -2026,7 +2033,15 @@ export const Constants = {
   public: {
     Enums: {
       academic_path: ["secondary", "jamb", "university"],
-      app_role: ["student", "tutor", "admin"],
+      app_role: [
+        "student",
+        "tutor",
+        "admin",
+        "school_owner",
+        "school_admin",
+        "teacher",
+        "parent",
+      ],
       application_status: ["pending", "approved", "rejected"],
     },
   },
