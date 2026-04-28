@@ -41,6 +41,7 @@ import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { PullToRefresh } from "@/components/native/PullToRefresh";
 
 interface DashboardStats {
   totalStudents: number;
@@ -74,6 +75,7 @@ const AdminDashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -178,7 +180,12 @@ const AdminDashboard = () => {
     if (user && hasRole("admin")) {
       fetchStats();
     }
-  }, [user, hasRole]);
+  }, [user, hasRole, refreshKey]);
+
+  const handleRefresh = async () => {
+    setRefreshKey((k) => k + 1);
+    await new Promise((r) => setTimeout(r, 500));
+  };
 
   if (authLoading || isLoading) {
     return (
@@ -189,6 +196,7 @@ const AdminDashboard = () => {
   }
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-50">
@@ -443,6 +451,7 @@ const AdminDashboard = () => {
         </Tabs>
       </main>
     </div>
+    </PullToRefresh>
   );
 };
 
