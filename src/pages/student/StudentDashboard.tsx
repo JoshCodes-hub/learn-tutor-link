@@ -691,7 +691,7 @@ const StudentDashboard = () => {
         <DashboardHero
           role="student"
           fullName={profile?.full_name}
-          avatarUrl={profile?.profile_image_url || profile?.avatar_url}
+          avatarUrl={profile?.avatar_url}
           subtitle={
             <>
               You're <span className="font-semibold text-amber-700">{getReadinessLabel().toLowerCase()}</span> — keep the streak alive and your readiness will rise to the top.
