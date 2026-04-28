@@ -68,18 +68,13 @@ export default function ExamReadiness() {
       const since = new Date();
       since.setDate(since.getDate() - 30);
 
-      const [{ data: atts }, { data: ans }, { data: streakRow }] = await Promise.all([
+      const [{ data: atts }, { data: streakRow }] = await Promise.all([
         supabase
           .from("quiz_attempts")
           .select("id,score,total_questions,correct_answers,completed_at,started_at,quiz_id")
           .eq("user_id", user.id)
           .gte("started_at", since.toISOString())
           .order("started_at", { ascending: false }),
-        supabase
-          .from("quiz_answers")
-          .select("is_correct, question_id, attempt_id, questions:question_id(course_id, courses:course_id(name))")
-          .eq("questions.tutor_id", user.id) // harmless filter; ignored if null
-          .limit(0),
         supabase.from("study_streaks" as any).select("current_streak").eq("user_id", user.id).maybeSingle(),
       ]);
 
