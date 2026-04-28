@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Zap, Clock, Shield } from "lucide-react";
+import { ArrowRight, CheckCircle2, Zap, Clock, Shield, GraduationCap, School } from "lucide-react";
 
 const benefits = [
   { icon: Zap, text: "Instant AI explanations" },
