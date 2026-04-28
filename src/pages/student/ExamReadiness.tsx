@@ -242,7 +242,13 @@ export default function ExamReadiness() {
           <StatTile icon={Timer} label="Practice" value={`${totalMinutes}m`} accent="text-emerald-500" />
         </div>
 
-        {/* 7-day momentum */}
+        {/* Weekly plan from exam goal */}
+        <WeeklyPlanCard
+          goal={goal}
+          currentScore={avgScore}
+          weeklyCompleted={weeklyCompleted}
+          onSetGoal={() => setGoalOpen(true)}
+        />
         <Card className="p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -274,20 +280,29 @@ export default function ExamReadiness() {
 
         {/* Strength & weakness */}
         <div className="grid sm:grid-cols-2 gap-3">
-          <Card className="p-4 border-rose-500/20 bg-rose-500/5">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-rose-500" />
-              <h4 className="text-sm font-semibold">Weakest Area</h4>
+          <button
+            type="button"
+            disabled={!weakest}
+            onClick={() => weakest && navigate(`/student/weak/${encodeURIComponent(weakest.course)}`)}
+            className="text-left p-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 transition-all hover:border-rose-500/40 active:scale-[0.98] disabled:opacity-100 disabled:cursor-default"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-500" />
+                <h4 className="text-sm font-semibold">Weakest Area</h4>
+              </div>
+              {weakest && <ArrowRight className="w-4 h-4 text-rose-500/70" />}
             </div>
             {weakest ? (
               <>
                 <p className="font-display text-lg font-semibold leading-tight">{weakest.course}</p>
                 <p className="text-xs text-muted-foreground mt-1">{weakest.accuracy}% accuracy across {weakest.attempted} questions</p>
+                <p className="text-[11px] text-rose-600 mt-2 font-medium">Tap to review wrong answers →</p>
               </>
             ) : (
               <p className="text-xs text-muted-foreground">Take a few more quizzes to surface weak areas.</p>
             )}
-          </Card>
+          </button>
           <Card className="p-4 border-emerald-500/20 bg-emerald-500/5">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-emerald-500" />
