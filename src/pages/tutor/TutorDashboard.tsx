@@ -39,6 +39,7 @@ import TutorAnalytics from "@/components/tutor/TutorAnalytics";
 import QuizManagement from "@/components/tutor/QuizManagement";
 import { TutorCommunityManager } from "@/components/tutor/TutorCommunityManager";
 import { OnboardingChecklist } from "@/components/tutor/OnboardingChecklist";
+import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import {
   DropdownMenu,
   DropdownMenuContent,
