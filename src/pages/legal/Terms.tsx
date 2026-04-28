@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ScrollText, ArrowLeft, Shield, Scale, AlertTriangle, Mail } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import SiteFooter from "@/components/layout/SiteFooter";
 
 const sections = [
   { id: "acceptance", title: "1. Acceptance of Terms", body: "By creating an account or using OverraPrep AI, you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree, please discontinue use of the platform immediately." },
