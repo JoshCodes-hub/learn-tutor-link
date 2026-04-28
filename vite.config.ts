@@ -110,9 +110,9 @@ export default defineConfig(({ mode }) => ({
           // Heavy/optional libs — only loaded when needed
           if (id.includes("xlsx")) return "vendor-xlsx";
           if (id.includes("mammoth")) return "vendor-mammoth";
-          if (id.includes("jspdf") || id.includes("html2canvas")) return "vendor-pdf";
+          // PDF + QR are dynamically imported in src/lib/{exportPdf,exportStudyPack,reportCard}.ts
+          if (id.includes("jspdf") || id.includes("html2canvas") || id.includes("qrcode")) return "vendor-reports";
           if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
-          if (id.includes("qrcode")) return "vendor-qr";
           if (id.includes("framer-motion")) return "vendor-motion";
           if (id.includes("@radix-ui")) return "vendor-radix";
           if (id.includes("@supabase")) return "vendor-supabase";
