@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Sparkles, GraduationCap, School, ChevronRight } from "lucide-react";
+import { Sparkles, GraduationCap, Presentation, Building2, ChevronRight } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SEO } from "@/components/seo/SEO";
 
@@ -80,26 +80,26 @@ const Welcome = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.45, duration: 0.4 }}
-            className="mt-10 grid grid-cols-2 gap-3 w-full max-w-xs"
+            className="mt-10 grid grid-cols-3 gap-2 w-full max-w-sm"
           >
-            <button
+            <PersonaTile
+              icon={GraduationCap}
+              label="I'm a student"
+              hint="Ace exams"
               onClick={() => navigate("/auth?intent=student")}
-              className="group p-3 rounded-2xl border border-border/60 bg-card hover:border-primary/40 transition-all text-left active:scale-95"
-            >
-              <GraduationCap className="w-5 h-5 text-primary mb-2" />
-              <div className="text-xs font-semibold">I'm a student</div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">Ace your exams</div>
-            </button>
-            <button
+            />
+            <PersonaTile
+              icon={Presentation}
+              label="I'm a tutor"
+              hint="Teach & earn"
+              onClick={() => navigate("/auth?intent=tutor")}
+            />
+            <PersonaTile
+              icon={Building2}
+              label="I run a school"
+              hint="Register"
               onClick={() => navigate("/school/register")}
-              className="group p-3 rounded-2xl border border-border/60 bg-card hover:border-primary/40 transition-all text-left active:scale-95"
-            >
-              <School className="w-5 h-5 text-primary mb-2" />
-              <div className="text-xs font-semibold">I run a school</div>
-              <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-0.5">
-                Register <ChevronRight className="w-3 h-3" />
-              </div>
-            </button>
+            />
           </motion.div>
         </main>
         <footer className="text-center text-[10px] text-muted-foreground pb-4">
@@ -111,3 +111,16 @@ const Welcome = () => {
 };
 
 export default Welcome;
+
+const PersonaTile = ({ icon: Icon, label, hint, onClick }: { icon: any; label: string; hint: string; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className="group p-3 rounded-2xl border border-border/60 bg-card hover:border-primary/40 hover:shadow-md transition-all text-left active:scale-95"
+  >
+    <Icon className="w-5 h-5 text-primary mb-2" strokeWidth={1.75} />
+    <div className="text-xs font-semibold leading-tight">{label}</div>
+    <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-0.5">
+      {hint} <ChevronRight className="w-3 h-3" />
+    </div>
+  </button>
+);
