@@ -37,10 +37,10 @@ export default function VerifyReportCard() {
   };
 
   useEffect(() => {
-    const id = params.get("id");
+    const id = routeParams.id || params.get("id");
     if (id) verify(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [routeParams.id]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +128,7 @@ export default function VerifyReportCard() {
           )}
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }
