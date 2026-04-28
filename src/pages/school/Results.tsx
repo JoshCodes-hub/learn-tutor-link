@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Save, Printer, FileDown } from "lucide-react";
+import { Loader2, Save, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentSchool } from "@/hooks/useCurrentSchool";
 import AppScreen from "@/components/app-shell/AppScreen";
