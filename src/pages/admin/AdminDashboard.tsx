@@ -36,6 +36,8 @@ import { AuditLogs } from "@/components/admin/AuditLogs";
 import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
 import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
+import { DashboardHero } from "@/components/dashboard/DashboardHero";
+import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 
 interface DashboardStats {
   totalStudents: number;
