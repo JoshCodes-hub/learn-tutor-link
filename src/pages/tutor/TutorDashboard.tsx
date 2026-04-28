@@ -44,6 +44,7 @@ import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
+import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineBanner";
 import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import {
   DropdownMenu,
@@ -332,6 +333,7 @@ const TutorDashboard = () => {
       <DashboardBreadcrumb role="tutor" />
 
       <main className="container mx-auto px-4 py-8">
+        <DashboardOfflineBanner onReattempt={refreshData} />
         {/* Hero */}
         <DashboardHero
           role="tutor"
