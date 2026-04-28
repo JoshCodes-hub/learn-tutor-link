@@ -409,6 +409,70 @@ const TutorApplications = () => {
                         </div>
                       )}
 
+                      {/* Detailed verification fields */}
+                      <div className="grid md:grid-cols-2 gap-3 text-xs">
+                        {application.phone && <Info label="Phone" value={application.phone} />}
+                        {application.specialization && <Info label="Specialization" value={application.specialization} />}
+                        {application.highest_qualification && <Info label="Qualification" value={application.highest_qualification} />}
+                        {application.institution && <Info label="Institution" value={application.institution} />}
+                        {application.years_experience != null && <Info label="Years Experience" value={String(application.years_experience)} />}
+                        {application.current_position && <Info label="Current Role" value={application.current_position} />}
+                      </div>
+
+                      {application.subjects_taught && application.subjects_taught.length > 0 && (
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Subjects taught</p>
+                          <p className="text-sm">{application.subjects_taught.join(", ")}</p>
+                        </div>
+                      )}
+
+                      {/* Document links */}
+                      {(application.gov_id_url || application.certificate_url) && (
+                        <div className="flex flex-wrap gap-2">
+                          {application.gov_id_url && (
+                            <a href={application.gov_id_url} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                              📄 View Government ID
+                            </a>
+                          )}
+                          {application.certificate_url && (
+                            <a href={application.certificate_url} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                              🎓 View Certificate
+                            </a>
+                          )}
+                          {application.sample_video_url && (
+                            <a href={application.sample_video_url} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-full bg-accent/10 text-accent hover:bg-accent/20 transition-colors">
+                              ▶ Sample video
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {application.why_join && (
+                        <div className="bg-accent/5 border border-accent/20 rounded-lg p-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Why they want to join</p>
+                          <p className="text-sm whitespace-pre-wrap">{application.why_join}</p>
+                        </div>
+                      )}
+
+                      {(application.sample_question_1 || application.sample_explanation) && (
+                        <details className="bg-muted/30 rounded-lg p-3 group">
+                          <summary className="text-xs font-medium text-muted-foreground cursor-pointer">
+                            View sample work (3 questions + explanation)
+                          </summary>
+                          <div className="mt-3 space-y-2 text-sm">
+                            {application.sample_question_1 && <p><strong>Q1:</strong> {application.sample_question_1}</p>}
+                            {application.sample_question_2 && <p><strong>Q2:</strong> {application.sample_question_2}</p>}
+                            {application.sample_question_3 && <p><strong>Q3:</strong> {application.sample_question_3}</p>}
+                            {application.sample_explanation && (
+                              <div className="pt-2 border-t border-border">
+                                <p className="font-medium mb-1">Sample Explanation:</p>
+                                <p className="whitespace-pre-wrap">{application.sample_explanation}</p>
+                              </div>
+                            )}
+                          </div>
+                        </details>
+                      )}
+
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground mb-2">Admin Notes</h4>
                         <Textarea
