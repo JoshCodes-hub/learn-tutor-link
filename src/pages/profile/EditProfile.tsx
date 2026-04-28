@@ -373,6 +373,7 @@ const EditProfile = () => {
               </>
             )}
           </Button>
+          </div>
         </div>
       </main>
     </div>
