@@ -44,6 +44,7 @@ import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
+import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,6 +111,8 @@ const TutorDashboard = () => {
   const [showBulkQuizImport, setShowBulkQuizImport] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
