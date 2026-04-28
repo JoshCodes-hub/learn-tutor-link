@@ -75,6 +75,45 @@ const CTASection = () => {
               ))}
             </div>
           </div>
+
+          {/* Partner CTAs — Tutor + School */}
+          <div className="grid md:grid-cols-2 gap-5 mt-10">
+            <button
+              onClick={() => navigate("/apply-tutor")}
+              className="group text-left p-6 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <GraduationCap className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-display font-bold text-lg mb-1">Become a Tutor</h3>
+                  <p className="text-sm text-muted-foreground mb-3">Share your expertise, build a following and earn — admin-vetted for quality.</p>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                    Apply now <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => navigate("/school/register")}
+              className="group text-left p-6 rounded-2xl border border-accent/25 bg-gradient-to-br from-accent/10 via-card to-card hover:border-accent/50 hover:shadow-xl hover:shadow-accent/10 transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent/15 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <School className="w-6 h-6 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-display font-bold text-lg mb-1">Register your School</h3>
+                  <p className="text-sm text-muted-foreground mb-3">Manage classes, attendance, results and fees — verified by admin.</p>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent">
+                    Get started <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
     </section>
