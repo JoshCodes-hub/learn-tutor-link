@@ -40,7 +40,21 @@ window.addEventListener("unhandledrejection", (e) => {
     sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
     window.location.reload();
   }
-});
+
+// Manually register the PWA service worker with an ABSOLUTE path so it works
+// regardless of the current route (vite `base: "./"` would otherwise resolve
+// `sw.js` relative to the path, e.g. `/student/sw.js` → 404).
+if ("serviceWorker" in navigator && !Capacitor.isNativePlatform()) {
+  window.addEventListener("load", () => {
+    const swUrl = import.meta.env.DEV ? "/dev-sw.js?dev-sw" : "/sw.js";
+    const swType: WorkerType = import.meta.env.DEV ? "module" : "classic";
+    navigator.serviceWorker
+      .register(swUrl, { scope: "/", type: swType })
+      .catch(() => {
+        // Silent — SW is a progressive enhancement
+      });
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
