@@ -62,6 +62,7 @@ import {
   Share2
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 
 interface Stats {
   totalAttempts: number;
