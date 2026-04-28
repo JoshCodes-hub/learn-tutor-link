@@ -530,8 +530,7 @@ const TutorDashboard = () => {
         </div>
 
         {/* Question Reports Section */}
-        <div className="mb-8">
-          <QuestionReports />
+        <div id="question-reports" className="mb-8 scroll-mt-24">
         </div>
       </main>
 
