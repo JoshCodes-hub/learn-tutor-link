@@ -8,7 +8,9 @@ type NotificationType =
   | "withdrawal_rejected"
   | "quiz_purchased"
   | "welcome"
-  | "question_reported";
+  | "question_reported"
+  | "school_approved"
+  | "school_rejected";
 
 interface NotificationData {
   type: NotificationType;

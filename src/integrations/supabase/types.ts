@@ -1252,6 +1252,92 @@ export type Database = {
         }
         Relationships: []
       }
+      report_card_verifications: {
+        Row: {
+          average_score: number | null
+          class_id: string | null
+          class_label: string | null
+          class_size: number | null
+          id: string
+          issued_at: string
+          issued_by: string | null
+          position: number | null
+          school_id: string
+          school_name: string
+          student_id: string
+          student_name: string
+          term_id: string
+          term_label: string | null
+          total_score: number | null
+          verification_id: string
+        }
+        Insert: {
+          average_score?: number | null
+          class_id?: string | null
+          class_label?: string | null
+          class_size?: number | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          position?: number | null
+          school_id: string
+          school_name: string
+          student_id: string
+          student_name: string
+          term_id: string
+          term_label?: string | null
+          total_score?: number | null
+          verification_id: string
+        }
+        Update: {
+          average_score?: number | null
+          class_id?: string | null
+          class_label?: string | null
+          class_size?: number | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          position?: number | null
+          school_id?: string
+          school_name?: string
+          student_id?: string
+          student_name?: string
+          term_id?: string
+          term_label?: string | null
+          total_score?: number | null
+          verification_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_card_verifications_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "school_classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_card_verifications_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_card_verifications_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "school_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_card_verifications_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "school_terms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       results: {
         Row: {
           ca1: number | null
@@ -2483,6 +2569,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tutor_onboarding: {
+        Row: {
+          bank_added: boolean
+          community_created: boolean
+          course_created: boolean
+          dismissed: boolean
+          profile_completed: boolean
+          quiz_created: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_added?: boolean
+          community_created?: boolean
+          course_created?: boolean
+          dismissed?: boolean
+          profile_completed?: boolean
+          quiz_created?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_added?: boolean
+          community_created?: boolean
+          course_created?: boolean
+          dismissed?: boolean
+          profile_completed?: boolean
+          quiz_created?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_achievements: {
         Row: {
