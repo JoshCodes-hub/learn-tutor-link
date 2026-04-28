@@ -35,6 +35,7 @@ import { WithdrawalManagement } from "@/components/admin/WithdrawalManagement";
 import { AuditLogs } from "@/components/admin/AuditLogs";
 import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
 import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
+import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 
 interface DashboardStats {
   totalStudents: number;
