@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import AppScreen from "@/components/app-shell/AppScreen";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, FileText, ShieldCheck, Award } from "lucide-react";
+import { Loader2, Download, FileText, ShieldCheck, Award, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { generateReportCards, gradeFor, remarkFor, type ReportStudent } from "@/lib/reportCard";
 import { issueVerification } from "@/lib/reportCardVerification";
+import { shareContent, haptic } from "@/lib/native";
 
 type TermOption = {
   id: string;
@@ -210,9 +211,23 @@ export default function MyReportCard() {
                   <p className="font-semibold text-foreground">Term {t.term} · {t.session}</p>
                   {t.is_current && <span className="text-[10px] uppercase tracking-wider bg-success/15 text-success px-1.5 py-0.5 rounded font-bold">Current</span>}
                 </div>
-                <Button onClick={() => download(t)} disabled={busy === t.id}>
-                  {busy === t.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Download className="w-4 h-4 mr-2" /> Download PDF</>}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={async () => {
+                    void haptic("light");
+                    const url = `${window.location.origin}/verify`;
+                    await shareContent({
+                      title: `My ${school.name} report card`,
+                      text: `Term ${t.term} · ${t.session} report card from ${school.name}. Verify at ${url}`,
+                      url,
+                      dialogTitle: "Share report card",
+                    });
+                  }}>
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                  <Button onClick={() => download(t)} disabled={busy === t.id}>
+                    {busy === t.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Download className="w-4 h-4 mr-2" /> Download PDF</>}
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>
