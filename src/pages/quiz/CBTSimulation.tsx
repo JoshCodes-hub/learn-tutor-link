@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
+import { haptic } from "@/lib/native";
 
 interface Question {
   id: string;
@@ -199,6 +200,7 @@ const CBTSimulation = () => {
 
   const handleSelectAnswer = (questionId: string, option: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
+    void haptic("selection");
   };
 
   const toggleFlag = (questionId: string) => {
@@ -217,6 +219,7 @@ const CBTSimulation = () => {
     if (!attemptId || isSubmitting) return;
     
     setIsSubmitting(true);
+    void haptic("heavy");
     if (timerRef.current) clearInterval(timerRef.current);
 
     try {

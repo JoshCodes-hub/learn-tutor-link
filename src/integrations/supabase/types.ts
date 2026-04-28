@@ -852,6 +852,7 @@ export type Database = {
           academic_metadata: Json
           academic_path: Database["public"]["Enums"]["academic_path"] | null
           avatar_url: string | null
+          cover_photo_url: string | null
           created_at: string
           department: string | null
           email: string
@@ -872,6 +873,7 @@ export type Database = {
           academic_metadata?: Json
           academic_path?: Database["public"]["Enums"]["academic_path"] | null
           avatar_url?: string | null
+          cover_photo_url?: string | null
           created_at?: string
           department?: string | null
           email: string
@@ -892,6 +894,7 @@ export type Database = {
           academic_metadata?: Json
           academic_path?: Database["public"]["Enums"]["academic_path"] | null
           avatar_url?: string | null
+          cover_photo_url?: string | null
           created_at?: string
           department?: string | null
           email?: string

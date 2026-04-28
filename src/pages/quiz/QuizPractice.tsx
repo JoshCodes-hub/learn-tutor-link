@@ -26,6 +26,7 @@ import {
 import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
 import { SpeakButton } from "@/components/audio/SpeakButton";
+import { haptic } from "@/lib/native";
 
 interface Question {
   id: string;
@@ -213,6 +214,7 @@ const QuizPractice = () => {
   const handleSelectAnswer = (option: string) => {
     if (isAnswered) return;
     setSelectedAnswer(option);
+    void haptic("selection");
   };
 
   const handleSubmitAnswer = async () => {
@@ -221,6 +223,7 @@ const QuizPractice = () => {
     const correct = selectedAnswer === currentQuestion.correct_option;
     setIsCorrect(correct);
     setIsAnswered(true);
+    void haptic(correct ? "success" : "error");
     setScore(prev => ({
       correct: prev.correct + (correct ? 1 : 0),
       total: prev.total + 1

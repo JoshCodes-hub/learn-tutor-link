@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Share2, Check, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { shareContent, haptic } from "@/lib/native";
 
 interface ShareResultsButtonProps {
   quizTitle: string;
@@ -15,36 +16,27 @@ export const ShareResultsButton = ({ quizTitle, score, quizId }: ShareResultsBut
   const shareUrl = `${window.location.origin}/quiz/${quizId}`;
   const shareMessage = `🎯 I just scored ${score}% on "${quizTitle}" on OverraPrep AI!\n\nTry it yourself: ${shareUrl}`;
 
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareMessage);
+  const handleNativeShare = async () => {
+    void haptic("light");
+    const ok = await shareContent({
+      title: `My Quiz Result - ${quizTitle}`,
+      text: `I scored ${score}% on ${quizTitle}!`,
+      url: shareUrl,
+      dialogTitle: "Share your result",
+    });
+    if (ok) {
       setCopied(true);
-      toast.success("Result copied to clipboard!");
+      toast.success("Result shared!");
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Failed to copy");
+    } else {
+      toast.error("Failed to share");
     }
   };
 
   const handleShareWhatsApp = () => {
+    void haptic("light");
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
     window.open(whatsappUrl, "_blank");
-  };
-
-  const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `My Quiz Result - ${quizTitle}`,
-          text: `I scored ${score}% on ${quizTitle}!`,
-          url: shareUrl,
-        });
-      } catch {
-        // User cancelled
-      }
-    } else {
-      handleCopyLink();
-    }
   };
 
   return (
@@ -59,9 +51,9 @@ export const ShareResultsButton = ({ quizTitle, score, quizId }: ShareResultsBut
         ) : (
           <Share2 className="w-4 h-4 mr-2" />
         )}
-        {copied ? "Copied!" : "Share Result"}
+        {copied ? "Shared!" : "Share Result"}
       </Button>
-      
+
       <Button
         variant="secondary"
         className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white"

@@ -13,6 +13,7 @@ import {
   Camera,
   User,
   Save,
+  Image as ImageIcon,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { NativeSettings } from "@/components/native/NativeSettings";
@@ -63,7 +64,9 @@ const EditProfile = () => {
   const [fullName, setFullName] = useState("");
   const [department, setDepartment] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -77,6 +80,7 @@ const EditProfile = () => {
       setFullName(profile.full_name || "");
       setDepartment(profile.department || "");
       setAvatarUrl(profile.avatar_url);
+      setCoverUrl((profile as any).cover_photo_url ?? null);
     }
   }, [profile]);
 
@@ -124,6 +128,39 @@ const EditProfile = () => {
     }
   };
 
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Cover image must be less than 5MB");
+      return;
+    }
+    setIsUploadingCover(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/cover.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("profile-covers")
+        .upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage
+        .from("profile-covers")
+        .getPublicUrl(fileName);
+      const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      setCoverUrl(newUrl);
+      toast.success("Cover photo uploaded");
+    } catch (err) {
+      console.error("Error uploading cover:", err);
+      toast.error("Failed to upload cover photo");
+    } finally {
+      setIsUploadingCover(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
 
@@ -140,8 +177,9 @@ const EditProfile = () => {
           full_name: fullName.trim(),
           department: department || null,
           avatar_url: avatarUrl,
-          profile_image_url: avatarUrl, // Also update profile_image_url for quiz cards display
-        })
+          profile_image_url: avatarUrl,
+          cover_photo_url: coverUrl,
+        } as any)
         .eq("id", user.id);
 
       if (error) throw error;
@@ -209,9 +247,32 @@ const EditProfile = () => {
           </p>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-6 space-y-6">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          {/* Cover photo banner */}
+          <div
+            className="relative h-36 sm:h-44 w-full bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5"
+            style={coverUrl ? { backgroundImage: `url(${coverUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
+          >
+            <label
+              htmlFor="cover-upload"
+              className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 bg-background/90 hover:bg-background backdrop-blur text-foreground text-xs font-medium px-3 py-1.5 rounded-full border border-border cursor-pointer shadow-sm"
+            >
+              {isUploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />}
+              {coverUrl ? "Change cover" : "Add cover"}
+            </label>
+            <input
+              id="cover-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverUpload}
+              disabled={isUploadingCover}
+            />
+          </div>
+
+          <div className="p-6 space-y-6">
           {/* Avatar Section */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-4 -mt-16">
             <div className="relative">
               <Avatar className="w-24 h-24 border-4 border-border">
                 <AvatarImage src={avatarUrl || undefined} />
@@ -312,6 +373,7 @@ const EditProfile = () => {
               </>
             )}
           </Button>
+          </div>
         </div>
       </main>
     </div>
