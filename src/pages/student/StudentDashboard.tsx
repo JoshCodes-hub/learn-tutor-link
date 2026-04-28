@@ -156,7 +156,7 @@ const StudentDashboard = () => {
         // Fetch quiz attempts
         const { data: attempts } = await supabase
           .from("quiz_attempts")
-          .select("*, quizzes(title, course_id, courses(code, name))")
+          .select("*, quizzes(id, title, course_id, duration_minutes, is_simulation, is_active, courses(code, name))")
           .eq("user_id", user.id)
           .order("started_at", { ascending: false });
 
@@ -175,6 +175,18 @@ const StudentDashboard = () => {
           });
 
           setRecentAttempts(attempts.slice(0, 5));
+
+          // Find most recent simulation attempt for "Retake CBT"
+          const lastSim = attempts.find(
+            (a: any) => (a.mode === "simulation" || a.quizzes?.is_simulation) && a.quizzes?.is_active
+          );
+          if (lastSim?.quizzes) {
+            setLastSimulation({
+              quizId: lastSim.quizzes.id ?? lastSim.quiz_id,
+              title: lastSim.quizzes.title,
+              duration: lastSim.quizzes.duration_minutes,
+            });
+          }
         }
 
         // Fetch wallet
