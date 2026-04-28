@@ -92,7 +92,7 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      navigate("/dashboard");
+      navigate(postAuthDestination());
     }
     setIsSubmitting(false);
   };
@@ -119,7 +119,7 @@ const Auth = () => {
         title: "Account created!",
         description: welcomeMsg,
       });
-      navigate("/dashboard");
+      navigate(postAuthDestination());
     }
     setIsSubmitting(false);
   };
