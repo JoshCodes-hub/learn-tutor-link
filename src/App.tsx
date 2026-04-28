@@ -10,6 +10,7 @@ import SplashScreen from "@/components/SplashScreen";
 import AnimatedRoutes from "@/components/layout/AnimatedRoutes";
 import BiometricUnlock from "@/components/native/BiometricUnlock";
 import OfflineBanner from "@/components/native/OfflineBanner";
+import BottomTabBar from "@/components/app-shell/BottomTabBar";
 import { initPushNotifications } from "@/lib/native/push";
 import { Capacitor } from "@capacitor/core";
 
@@ -58,7 +59,10 @@ const App = () => {
           <AuthProvider>
             <PushBootstrap />
             <BiometricUnlock>
-              <AnimatedRoutes />
+              <div className="pb-16 md:pb-0">
+                <AnimatedRoutes />
+              </div>
+              <BottomTabBar />
             </BiometricUnlock>
           </AuthProvider>
         </BrowserRouter>

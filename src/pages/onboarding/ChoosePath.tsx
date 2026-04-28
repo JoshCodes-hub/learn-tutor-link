@@ -4,6 +4,8 @@ import { GraduationCap, BookOpenCheck, School } from "lucide-react";
 import { useAuth, AcademicPath } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
 import { cn } from "@/lib/utils";
+import { FEATURES } from "@/config/features";
+import { toast } from "sonner";
 
 const PATHS: {
   id: AcademicPath;
@@ -44,6 +46,10 @@ export default function ChoosePath() {
   const { profile } = useAuth();
 
   const handleChoose = (path: AcademicPath) => {
+    if (path === "jamb" && !FEATURES.jamb) {
+      toast.info("JAMB track is paused — we're focusing on University for now.");
+      return;
+    }
     sessionStorage.setItem("pending_academic_path", path);
     navigate("/onboarding/refine");
   };
@@ -76,20 +82,28 @@ export default function ChoosePath() {
           <div className="grid md:grid-cols-3 gap-5">
             {PATHS.map((path, i) => {
               const Icon = path.icon;
+              const disabled = path.id === "jamb" && !FEATURES.jamb;
               return (
                 <motion.button
                   key={path.id}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 + i * 0.08 }}
-                  whileHover={{ y: -4 }}
+                  whileHover={disabled ? undefined : { y: -4 }}
                   onClick={() => handleChoose(path.id)}
+                  disabled={disabled}
                   className={cn(
-                    "group text-left rounded-2xl border bg-gradient-to-br p-6 transition-all",
+                    "group relative text-left rounded-2xl border bg-gradient-to-br p-6 transition-all",
                     "hover:shadow-2xl hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary",
-                    path.accent
+                    path.accent,
+                    disabled && "opacity-60 cursor-not-allowed hover:shadow-none hover:border-inherit"
                   )}
                 >
+                  {disabled && (
+                    <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-foreground/10 text-foreground/70">
+                      Coming soon
+                    </span>
+                  )}
                   <div className="w-14 h-14 rounded-xl bg-card/80 backdrop-blur flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Icon className="w-7 h-7 text-foreground" />
                   </div>
