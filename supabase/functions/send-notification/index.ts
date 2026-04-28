@@ -422,6 +422,47 @@ const getEmailContent = (type: string, data: Record<string, any>) => {
         `,
       };
 
+    case "school_approved":
+      return {
+        subject: `Your school is approved — ${data.schoolName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #1e3a8a; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">School Management Suite</p>
+            </div>
+            <h2 style="color: #16a34a;">School Approved</h2>
+            <p>Hi ${data.ownerName || "there"},</p>
+            <p>Great news — <strong>${data.schoolName}</strong> has been approved on OverraPrep AI. You now have full access to the school management dashboard, including classes, students, attendance, results, and branded report cards.</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${data.dashboardUrl}" style="background: #1e3a8a; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">Open School Dashboard</a>
+            </div>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="color: #999; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} OverraPrep AI. All rights reserved.</p>
+          </div>
+        `,
+      };
+
+    case "school_rejected":
+      return {
+        subject: `Update on your school application — ${data.schoolName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #1e3a8a; margin: 0;">OverraPrep AI</h1>
+              <p style="color: #666; margin: 5px 0;">School Management Suite</p>
+            </div>
+            <h2 style="color: #333;">Application Update</h2>
+            <p>Hi ${data.ownerName || "there"},</p>
+            <p>Thank you for applying with <strong>${data.schoolName}</strong>. After review, we are unable to approve the application at this time.</p>
+            ${data.adminNotes ? `<div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:16px 0;"><strong>Reviewer notes:</strong><p style="margin:8px 0 0;color:#555;">${data.adminNotes}</p></div>` : ""}
+            <p>You can update your details and resubmit at any time.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="color: #999; font-size: 12px; text-align: center;">© ${new Date().getFullYear()} OverraPrep AI. All rights reserved.</p>
+          </div>
+        `,
+      };
+
     default:
       throw new Error(`Unknown email type: ${type}`);
   }
