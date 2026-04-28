@@ -3,13 +3,15 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Award, GraduationCap, School, BookOpen, Sparkles, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import heroStudent from "@/assets/hero-student.jpg";
-import studentsHero from "@/assets/students-hero.jpg";
-import studentFemale from "@/assets/student-female.jpg";
-import studentMale from "@/assets/student-male.jpg";
-import studentsGroup from "@/assets/students-group.jpg";
+import heroEditorial from "@/assets/hero-editorial.jpg";
+import heroCollab from "@/assets/hero-collab.jpg";
+import heroStudyDetail from "@/assets/hero-study-detail.jpg";
 
-const heroImages = [heroStudent, studentsHero, studentFemale, studentMale, studentsGroup];
+const heroImages = [
+  { src: heroEditorial, focal: "object-[70%_35%]" },
+  { src: heroCollab, focal: "object-[50%_40%]" },
+  { src: heroStudyDetail, focal: "object-[60%_50%]" },
+];
 
 const HeroSection = () => {
   const navigate = useNavigate();
