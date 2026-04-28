@@ -12,6 +12,8 @@ import AnimatedRoutes from "@/components/layout/AnimatedRoutes";
 import BiometricUnlock from "@/components/native/BiometricUnlock";
 import OfflineBanner from "@/components/native/OfflineBanner";
 import BottomTabBar from "@/components/app-shell/BottomTabBar";
+import { NetworkStatus } from "@/components/system/NetworkStatus";
+import ScrollToTop from "@/components/system/ScrollToTop";
 import { initPushNotifications } from "@/lib/native/push";
 import { Capacitor } from "@capacitor/core";
 
@@ -56,8 +58,10 @@ const App = () => {
           <Sonner />
           <InstallPrompt />
           <OfflineBanner />
+          <NetworkStatus />
           {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
           <BrowserRouter>
+            <ScrollToTop />
             <AuthProvider>
               <PushBootstrap />
               <BiometricUnlock>

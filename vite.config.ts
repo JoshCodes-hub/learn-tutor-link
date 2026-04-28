@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: false,
       includeAssets: ["favicon.ico", "logo.png", "robots.txt"],
       manifest: {
         name: "OverraPrep AI - FUTA CBT Preparation",
