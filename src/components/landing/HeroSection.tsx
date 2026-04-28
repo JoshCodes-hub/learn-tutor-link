@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Award } from "lucide-react";
+import { ArrowRight, Award, GraduationCap, School, BookOpen, Sparkles, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import heroStudent from "@/assets/hero-student.jpg";
 import studentsHero from "@/assets/students-hero.jpg";
