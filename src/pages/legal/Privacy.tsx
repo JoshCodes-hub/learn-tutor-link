@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Shield, ArrowLeft, Lock, Database, Eye, Cookie, Globe, Mail, UserMinus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import SiteFooter from "@/components/layout/SiteFooter";
 
 const sections = [
   { icon: Database, title: "1. What we collect", body: "Account info (name, email, school/department, profile image), academic activity (quiz attempts, scores, study streaks), tutor content you create, device & log data (IP, user agent, timestamps) for security and abuse prevention." },
@@ -61,6 +62,7 @@ export default function Privacy() {
           </Button>
         </Card>
       </div>
+      <SiteFooter />
     </div>
   );
 }
