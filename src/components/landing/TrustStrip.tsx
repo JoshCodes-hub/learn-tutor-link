@@ -19,7 +19,7 @@ const TrustStrip = () => {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-3.5 md:gap-6">
           {items.map((item, i) => (
             <motion.div
               key={item.label}
@@ -32,11 +32,11 @@ const TrustStrip = () => {
               <div className="shrink-0 w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/25 flex items-center justify-center group-hover:border-primary/50 transition-colors">
                 <item.icon className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[12px] md:text-[13px] font-semibold text-foreground leading-tight truncate">
+              <div className="min-w-0 flex-1">
+                <p className="text-[12.5px] md:text-[13px] font-semibold text-foreground leading-tight">
                   {item.label}
                 </p>
-                <p className="text-[10.5px] md:text-[11px] text-muted-foreground leading-tight mt-0.5 truncate">
+                <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
                   {item.detail}
                 </p>
               </div>
