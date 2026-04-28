@@ -414,7 +414,38 @@ const TutorDashboard = () => {
           />
         </div>
 
-        {/* Courses Section */}
+        {/* Quick Actions */}
+        <QuickActions
+          subtitle="Run your studio in three clicks"
+          actions={[
+            {
+              icon: Plus,
+              label: "Create Quiz or Exam",
+              description: "Author a new CBT in minutes",
+              onClick: () => setShowUnifiedQuizCreator(true),
+              tone: "gold",
+            },
+            {
+              icon: AlertCircle,
+              label: "Review Pending Reports",
+              description: "Address student-flagged questions",
+              onClick: () => {
+                document
+                  .getElementById("question-reports")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              },
+              tone: "rose",
+            },
+            {
+              icon: Users,
+              label: "View Your Students",
+              description: "See who's practicing your content",
+              to: user?.id ? `/tutor/${user.id}` : "/tutors",
+              tone: "violet",
+            },
+          ]}
+        />
+
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display text-xl font-bold text-foreground">Your Courses</h2>
