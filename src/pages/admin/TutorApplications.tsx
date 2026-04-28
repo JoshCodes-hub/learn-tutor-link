@@ -39,6 +39,22 @@ interface TutorApplication {
   admin_notes: string | null;
   created_at: string;
   profile_image_url: string | null;
+  // New detailed fields
+  phone?: string | null;
+  gov_id_url?: string | null;
+  highest_qualification?: string | null;
+  institution?: string | null;
+  certificate_url?: string | null;
+  subjects_taught?: string[] | null;
+  years_experience?: number | null;
+  current_position?: string | null;
+  why_join?: string | null;
+  sample_question_1?: string | null;
+  sample_question_2?: string | null;
+  sample_question_3?: string | null;
+  sample_explanation?: string | null;
+  sample_video_url?: string | null;
+  specialization?: string | null;
 }
 
 const TutorApplications = () => {
