@@ -170,6 +170,8 @@ const QuizPractice = () => {
 
         if (attemptError) throw attemptError;
         setAttemptId(attemptData.id);
+        const { track } = await import("@/lib/analytics");
+        void track("quiz_started", { quiz_id: quizId, mode: "practice", total_questions: formattedQuestions.length });
       }
     } catch (error) {
       console.error("Error fetching quiz:", error);
@@ -307,6 +309,15 @@ const QuizPractice = () => {
         score: Math.round((score.correct / questions.length) * 100),
       })
       .eq("id", attemptId);
+
+    const { track } = await import("@/lib/analytics");
+    void track("quiz_completed", {
+      quiz_id: quizId,
+      mode: "practice",
+      score: Math.round((score.correct / questions.length) * 100),
+      correct: score.correct,
+      total: questions.length,
+    });
 
     navigate(`/quiz/${quizId}/results/${attemptId}`);
   };
