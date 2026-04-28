@@ -70,6 +70,8 @@ const StudyHubCourse = lazy(() => import("@/pages/study-hub/StudyHubCourse"));
 const PQIntelligence = lazy(() => import("@/pages/study-hub/PQIntelligence"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const StartupChecklist = lazy(() => import("@/pages/admin/StartupChecklist"));
+const VerifyReportCard = lazy(() => import("@/pages/verify/VerifyReportCard"));
+const MyReportCard = lazy(() => import("@/pages/student/MyReportCard"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -272,6 +274,10 @@ export const AnimatedRoutes = () => {
           <Route path="/school/announcements" element={<PageTransition><SchoolAnnouncements /></PageTransition>} />
           <Route path="/school/settings" element={<PageTransition><SchoolSettings /></PageTransition>} />
           <Route path="/admin/schools" element={<PageTransition><AdminSchoolApplications /></PageTransition>} />
+          <Route path="/verify" element={<PageTransition><VerifyReportCard /></PageTransition>} />
+          <Route path="/verify/:id" element={<PageTransition><VerifyReportCard /></PageTransition>} />
+          <Route path="/student/report-card" element={<PageTransition><MyReportCard /></PageTransition>} />
+          <Route path="/my-report-card" element={<PageTransition><MyReportCard /></PageTransition>} />
           <Route path="/parent/dashboard" element={<PageTransition><ParentDashboard /></PageTransition>} />
           <Route path="/survival-kits" element={<PageTransition><SurvivalKits /></PageTransition>} />
           <Route path="/survival-kits/:kitId" element={<PageTransition><SurvivalKitView /></PageTransition>} />

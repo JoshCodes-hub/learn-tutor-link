@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { generateReportCards, gradeFor, remarkFor, type ReportStudent } from "@/lib/reportCard";
+import { issueVerification } from "@/lib/reportCardVerification";
+import { useAuth } from "@/hooks/useAuth";
 
 const gradeColor = (t: number) =>
   t >= 75 ? "bg-success text-success-foreground" :
@@ -19,6 +21,7 @@ const gradeColor = (t: number) =>
 
 export default function SchoolResults() {
   const { school, loading: sloading } = useCurrentSchool();
+  const { user } = useAuth();
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [terms, setTerms] = useState<any[]>([]);
@@ -180,12 +183,35 @@ export default function SchoolResults() {
         klass: { level: klass?.level || "", arm: klass?.arm || "" },
         students: reportStudents,
       });
+
+      // Issue verification IDs for every generated report card (best-effort, parallel)
+      await Promise.allSettled(reportStudents.map((rs) => {
+        const totals = rs.rows.reduce((a, r) => a + r.total, 0);
+        const average = rs.rows.length ? totals / rs.rows.length : 0;
+        return issueVerification({
+          schoolId: school.id,
+          schoolName: school.name,
+          studentId: rs.id,
+          studentName: rs.full_name,
+          termId: termId!,
+          term: term?.term || 1,
+          session: term?.session || "",
+          classId: classId,
+          classLabel: `${klass?.level || ""} ${klass?.arm || ""}`.trim(),
+          totalScore: totals,
+          averageScore: average,
+          position: rs.position ?? null,
+          classSize: rs.classSize,
+          issuedBy: user?.id || null,
+        });
+      }));
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       const safe = `${school.name}-${klass?.level || ""}${klass?.arm || ""}-T${term?.term || ""}-Reports`.replace(/\s+/g, "_");
       a.href = url; a.download = `${safe}.pdf`; a.click();
       URL.revokeObjectURL(url);
-      toast.success(`Generated ${reportStudents.length} report card${reportStudents.length === 1 ? "" : "s"}`);
+      toast.success(`Generated ${reportStudents.length} report card${reportStudents.length === 1 ? "" : "s"} · verification IDs issued`);
     } catch (e: any) {
       toast.error(e.message || "Could not generate report cards");
     } finally {
