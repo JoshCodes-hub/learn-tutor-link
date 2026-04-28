@@ -13,6 +13,8 @@ import { ArrowLeft, Save, Sparkles, Send, Loader2, Calendar, Wand2 } from "lucid
 import { AIFeedbackPanel, TheoryEvaluation } from "@/components/theory/AIFeedbackPanel";
 import { ImproveAnswerPanel, AnswerImprovement } from "@/components/theory/ImproveAnswerPanel";
 import { IdealAnswerDialog } from "@/components/theory/IdealAnswerDialog";
+import { HintsPanel } from "@/components/theory/HintsPanel";
+import { StepByStepExplanationPanel } from "@/components/theory/StepByStepExplanationPanel";
 import { SEO } from "@/components/seo/SEO";
 
 interface TheoryQ {
@@ -254,7 +256,30 @@ const TheoryQuestionView = () => {
           </CardContent>
         </Card>
 
+        {status === "draft" && (
+          <div className="mb-6">
+            <HintsPanel
+              question={question.question_text}
+              modelAnswer={question.model_answer}
+              keyPoints={Array.isArray(question.key_points) ? (question.key_points as string[]) : []}
+              marks={question.marks}
+              disabled={submitting}
+            />
+          </div>
+        )}
+
         {evaluation && <AIFeedbackPanel evaluation={evaluation} />}
+        {evaluation && (
+          <div className="mt-6">
+            <StepByStepExplanationPanel
+              question={question.question_text}
+              studentAnswer={answer}
+              modelAnswer={question.model_answer}
+              marks={question.marks}
+              evaluation={evaluation}
+            />
+          </div>
+        )}
         {improvement && <ImproveAnswerPanel improvement={improvement} />}
 
         <IdealAnswerDialog open={showIdeal} onOpenChange={setShowIdeal} question={question.question_text} marks={question.marks} />
