@@ -121,11 +121,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { full_name: fullName, referred_by: referralCode || null },
       },
     });
+    if (!error) {
+      const { track } = await import("@/lib/analytics");
+      void track("signup", { has_referral: !!referralCode });
+    }
     return { error };
   };
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!error) {
+      const { track } = await import("@/lib/analytics");
+      void track("signin", {});
+    }
     return { error };
   };
 
