@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://overraprep.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://overraprep.com/website</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://overraprep.com/tutors</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://overraprep.com/community</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://overraprep.com/leaderboard</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://overraprep.com/subjects</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://overraprep.com/study-hub</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://overraprep.com/theory</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://overraprep.com/survival-kits</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://overraprep.com/strategy</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://overraprep.com/ai-tutor</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://overraprep.com/verify</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://overraprep.com/apply-tutor</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://overraprep.com/school/register</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://overraprep.com/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://overraprep.com/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+</urlset>
