@@ -160,6 +160,8 @@ const EditProfile = () => {
       setIsUploadingCover(false);
     }
   };
+
+  const handleSave = async () => {
     if (!user) return;
 
     if (!fullName.trim()) {
@@ -175,8 +177,9 @@ const EditProfile = () => {
           full_name: fullName.trim(),
           department: department || null,
           avatar_url: avatarUrl,
-          profile_image_url: avatarUrl, // Also update profile_image_url for quiz cards display
-        })
+          profile_image_url: avatarUrl,
+          cover_photo_url: coverUrl,
+        } as any)
         .eq("id", user.id);
 
       if (error) throw error;
