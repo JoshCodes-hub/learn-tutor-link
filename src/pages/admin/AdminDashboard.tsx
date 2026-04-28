@@ -20,6 +20,7 @@ import {
   Shield,
   Target,
   BookOpen,
+  Building2,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import DashboardNav from "@/components/layout/DashboardNav";
@@ -264,9 +265,9 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Pending Applications Alert */}
+        {/* Pending Applications Alerts */}
         {stats.pendingApplications > 0 && (
-          <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-8 flex items-center justify-between">
+          <div className="bg-accent/10 border border-accent/30 rounded-xl p-4 mb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <GraduationCap className="w-6 h-6 text-accent" />
               <div>
@@ -277,6 +278,23 @@ const AdminDashboard = () => {
               </div>
             </div>
             <Button variant="accent" onClick={() => setActiveTab("tutors")}>
+              Review Now
+            </Button>
+          </div>
+        )}
+
+        {stats.pendingSchools > 0 && (
+          <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Building2 className="w-6 h-6 text-primary" />
+              <div>
+                <p className="font-medium text-foreground">
+                  {stats.pendingSchools} pending school application{stats.pendingSchools > 1 ? "s" : ""}
+                </p>
+                <p className="text-sm text-muted-foreground">Review and approve new schools</p>
+              </div>
+            </div>
+            <Button onClick={() => navigate("/admin/schools")}>
               Review Now
             </Button>
           </div>
