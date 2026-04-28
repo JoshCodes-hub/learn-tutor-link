@@ -34,6 +34,40 @@ Deno.serve(async (req) => {
     const FCM_SERVER_KEY = Deno.env.get("FCM_SERVER_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // --- AUTH GUARD: admin only ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authedClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsErr } = await authedClient.auth.getClaims(
+      authHeader.replace("Bearer ", "")
+    );
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: roles } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", claimsData.claims.sub);
+    if (!roles?.some((r: any) => r.role === "admin")) {
+      return new Response(JSON.stringify({ error: "Forbidden — admin only" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // --- END AUTH GUARD ---
 
     const payload = (await req.json()) as PushBody;
     if (!payload?.user_ids?.length || !payload.title || !payload.body) {
@@ -43,7 +77,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = adminClient;
 
     // 1. Always write in-app notification rows
     const notifRows = payload.user_ids.map((uid) => ({
