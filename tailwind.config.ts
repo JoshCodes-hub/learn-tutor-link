@@ -110,8 +110,8 @@ keyframes: {
           "100%": { transform: "scale(1)", opacity: "1" },
         },
         "shimmer": {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
+          "0%": { backgroundPosition: "-200% 0", transform: "translateX(-100%)" },
+          "100%": { backgroundPosition: "200% 0", transform: "translateX(100%)" },
         },
         "lift": {
           "0%": { transform: "translateY(0)", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" },
