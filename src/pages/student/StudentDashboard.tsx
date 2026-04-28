@@ -793,6 +793,15 @@ const StudentDashboard = () => {
               to: "/student/readiness",
               tone: "gold",
             },
+            ...(lastSimulation
+              ? [{
+                  icon: RefreshCw,
+                  label: "Retake CBT",
+                  description: `Resume "${lastSimulation.title}" • ${lastSimulation.duration} min`,
+                  onClick: () => navigate(`/quiz/${lastSimulation.quizId}/simulation`),
+                  tone: "emerald" as const,
+                }]
+              : []),
             {
               icon: Target,
               label: "Practice Weak Areas",
