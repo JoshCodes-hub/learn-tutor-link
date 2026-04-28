@@ -44,6 +44,7 @@ import {
   XCircle,
   ChevronRight,
   Loader2,
+  Sparkles,
   Play,
   Lock,
   Coins,
