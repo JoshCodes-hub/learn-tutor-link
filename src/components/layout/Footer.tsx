@@ -118,9 +118,14 @@ const Footer = forwardRef<HTMLElement>((props, ref) => {
             <p className="text-[hsl(40,20%,50%)] text-xs">
               © {new Date().getFullYear()} OverraPrep AI. All rights reserved.
             </p>
-            <div className="flex items-center gap-2 text-[hsl(40,20%,50%)] text-xs">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span>Powered by AI for Academic Excellence</span>
+            <div className="flex items-center gap-4 text-[hsl(40,20%,50%)] text-xs">
+              <a href="/auth" className="hover:text-primary transition-colors" aria-label="Admin login">
+                Admin
+              </a>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span>Powered by AI for Academic Excellence</span>
+              </div>
             </div>
           </div>
         </div>
