@@ -129,6 +129,7 @@ const StudentDashboard = () => {
   const [courses, setCourses] = useState<{ id: string; code: string; name: string }[]>([]);
   const [purchasedQuizIds, setPurchasedQuizIds] = useState<Set<string>>(new Set());
   const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
+  const [lastSimulation, setLastSimulation] = useState<{ quizId: string; title: string; duration: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showBuyTokens, setShowBuyTokens] = useState(false);
@@ -155,7 +156,7 @@ const StudentDashboard = () => {
         // Fetch quiz attempts
         const { data: attempts } = await supabase
           .from("quiz_attempts")
-          .select("*, quizzes(title, course_id, courses(code, name))")
+          .select("*, quizzes(id, title, course_id, duration_minutes, is_simulation, is_active, courses(code, name))")
           .eq("user_id", user.id)
           .order("started_at", { ascending: false });
 
@@ -174,6 +175,18 @@ const StudentDashboard = () => {
           });
 
           setRecentAttempts(attempts.slice(0, 5));
+
+          // Find most recent simulation attempt for "Retake CBT"
+          const lastSim = attempts.find(
+            (a: any) => (a.mode === "simulation" || a.quizzes?.is_simulation) && a.quizzes?.is_active
+          );
+          if (lastSim?.quizzes) {
+            setLastSimulation({
+              quizId: lastSim.quizzes.id ?? lastSim.quiz_id,
+              title: lastSim.quizzes.title,
+              duration: lastSim.quizzes.duration_minutes,
+            });
+          }
         }
 
         // Fetch wallet
@@ -780,6 +793,15 @@ const StudentDashboard = () => {
               to: "/student/readiness",
               tone: "gold",
             },
+            ...(lastSimulation
+              ? [{
+                  icon: RefreshCw,
+                  label: "Retake CBT",
+                  description: `Resume "${lastSimulation.title}" • ${lastSimulation.duration} min`,
+                  onClick: () => navigate(`/quiz/${lastSimulation.quizId}/simulation`),
+                  tone: "emerald" as const,
+                }]
+              : []),
             {
               icon: Target,
               label: "Practice Weak Areas",
