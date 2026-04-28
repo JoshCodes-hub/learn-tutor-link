@@ -40,6 +40,8 @@ import QuizManagement from "@/components/tutor/QuizManagement";
 import { TutorCommunityManager } from "@/components/tutor/TutorCommunityManager";
 import { OnboardingChecklist } from "@/components/tutor/OnboardingChecklist";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
+import { DashboardHero } from "@/components/dashboard/DashboardHero";
+import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
