@@ -34,19 +34,20 @@ export function useTutorOnboarding() {
     if (!user) return;
     setLoading(true);
     try {
-      const [{ data: row }, { count: courseCount }, { count: quizCount }, { data: bank }, { count: communityCount }] = await Promise.all([
+      const [{ data: row }, { count: courseCount }, { count: quizCount }, { data: prof }, { count: bankCount }, { count: communityCount }] = await Promise.all([
         supabase.from("tutor_onboarding").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("courses").select("id", { count: "exact", head: true }).eq("created_by", user.id),
         supabase.from("quizzes").select("id", { count: "exact", head: true }).eq("tutor_id", user.id),
-        supabase.from("profiles").select("bank_name, account_number, account_name").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("full_name, profile_image_url").eq("id", user.id).maybeSingle(),
+        supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("tutor_id", user.id),
         supabase.from("tutor_communities").select("id", { count: "exact", head: true }).eq("tutor_id", user.id),
       ]);
 
       const computed: TutorOnboardingState = {
-        profile_completed: !!(profile?.full_name && profile?.profile_image_url),
+        profile_completed: !!(prof?.full_name && prof?.profile_image_url),
         course_created: (courseCount || 0) > 0,
         quiz_created: (quizCount || 0) > 0,
-        bank_added: !!(bank?.bank_name && bank?.account_number && bank?.account_name),
+        bank_added: (bankCount || 0) > 0,
         community_created: (communityCount || 0) > 0,
         dismissed: !!row?.dismissed,
       };
