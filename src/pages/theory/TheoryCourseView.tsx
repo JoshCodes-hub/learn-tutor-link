@@ -188,13 +188,14 @@ const TheoryCourseView = () => {
                 )}
               </div>
 
-              <div className="lg:col-span-1">
-                <div className="lg:sticky lg:top-24">
+              <div className="lg:col-span-1 space-y-6">
+                <div className="lg:sticky lg:top-24 space-y-6">
                   <StudyCoachPanel
                     course={course ? { code: course.code, name: course.name } : undefined}
                     materials={questions.slice(0, 20).map(q => ({ title: q.question_text.slice(0, 80), description: `${q.marks} marks · ${q.difficulty}${q.year ? ` · ${q.year}` : ""}` }))}
                     mode="theory"
                   />
+                  {courseId && <LearningGoalsPanel courseId={courseId} />}
                 </div>
               </div>
             </div>
