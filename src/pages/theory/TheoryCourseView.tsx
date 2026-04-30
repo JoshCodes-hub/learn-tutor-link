@@ -11,6 +11,7 @@ import { ChevronRight, ArrowLeft, Calendar, Plus, PenLine, CheckCircle2, Filter 
 import { SEO } from "@/components/seo/SEO";
 import { CreateTheoryQuestionDialog } from "@/components/theory/CreateTheoryQuestionDialog";
 import { StudyCoachPanel } from "@/components/study-hub/StudyCoachPanel";
+import { LearningGoalsPanel } from "@/components/study-hub/LearningGoalsPanel";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
