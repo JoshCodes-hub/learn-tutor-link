@@ -165,41 +165,51 @@ export const DashboardHero = ({
           <div className="relative shrink-0">
             <div className="absolute -inset-1 rounded-full bg-white/70 blur-md" aria-hidden />
             <Avatar className="relative h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 ring-4 ring-white shadow-xl">
-              <AvatarImage src={avatarUrl ?? undefined} alt={displayName} />
-              <AvatarFallback className="text-amber-700 font-bold text-2xl bg-gradient-to-br from-amber-100 to-amber-200">
+              <AvatarImage src={avatarUrl ?? undefined} alt={`${displayName}'s profile photo`} />
+              <AvatarFallback
+                className="text-amber-700 font-bold text-2xl bg-gradient-to-br from-amber-100 to-amber-200"
+                aria-label={`${displayName} initials`}
+              >
                 {initials(fullName)}
               </AvatarFallback>
             </Avatar>
             {/* online dot */}
-            <span className="absolute bottom-1 left-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" aria-hidden />
+            <span className="absolute bottom-1 left-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" aria-hidden="true" />
           </div>
 
           {/* Name + meta */}
-          <div className="flex-1 min-w-0 text-white">
+          <div className="flex-1 min-w-0 text-white" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}>
             <div className="flex items-center gap-2 min-w-0">
-              <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate drop-shadow-sm">
+              <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">
                 {displayName}
               </h1>
               {verified && (
-                <BadgeCheck className="h-5 w-5 sm:h-6 sm:w-6 text-white fill-amber-700/40 shrink-0" aria-label="Verified" />
+                <BadgeCheck
+                  className="h-5 w-5 sm:h-6 sm:w-6 text-white fill-amber-700/40 shrink-0"
+                  aria-label="Verified account"
+                  role="img"
+                />
               )}
             </div>
 
             <div className="mt-1.5">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white text-amber-700 text-xs font-semibold shadow-sm">
+              <span
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white text-amber-800 text-xs font-semibold shadow-sm"
+                style={{ textShadow: "none" }}
+              >
                 {pill.label}
               </span>
             </div>
 
             {institution && (
-              <p className="mt-1.5 text-sm sm:text-[15px] font-semibold text-white/95 truncate drop-shadow-sm">
+              <p className="mt-1.5 text-sm sm:text-[15px] font-semibold text-white truncate">
                 {institution}
               </p>
             )}
             {meta ? (
-              <p className="text-xs sm:text-sm text-white/85 truncate">{meta}</p>
+              <p className="text-xs sm:text-sm text-white/95 truncate">{meta}</p>
             ) : subtitle ? (
-              <p className="text-xs sm:text-sm text-white/85 truncate">{subtitle}</p>
+              <p className="text-xs sm:text-sm text-white/95 truncate">{subtitle}</p>
             ) : null}
           </div>
         </div>
