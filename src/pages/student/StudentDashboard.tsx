@@ -60,7 +60,8 @@ import {
   Flame,
   RefreshCw,
   FileText,
-  Share2
+  Share2,
+  Users
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
@@ -736,43 +737,29 @@ const StudentDashboard = () => {
       <DashboardNav role="student" />
       <DashboardBreadcrumb role="student" />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6 md:py-8 max-w-6xl">
         <DashboardOfflineBanner onReattempt={refreshQuizzes} />
-        {/* Hero */}
-        <DashboardHero
-          role="student"
-          fullName={profile?.full_name}
-          avatarUrl={profile?.avatar_url}
-          subtitle={
-            <>
-              You're <span className="font-semibold text-amber-700">{getReadinessLabel().toLowerCase()}</span> — keep the streak alive and your readiness will rise to the top.
-            </>
-          }
-          footer={
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                <span className="text-muted-foreground">Exam readiness</span>
-                <span className="font-serif text-lg font-semibold text-foreground">{readinessScore}%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Wallet className="h-4 w-4 text-amber-600" />
-                <span className="text-muted-foreground">Tokens</span>
-                <span className="font-serif text-lg font-semibold text-foreground">{wallet?.balance ?? 0}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Brain className="h-4 w-4 text-violet-600" />
-                <span className="text-muted-foreground">Accuracy</span>
-                <span className="font-serif text-lg font-semibold text-foreground">{stats.averageScore}%</span>
-              </div>
-              <LastUpdatedBadge timestamp={lastUpdated} className="ml-auto" />
-            </div>
-          }
-          className="mb-6"
-        />
 
-        {/* Premium Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-8">
+        {/* Welcome — calm, editorial */}
+        <section className="mb-8 pb-6 border-b border-border/60">
+          <div className="flex items-end justify-between flex-wrap gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground mb-2">
+                {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+              </p>
+              <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+                Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}.
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {getReadinessLabel()} — let's keep building momentum.
+              </p>
+            </div>
+            <LastUpdatedBadge timestamp={lastUpdated} />
+          </div>
+        </section>
+
+        {/* Core stats — only 3, focused on study outcomes */}
+        <div className="grid grid-cols-3 gap-3 md:gap-5 mb-8">
           <PremiumStatCard
             icon={Sparkles}
             label="Readiness"
@@ -780,9 +767,7 @@ const StudentDashboard = () => {
             suffix="%"
             tone="gold"
             progress={readinessScore}
-            hint={getReadinessLabel()}
             delay={0}
-            className="col-span-2 lg:col-span-1"
           />
           <PremiumStatCard
             icon={Target}
@@ -794,153 +779,51 @@ const StudentDashboard = () => {
             delay={0.05}
           />
           <PremiumStatCard
-            icon={CheckCircle2}
-            label="Correct"
-            value={stats.correctAnswers}
-            tone="emerald"
-            delay={0.1}
-          />
-          <PremiumStatCard
-            icon={Brain}
-            label="Quizzes"
-            value={stats.totalAttempts}
-            tone="violet"
-            delay={0.15}
-          />
-          <PremiumStatCard
             icon={Clock}
             label="Practice"
             value={stats.practiceTime}
             suffix="m"
-            tone="rose"
-            delay={0.2}
+            tone="emerald"
+            delay={0.1}
           />
         </div>
 
-        {/* Quick Actions */}
+        {/* Continue studying — primary academic actions only */}
         <QuickActions
-          subtitle="Jump straight back into your prep"
+          subtitle="Continue where you left off"
           actions={[
             {
               icon: Play,
               label: "Start CBT Simulation",
-              description: "Full timed practice — JAMB-style",
+              description: "Full timed practice",
               to: "/student/readiness",
               tone: "gold",
             },
             ...(lastSimulation
               ? [{
                   icon: RefreshCw,
-                  label: "Retake CBT",
-                  description: `Resume "${lastSimulation.title}" • ${lastSimulation.duration} min`,
+                  label: "Retake last CBT",
+                  description: `${lastSimulation.title} • ${lastSimulation.duration} min`,
                   onClick: () => navigate(`/quiz/${lastSimulation.quizId}/simulation`),
                   tone: "emerald" as const,
                 }]
               : []),
             {
               icon: Target,
-              label: "Practice Weak Areas",
-              description: "Drill the topics you struggle with most",
+              label: "Practice weak areas",
+              description: "Drill what needs work",
               to: "/student/mastery",
-              tone: "rose",
-            },
-            {
-              icon: GraduationCap,
-              label: "Buy Tutor Pack",
-              description: "Browse top tutors & unlock survival kits",
-              to: "/tutors",
-              tone: "violet",
+              tone: "sapphire",
             },
           ]}
         />
 
-        <div className="bg-gradient-card rounded-2xl border border-border p-6 mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center">
-                <Wallet className="w-7 h-7 text-accent" />
-              </div>
-              <div>
-                <h3 className="font-display text-xl font-bold text-foreground">Token Wallet</h3>
-                <p className="text-muted-foreground">Use tokens to unlock premium quizzes</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="text-center">
-                <p className="font-display text-3xl font-bold text-accent">{wallet?.balance || 0}</p>
-                <p className="text-sm text-muted-foreground">Available</p>
-              </div>
-              <div className="text-center">
-                <p className="font-display text-xl font-bold text-foreground">{wallet?.total_spent || 0}</p>
-                <p className="text-sm text-muted-foreground">Spent</p>
-              </div>
-              <Button variant="accent" onClick={() => setShowBuyTokens(true)}>
-                <Coins className="w-4 h-4 mr-2" />
-                Buy Tokens
-              </Button>
-            </div>
-          </div>
-
-          {/* Pending Requests */}
-          {purchaseRequests.filter(r => r.status === 'pending').length > 0 && (
-            <div className="mt-4 p-3 bg-accent/10 rounded-lg flex items-center gap-2">
-              <History className="w-4 h-4 text-accent" />
-              <span className="text-sm text-muted-foreground">
-                You have {purchaseRequests.filter(r => r.status === 'pending').length} pending token purchase request(s)
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Study Streak & Quick Links */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <StudyStreak />
-          
-          {/* Quick Links - Mobile */}
-          <div className="bg-card rounded-xl border border-border p-6 md:hidden">
-            <h3 className="font-display text-lg font-semibold text-foreground mb-4">Quick Links</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" onClick={() => navigate("/leaderboard")} className="h-auto py-4 flex-col gap-2">
-                <Trophy className="w-5 h-5 text-yellow-500" />
-                <span>Leaderboard</span>
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/community")} className="h-auto py-4 flex-col gap-2">
-                <MessageSquare className="w-5 h-5 text-purple-500" />
-                <span>Community</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Achievements on larger screens */}
-          <div className="hidden md:block">
-            <Achievements />
-          </div>
-        </div>
-
-        {/* Achievements on mobile */}
-        <div className="mb-8 md:hidden">
-          <Achievements />
-        </div>
-
-        {/* Referral & Team Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <ReadinessRing />
-          <SubjectCombinationTracker />
-          <ReferralCard />
-          <TeamCard />
-          <FavoriteTutors />
-        </div>
-
-        {/* My Communities */}
+        {/* Study streak — single focused widget */}
         <div className="mb-8">
-          <MyCommunities />
+          <StudyStreak />
         </div>
 
-        {/* Team Challenges & Chat */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <TeamChallenges />
-          <TeamChat />
-        </div>
+        {/* AI recommendations — only when meaningful */}
         {user && stats.totalAttempts > 0 && (
           <div className="mb-8">
             <AIQuizRecommendations
@@ -1271,6 +1154,51 @@ const StudentDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Slim wallet strip — moved out of focus zone */}
+        <div className="mt-10 mb-6 flex items-center justify-between gap-4 p-4 rounded-lg border border-border bg-card">
+          <div className="flex items-center gap-3 min-w-0">
+            <Wallet className="w-5 h-5 text-primary shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {wallet?.balance ?? 0} tokens available
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                Used to unlock premium quizzes & tutor packs
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setShowBuyTokens(true)} className="shrink-0">
+            <Coins className="w-4 h-4 mr-1.5" />
+            Top up
+          </Button>
+        </div>
+
+        {/* Community & rewards — collapsed by default to keep focus on study */}
+        <details className="group mb-8 rounded-lg border border-border bg-card overflow-hidden">
+          <summary className="flex items-center justify-between cursor-pointer list-none p-4 hover:bg-muted/40 transition-colors">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Community, teams & rewards</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="border-t border-border p-4 md:p-6 space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <ReadinessRing />
+              <SubjectCombinationTracker />
+              <Achievements />
+              <ReferralCard />
+              <TeamCard />
+              <FavoriteTutors />
+            </div>
+            <MyCommunities />
+            <div className="grid md:grid-cols-2 gap-5">
+              <TeamChallenges />
+              <TeamChat />
+            </div>
+          </div>
+        </details>
       </main>
 
       {/* Buy Tokens Dialog */}
