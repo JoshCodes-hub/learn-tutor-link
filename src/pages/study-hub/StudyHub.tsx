@@ -106,14 +106,27 @@ const StudyHub = () => {
           </p>
         </div>
 
-        <div className="relative mb-6 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search courses..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="relative flex-1 min-w-[240px] max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search courses..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          {navRole === "student" && enrolledIds.length > 0 && (
+            <div className="flex gap-2">
+              <Button size="sm" variant={onlyMine ? "default" : "outline"} onClick={() => setOnlyMine(true)}>My Courses</Button>
+              <Button size="sm" variant={!onlyMine ? "default" : "outline"} onClick={() => setOnlyMine(false)}>All Courses</Button>
+            </div>
+          )}
+          {navRole === "student" && (
+            <Button size="sm" variant="ghost" asChild>
+              <Link to="/my-courses">Manage my courses →</Link>
+            </Button>
+          )}
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
