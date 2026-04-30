@@ -347,29 +347,60 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
                       <div className="prose prose-sm max-w-none prose-headings:font-serif prose-headings:font-semibold prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0.5 prose-strong:text-amber-800">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content || "…"}</ReactMarkdown>
                       </div>
-                      {m.sources && m.sources.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-amber-100 flex flex-wrap items-center gap-1.5">
-                          <FileText className="h-3 w-3 text-amber-700" />
-                          <span className="text-[10px] uppercase tracking-wider text-amber-800 font-semibold">Sources</span>
-                          {m.sources.map(n => {
-                            const mat = materials[n - 1];
-                            if (!mat) return null;
-                            return (
-                              <Tooltip key={n}>
-                                <TooltipTrigger asChild>
-                                  <Badge className="bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 cursor-default text-[10px]">
-                                    [{n}] {mat.title.length > 24 ? mat.title.slice(0, 22) + "…" : mat.title}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p className="font-semibold">{mat.title}</p>
-                                  {mat.description && <p className="text-xs">{mat.description}</p>}
-                                </TooltipContent>
-                              </Tooltip>
-                            );
-                          })}
-                        </div>
-                      )}
+                      {m.sources && m.sources.length > 0 && (() => {
+                        const cited = m.sources.map(n => ({ n, mat: materials[n - 1] })).filter(x => x.mat);
+                        const hasVerified = cited.some(c => !!c.mat?.tutor_id);
+                        return (
+                          <div className="mt-2 pt-2 border-t border-amber-100 space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <FileText className="h-3 w-3 text-amber-700" />
+                              <span className="text-[10px] uppercase tracking-wider text-amber-800 font-semibold">Sources</span>
+                              {hasVerified && (
+                                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] gap-1">
+                                  <ShieldCheck className="h-3 w-3" /> Tutor-Verified
+                                </Badge>
+                              )}
+                              {cited.map(({ n, mat }) => (
+                                <Tooltip key={n}>
+                                  <TooltipTrigger asChild>
+                                    <Badge className={cn(
+                                      "cursor-default text-[10px] border",
+                                      mat!.tutor_id
+                                        ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                                        : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+                                    )}>
+                                      [{n}] {mat!.title.length > 24 ? mat!.title.slice(0, 22) + "…" : mat!.title}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="font-semibold">{mat!.title}</p>
+                                    {mat!.description && <p className="text-xs">{mat!.description}</p>}
+                                    {mat!.tutor_name && (
+                                      <p className="text-xs mt-1 text-emerald-700 font-medium">Verified by Tutor: {mat!.tutor_name}</p>
+                                    )}
+                                  </TooltipContent>
+                                </Tooltip>
+                              ))}
+                            </div>
+                            {cited.filter(c => c.mat?.tutor_id).length > 0 && (
+                              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                <span className="text-[10px] uppercase tracking-wider text-emerald-800 font-semibold">Tutors</span>
+                                {[...new Map(cited.filter(c => c.mat?.tutor_id).map(c => [c.mat!.tutor_id, c.mat!])).values()].map(mat => (
+                                  <span key={mat.tutor_id} className="inline-flex items-center gap-1 rounded-full bg-white border border-emerald-100 pl-0.5 pr-2 py-0.5">
+                                    <Avatar className="h-4 w-4">
+                                      <AvatarImage src={mat.tutor_avatar_url ?? undefined} />
+                                      <AvatarFallback className="text-[8px] bg-emerald-100 text-emerald-700">
+                                        {(mat.tutor_name ?? "T").slice(0, 1).toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-[10px] text-emerald-800 font-medium">{mat.tutor_name ?? "Tutor"}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </>
                   ) : (
                     <p className="whitespace-pre-wrap">{m.content}</p>
