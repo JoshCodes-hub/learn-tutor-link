@@ -211,6 +211,11 @@ const BrowseTutors = () => {
       filtered = filtered.filter((t) => t.specialization === selectedSpec);
     }
 
+    const minR = Number(minRating);
+    if (minR > 0) {
+      filtered = filtered.filter((t) => t.averageRating >= minR);
+    }
+
     // Sort tutors
     switch (sortBy) {
       case "rating":
@@ -229,7 +234,7 @@ const BrowseTutors = () => {
 
     setFilteredTutors(filtered);
     setCurrentPage(1); // Reset to first page on filter change
-  }, [searchQuery, selectedDepartment, selectedSpec, sortBy, tutors]);
+  }, [searchQuery, selectedDepartment, selectedSpec, sortBy, minRating, tutors]);
 
   if (isLoading) {
     return (
