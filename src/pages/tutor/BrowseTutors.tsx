@@ -332,7 +332,7 @@ const BrowseTutors = () => {
 
     setFilteredTutors(filtered);
     setCurrentPage(1); // Reset to first page on filter change
-  }, [searchQuery, selectedDepartment, selectedSpec, sortBy, minRating, tutors]);
+  }, [searchQuery, selectedDepartment, selectedCourse, selectedPrice, selectedSpec, sortBy, minRating, tutors]);
 
   if (isLoading) {
     return (
