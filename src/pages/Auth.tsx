@@ -90,8 +90,23 @@ const Auth = () => {
 
   const signUpForm = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "", referralCode: referralCodeFromUrl },
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      academicPath: "university" as const,
+      level: "",
+      department: "",
+      school: "Federal University of Technology, Akure",
+      phone: "",
+      matricNo: "",
+      state: "",
+      referralCode: referralCodeFromUrl,
+    },
   });
+
+  const academicPath = signUpForm.watch("academicPath");
 
   const handleSignIn = async (data: SignInFormData) => {
     setIsSubmitting(true);
@@ -118,7 +133,7 @@ const Auth = () => {
   const handleSignUp = async (data: SignUpFormData) => {
     setIsSubmitting(true);
     const { error } = await signUp(data.email, data.password, data.fullName, data.referralCode);
-    
+
     if (error) {
       let message = error.message;
       if (error.message.includes("already registered")) {
@@ -130,7 +145,31 @@ const Auth = () => {
         description: message,
       });
     } else {
-      const welcomeMsg = data.referralCode 
+      // Persist extra profile details (best-effort; profile row is created by trigger)
+      try {
+        const { data: { user: newUser } } = await supabase.auth.getUser();
+        if (newUser?.id) {
+          const meta = {
+            school: data.school,
+          };
+          await supabase
+            .from("profiles")
+            .update({
+              academic_path: data.academicPath,
+              level: data.level,
+              department: data.department,
+              phone: data.phone,
+              matric_no: data.matricNo,
+              state_of_origin: data.state,
+              academic_metadata: meta,
+            })
+            .eq("id", newUser.id);
+        }
+      } catch (e) {
+        console.warn("Could not persist extra signup details:", e);
+      }
+
+      const welcomeMsg = data.referralCode
         ? "Welcome to OverraPrep AI! Complete your first quiz to earn bonus tokens."
         : "Welcome to OverraPrep AI. You can now start practicing.";
       toast({
