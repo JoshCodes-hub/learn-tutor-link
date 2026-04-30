@@ -48,6 +48,12 @@ export const SiteFooter = () => {
           <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
             <GraduationCap className="h-3.5 w-3.5" />
             © {year} OverraPrep AI. All rights reserved.
+            <Link
+              to="/auth?redirect=/admin"
+              aria-label="Admin login"
+              title="Admin"
+              className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-amber-300/60 hover:bg-amber-600 transition-colors"
+            />
           </p>
           <div className="flex items-center gap-4 text-muted-foreground">
             <a href="mailto:hello@overraprep.com" aria-label="Email" className="hover:text-amber-700 transition"><Mail className="h-4 w-4" /></a>
