@@ -85,6 +85,7 @@ export const DashboardHero = ({
 
   return (
     <motion.section
+      aria-label={`${displayName} profile header`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
