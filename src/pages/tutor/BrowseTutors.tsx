@@ -31,6 +31,7 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 import { FollowTutorButton } from "@/components/tutor/FollowTutorButton";
 
