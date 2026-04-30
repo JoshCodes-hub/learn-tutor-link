@@ -201,7 +201,7 @@ const Dashboard = () => {
             <p className="text-muted-foreground mb-4">
               Share your knowledge and earn money by creating quiz content for fellow students.
             </p>
-            <Button variant="accent" onClick={() => navigate("/apply-tutor")}>
+            <Button variant="accent" onClick={() => setShowTutorDialog(true)}>
               Apply as Tutor
             </Button>
           </div>

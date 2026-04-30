@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, GraduationCap, Sparkles, ShieldCheck, Building2, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import heroStudent from "@/assets/hero-student-reading.jpg";
+import TutorApplicationDialog from "./TutorApplicationDialog";
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const [showTutorDialog, setShowTutorDialog] = useState(false);
 
   return (
     <section
@@ -79,7 +82,7 @@ const HeroSection = () => {
                   size="lg"
                   variant="outline"
                   className="h-13 px-6 text-base font-semibold rounded-full border-2 border-primary/50 text-foreground hover:bg-primary/10 hover:border-primary"
-                  onClick={() => navigate("/auth?mode=signup&intent=tutor")}
+                  onClick={() => setShowTutorDialog(true)}
                 >
                   <GraduationCap className="w-4 h-4 mr-1.5" />
                   Apply as Tutor
@@ -183,6 +186,8 @@ const HeroSection = () => {
 
       {/* Soft gold divider at bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+      <TutorApplicationDialog open={showTutorDialog} onOpenChange={setShowTutorDialog} />
     </section>
   );
 };
