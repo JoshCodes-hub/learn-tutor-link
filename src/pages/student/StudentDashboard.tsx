@@ -815,6 +815,27 @@ const StudentDashboard = () => {
               to: "/student/mastery",
               tone: "sapphire",
             },
+            {
+              icon: FileText,
+              label: "Lecture Notes",
+              description: "Read & download tutor materials",
+              to: "/lecture-notes",
+              tone: "emerald",
+            },
+            {
+              icon: Users,
+              label: "Messages",
+              description: "Chat with your tutors",
+              to: "/messages",
+              tone: "violet",
+            },
+            {
+              icon: Share2,
+              label: "Q&A Board",
+              description: "Ask & get answers",
+              to: "/qa",
+              tone: "rose",
+            },
           ]}
         />
 
