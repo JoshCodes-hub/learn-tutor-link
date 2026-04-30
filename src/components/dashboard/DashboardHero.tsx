@@ -38,6 +38,8 @@ interface DashboardHeroProps {
   role: Role;
   fullName?: string | null;
   avatarUrl?: string | null;
+  /** LinkedIn-style cover/banner image rendered behind the avatar. */
+  coverUrl?: string | null;
   subtitle?: ReactNode;
   /** Optional right-side slot for actions (buttons) */
   actions?: ReactNode;
@@ -73,6 +75,7 @@ export const DashboardHero = ({
   role,
   fullName,
   avatarUrl,
+  coverUrl,
   subtitle,
   actions,
   footer,
