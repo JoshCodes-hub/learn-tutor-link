@@ -204,6 +204,8 @@ const EditProfile = () => {
 
     setIsSaving(true);
     try {
+      const toArr = (s: string) => s.split(",").map(t => t.trim()).filter(Boolean);
+      const num = (s: string) => (s.trim() === "" ? null : Math.min(5, Math.max(0, parseFloat(s))));
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -212,6 +214,19 @@ const EditProfile = () => {
           avatar_url: avatarUrl,
           profile_image_url: avatarUrl,
           cover_photo_url: coverUrl,
+          level: level || null,
+          current_cgpa: num(currentCgpa),
+          aspiring_cgpa: num(aspiringCgpa),
+          matric_no: matricNo.trim() || null,
+          phone: phone.trim() || null,
+          date_of_birth: dob || null,
+          gender: gender || null,
+          bio: bio.trim() || null,
+          state_of_origin: stateOfOrigin.trim() || null,
+          linkedin_handle: linkedin.trim() || null,
+          x_handle: xHandle.trim() || null,
+          study_interests: toArr(interests),
+          hobbies: toArr(hobbies),
         } as any)
         .eq("id", user.id);
 
