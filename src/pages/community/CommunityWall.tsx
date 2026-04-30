@@ -523,7 +523,7 @@ const CommunityWall = () => {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
                               <Sparkles className="w-3.5 h-3.5" />
-                              AI {aiByPost[p.id]?.mode === "summary" ? "summary" : "study tips"}
+                              AI · {AI_MODES.find(m => m.value === aiByPost[p.id]?.mode)?.label || "Result"}
                             </div>
                             <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => closeAI(p.id)}>
                               <X className="w-3 h-3" />
