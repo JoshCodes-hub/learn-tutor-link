@@ -85,6 +85,7 @@ export const DashboardHero = ({
 
   return (
     <motion.section
+      aria-label={`${displayName} profile header`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -96,19 +97,21 @@ export const DashboardHero = ({
     >
       {/* === Gold cover band === */}
       <div className="relative h-40 sm:h-48 md:h-56 w-full overflow-hidden">
-        {/* Base gold gradient (always present for brand consistency) */}
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600" />
+        {/* Base gold gradient — slightly darker for AA contrast against white text */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700" />
         {/* User cover image overlay */}
         {coverUrl && (
           <div
             className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-90"
             style={{ backgroundImage: `url(${coverUrl})` }}
-            aria-hidden
+            role="img"
+            aria-label={`${displayName}'s cover photo`}
           />
         )}
         {/* Decorative flowing curves */}
         <svg
-          aria-hidden
+          aria-hidden="true"
+          focusable="false"
           className="pointer-events-none absolute inset-0 h-full w-full opacity-30"
           viewBox="0 0 800 200"
           preserveAspectRatio="none"
@@ -131,7 +134,12 @@ export const DashboardHero = ({
           />
         </svg>
         {/* Soft inner glow */}
-        <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/25 blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/25 blur-3xl" aria-hidden="true" />
+        {/* Bottom-left scrim — boosts text contrast over busy cover photos */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/30 via-black/10 to-transparent"
+          aria-hidden="true"
+        />
 
         {/* Right-side action (Edit Profile / custom actions) */}
         <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10">
@@ -141,10 +149,10 @@ export const DashboardHero = ({
                 <Button
                   asChild
                   size="sm"
-                  className="bg-white text-amber-700 hover:bg-amber-50 shadow-md font-semibold rounded-full px-4 sm:px-5"
+                  className="bg-white text-amber-800 hover:bg-amber-50 shadow-md font-semibold rounded-full px-4 sm:px-5 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-amber-600"
                 >
-                  <Link to="/profile/edit">
-                    <Camera className="w-4 h-4 mr-1.5" />
+                  <Link to="/profile/edit" aria-label="Edit your profile">
+                    <Camera className="w-4 h-4 mr-1.5" aria-hidden="true" />
                     Edit Profile
                   </Link>
                 </Button>
@@ -157,41 +165,51 @@ export const DashboardHero = ({
           <div className="relative shrink-0">
             <div className="absolute -inset-1 rounded-full bg-white/70 blur-md" aria-hidden />
             <Avatar className="relative h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 ring-4 ring-white shadow-xl">
-              <AvatarImage src={avatarUrl ?? undefined} alt={displayName} />
-              <AvatarFallback className="text-amber-700 font-bold text-2xl bg-gradient-to-br from-amber-100 to-amber-200">
+              <AvatarImage src={avatarUrl ?? undefined} alt={`${displayName}'s profile photo`} />
+              <AvatarFallback
+                className="text-amber-700 font-bold text-2xl bg-gradient-to-br from-amber-100 to-amber-200"
+                aria-label={`${displayName} initials`}
+              >
                 {initials(fullName)}
               </AvatarFallback>
             </Avatar>
             {/* online dot */}
-            <span className="absolute bottom-1 left-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" aria-hidden />
+            <span className="absolute bottom-1 left-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" aria-hidden="true" />
           </div>
 
           {/* Name + meta */}
-          <div className="flex-1 min-w-0 text-white">
+          <div className="flex-1 min-w-0 text-white" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}>
             <div className="flex items-center gap-2 min-w-0">
-              <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate drop-shadow-sm">
+              <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate">
                 {displayName}
               </h1>
               {verified && (
-                <BadgeCheck className="h-5 w-5 sm:h-6 sm:w-6 text-white fill-amber-700/40 shrink-0" aria-label="Verified" />
+                <BadgeCheck
+                  className="h-5 w-5 sm:h-6 sm:w-6 text-white fill-amber-700/40 shrink-0"
+                  aria-label="Verified account"
+                  role="img"
+                />
               )}
             </div>
 
             <div className="mt-1.5">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white text-amber-700 text-xs font-semibold shadow-sm">
+              <span
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white text-amber-800 text-xs font-semibold shadow-sm"
+                style={{ textShadow: "none" }}
+              >
                 {pill.label}
               </span>
             </div>
 
             {institution && (
-              <p className="mt-1.5 text-sm sm:text-[15px] font-semibold text-white/95 truncate drop-shadow-sm">
+              <p className="mt-1.5 text-sm sm:text-[15px] font-semibold text-white truncate">
                 {institution}
               </p>
             )}
             {meta ? (
-              <p className="text-xs sm:text-sm text-white/85 truncate">{meta}</p>
+              <p className="text-xs sm:text-sm text-white/95 truncate">{meta}</p>
             ) : subtitle ? (
-              <p className="text-xs sm:text-sm text-white/85 truncate">{subtitle}</p>
+              <p className="text-xs sm:text-sm text-white/95 truncate">{subtitle}</p>
             ) : null}
           </div>
         </div>

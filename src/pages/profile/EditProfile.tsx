@@ -25,6 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { uploadToBucketWithVerification } from "@/lib/storageUpload";
+import { CoverCropDialog } from "@/components/profile/CoverCropDialog";
 
 const LEVELS = ["100", "200", "300", "400", "500", "600"];
 const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
@@ -121,74 +123,102 @@ const EditProfile = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
     }
-
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Image must be less than 2MB");
       return;
     }
 
+    // Instant local preview while we upload
+    const localPreview = URL.createObjectURL(file);
+    setAvatarUrl(localPreview);
+
     setIsUploading(true);
+    const fileExt = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${user.id}/avatar.${fileExt}`;
+
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const { publicUrl } = await uploadToBucketWithVerification({
+        bucket: "tutor-profiles",
+        path,
+        file,
+      });
 
-      // Upload to tutor-profiles bucket (using existing bucket)
-      const { error: uploadError } = await supabase.storage
-        .from("tutor-profiles")
-        .upload(fileName, file, { upsert: true });
+      // Persist immediately so the dashboard hero updates without a full Save
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl, profile_image_url: publicUrl } as any)
+        .eq("id", user.id);
 
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("tutor-profiles")
-        .getPublicUrl(fileName);
-
-      const newAvatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      setAvatarUrl(newAvatarUrl);
-      toast.success("Avatar uploaded successfully");
+      setAvatarUrl(publicUrl);
+      toast.success("Profile picture saved", {
+        description: `Stored at tutor-profiles/${path}`,
+      });
     } catch (error: any) {
-      console.error("Error uploading avatar:", error);
-      toast.error("Failed to upload avatar");
+      console.error("Avatar upload failed:", error);
+      toast.error("Failed to upload avatar", {
+        description: error?.message || "Check console for details",
+      });
+      // Roll back preview on failure
+      setAvatarUrl(profile?.avatar_url ?? null);
     } finally {
+      URL.revokeObjectURL(localPreview);
       setIsUploading(false);
     }
   };
 
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // === Cover photo: pick → crop dialog → verified upload ===
+  const [coverDialogOpen, setCoverDialogOpen] = useState(false);
+  const [coverDraftSrc, setCoverDraftSrc] = useState<string | null>(null);
+
+  const handleCoverPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // Reset the input so picking the same file twice still triggers change
+    e.target.value = "";
     if (!file || !user) return;
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Cover image must be less than 5MB");
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Cover image must be less than 8MB");
       return;
     }
+    const url = URL.createObjectURL(file);
+    setCoverDraftSrc(url);
+    setCoverDialogOpen(true);
+  };
+
+  const handleCroppedCoverSave = async (blob: Blob) => {
+    if (!user) return;
     setIsUploadingCover(true);
+    const path = `${user.id}/cover.jpg`;
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/cover.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("profile-covers")
-        .upload(fileName, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage
-        .from("profile-covers")
-        .getPublicUrl(fileName);
-      const newUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      setCoverUrl(newUrl);
-      toast.success("Cover photo uploaded");
-    } catch (err) {
-      console.error("Error uploading cover:", err);
-      toast.error("Failed to upload cover photo");
+      const { publicUrl } = await uploadToBucketWithVerification({
+        bucket: "profile-covers",
+        path,
+        file: blob,
+        contentType: "image/jpeg",
+      });
+      await supabase
+        .from("profiles")
+        .update({ cover_photo_url: publicUrl } as any)
+        .eq("id", user.id);
+      setCoverUrl(publicUrl);
+      setCoverDialogOpen(false);
+      if (coverDraftSrc) URL.revokeObjectURL(coverDraftSrc);
+      setCoverDraftSrc(null);
+      toast.success("Cover saved successfully", {
+        description: `Stored at profile-covers/${path}`,
+      });
+    } catch (err: any) {
+      console.error("Cover upload failed:", err);
+      toast.error("Failed to upload cover photo", {
+        description: err?.message || "Check console for details",
+      });
     } finally {
       setIsUploadingCover(false);
     }
@@ -313,10 +343,24 @@ const EditProfile = () => {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={handleCoverUpload}
+              onChange={handleCoverPick}
               disabled={isUploadingCover}
             />
           </div>
+
+          <CoverCropDialog
+            open={coverDialogOpen}
+            onOpenChange={(o) => {
+              setCoverDialogOpen(o);
+              if (!o && coverDraftSrc) {
+                URL.revokeObjectURL(coverDraftSrc);
+                setCoverDraftSrc(null);
+              }
+            }}
+            imageSrc={coverDraftSrc}
+            onCropped={handleCroppedCoverSave}
+            saving={isUploadingCover}
+          />
 
           <div className="p-6 space-y-6">
           {/* Avatar Section */}
