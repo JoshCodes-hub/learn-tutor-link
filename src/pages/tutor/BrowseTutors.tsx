@@ -32,6 +32,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { FollowTutorButton } from "@/components/tutor/FollowTutorButton";
 
 interface Tutor {
   id: string;
@@ -361,8 +362,11 @@ const BrowseTutors = () => {
                   <Link
                     key={tutor.id}
                     to={`/tutor/${tutor.id}`}
-                    className="bg-card rounded-xl border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300 group"
+                    className="relative bg-card rounded-xl border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300 group"
                   >
+                    <div className="absolute top-3 right-3">
+                      <FollowTutorButton tutorId={tutor.id} variant="compact" />
+                    </div>
                     <div className="flex items-start gap-4 mb-4">
                       <TutorAvatar
                         src={tutor.profile_image_url}
