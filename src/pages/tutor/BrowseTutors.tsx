@@ -261,20 +261,48 @@ const BrowseTutors = () => {
   useEffect(() => {
     let filtered = [...tutors];
 
-    // Filter by search query
+    // Filter by search query (name, code, department, course code)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (t) =>
           t.full_name?.toLowerCase().includes(query) ||
           t.tutor_code?.toLowerCase().includes(query) ||
-          t.department?.toLowerCase().includes(query)
+          t.department?.toLowerCase().includes(query) ||
+          t.courseCodes.some((c) => c.toLowerCase().includes(query))
       );
     }
 
     // Filter by department
     if (selectedDepartment && selectedDepartment !== "all") {
       filtered = filtered.filter((t) => t.department === selectedDepartment);
+    }
+
+    // Filter by course
+    if (selectedCourse && selectedCourse !== "all") {
+      filtered = filtered.filter((t) => t.courseIds.includes(selectedCourse));
+    }
+
+    // Filter by price bucket
+    if (selectedPrice && selectedPrice !== "all") {
+      filtered = filtered.filter((t) => {
+        switch (selectedPrice) {
+          case "free":
+            return t.hasFree && !t.hasPaid;
+          case "paid":
+            return t.hasPaid;
+          case "lt10":
+            return t.hasPaid && t.minPrice <= 10;
+          case "10-25":
+            return t.hasPaid && t.minPrice >= 10 && t.minPrice <= 25;
+          case "25-50":
+            return t.hasPaid && t.minPrice > 25 && t.minPrice <= 50;
+          case "gt50":
+            return t.hasPaid && t.minPrice > 50;
+          default:
+            return true;
+        }
+      });
     }
 
     if (selectedSpec && selectedSpec !== "all") {
