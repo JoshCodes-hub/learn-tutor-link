@@ -119,6 +119,22 @@ const CommunityWall = () => {
   const closeAI = (postId: string) =>
     setAiByPost(prev => ({ ...prev, [postId]: { loading: false, mode: null, content: null } }));
 
+  // Load tutors lazily when picker opens
+  const loadTutors = useCallback(async () => {
+    if (tutorList.length > 0) return;
+    const { data: roleRows } = await (supabase as any).from("user_roles").select("user_id").eq("role", "tutor");
+    const ids = Array.from(new Set((roleRows ?? []).map((r: any) => r.user_id)));
+    if (!ids.length) { setTutorList([]); return; }
+    const { data: profs } = await supabase.from("profiles").select("id, full_name, tutor_code").in("id", ids as string[]);
+    setTutorList(((profs as any) ?? []).filter((t: any) => !!t.tutor_code));
+  }, [tutorList.length]);
+
+  const insertMention = (code: string) => {
+    const tag = `@${code} `;
+    setContent(prev => prev.endsWith(" ") || prev.length === 0 ? prev + tag : prev + " " + tag);
+    setTutorPickerOpen(false);
+  };
+
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
 
   useEffect(() => {
