@@ -6,7 +6,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface Material { title: string; description?: string | null; file_type?: string | null }
+interface Material {
+  title: string;
+  description?: string | null;
+  file_type?: string | null;
+  tutor_name?: string | null;
+  tutor_id?: string | null;
+}
 interface Msg { role: "user" | "assistant"; content: string }
 
 serve(async (req) => {
