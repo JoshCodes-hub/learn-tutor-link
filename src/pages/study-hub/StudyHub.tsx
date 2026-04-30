@@ -25,10 +25,12 @@ interface Course {
 const StudyHub = () => {
   const { user, isLoading: authLoading, primaryRole } = useAuth();
   const navigate = useNavigate();
+  const { courseIds: enrolledIds } = useMyCourses();
   const [courses, setCourses] = useState<Course[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [onlyMine, setOnlyMine] = useState(true);
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
 
   useEffect(() => {
@@ -57,11 +59,13 @@ const StudyHub = () => {
     })();
   }, [user]);
 
-  const filtered = courses.filter(
-    (c) =>
+  const filtered = courses.filter((c) => {
+    if (onlyMine && navRole === "student" && enrolledIds.length > 0 && !enrolledIds.includes(c.id)) return false;
+    return (
       c.code.toLowerCase().includes(search.toLowerCase()) ||
-      c.name.toLowerCase().includes(search.toLowerCase()),
-  );
+      c.name.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   if (authLoading || loading) {
     return (
