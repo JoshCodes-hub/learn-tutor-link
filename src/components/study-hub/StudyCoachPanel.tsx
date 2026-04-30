@@ -105,7 +105,7 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next, course, materials, mode, action: "chat" }),
+        body: JSON.stringify({ messages: next, course, materials, mode, action: "chat", verifiedOnly }),
       });
 
       if (resp.status === 429) { toast.error("Rate limit hit. Try again shortly."); throw new Error("429"); }
