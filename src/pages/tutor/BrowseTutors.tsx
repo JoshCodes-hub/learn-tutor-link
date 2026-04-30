@@ -127,22 +127,52 @@ const BrowseTutors = () => {
 
         if (profileError) throw profileError;
 
-        // Fetch quiz counts
+        // Fetch quizzes (with course + price metadata for filters)
         const { data: quizzes } = await supabase
           .from("quizzes")
-          .select("id, tutor_id")
+          .select("id, tutor_id, course_id, token_cost, is_premium, courses(id, code, name)")
           .in("tutor_id", tutorIds)
           .eq("is_active", true);
 
         const quizCountMap = new Map<string, number>();
         const quizIdsByTutor = new Map<string, string[]>();
-        
-        quizzes?.forEach((q) => {
-          if (q.tutor_id) {
-            quizCountMap.set(q.tutor_id, (quizCountMap.get(q.tutor_id) || 0) + 1);
-            const ids = quizIdsByTutor.get(q.tutor_id) || [];
-            ids.push(q.id);
-            quizIdsByTutor.set(q.tutor_id, ids);
+        const courseIdsByTutor = new Map<string, Set<string>>();
+        const courseCodesByTutor = new Map<string, Set<string>>();
+        const pricesByTutor = new Map<string, number[]>();
+        const hasPaidByTutor = new Map<string, boolean>();
+        const hasFreeByTutor = new Map<string, boolean>();
+        const courseOptionMap = new Map<string, CourseOption>();
+
+        quizzes?.forEach((q: any) => {
+          if (!q.tutor_id) return;
+          quizCountMap.set(q.tutor_id, (quizCountMap.get(q.tutor_id) || 0) + 1);
+          const ids = quizIdsByTutor.get(q.tutor_id) || [];
+          ids.push(q.id);
+          quizIdsByTutor.set(q.tutor_id, ids);
+
+          // Course tracking
+          if (q.course_id && q.courses) {
+            const cIds = courseIdsByTutor.get(q.tutor_id) || new Set();
+            cIds.add(q.course_id);
+            courseIdsByTutor.set(q.tutor_id, cIds);
+            const cCodes = courseCodesByTutor.get(q.tutor_id) || new Set();
+            cCodes.add(q.courses.code);
+            courseCodesByTutor.set(q.tutor_id, cCodes);
+            if (!courseOptionMap.has(q.course_id)) {
+              courseOptionMap.set(q.course_id, { id: q.course_id, code: q.courses.code, name: q.courses.name });
+            }
+          }
+
+          // Price tracking
+          const cost = Number(q.token_cost || 0);
+          const isPaid = !!q.is_premium && cost > 0;
+          if (isPaid) {
+            const list = pricesByTutor.get(q.tutor_id) || [];
+            list.push(cost);
+            pricesByTutor.set(q.tutor_id, list);
+            hasPaidByTutor.set(q.tutor_id, true);
+          } else {
+            hasFreeByTutor.set(q.tutor_id, true);
           }
         });
 
@@ -155,7 +185,6 @@ const BrowseTutors = () => {
 
         const ratingsByTutor = new Map<string, number[]>();
         ratings?.forEach((r) => {
-          // Find which tutor owns this quiz
           for (const [tutorId, quizIds] of quizIdsByTutor) {
             if (quizIds.includes(r.quiz_id)) {
               const tutorRatings = ratingsByTutor.get(tutorId) || [];
@@ -188,7 +217,7 @@ const BrowseTutors = () => {
           const avgRating = tutorRatings.length > 0
             ? tutorRatings.reduce((a, b) => a + b, 0) / tutorRatings.length
             : 0;
-
+          const prices = pricesByTutor.get(p.id) || [];
           return {
             id: p.id,
             full_name: p.full_name,
@@ -201,12 +230,21 @@ const BrowseTutors = () => {
             studentCount: studentsByTutor.get(p.id)?.size || 0,
             averageRating: avgRating,
             ratingCount: tutorRatings.length,
+            courseIds: Array.from(courseIdsByTutor.get(p.id) || []),
+            courseCodes: Array.from(courseCodesByTutor.get(p.id) || []).sort(),
+            minPrice: prices.length ? Math.min(...prices) : 0,
+            maxPrice: prices.length ? Math.max(...prices) : 0,
+            hasPaid: !!hasPaidByTutor.get(p.id),
+            hasFree: !!hasFreeByTutor.get(p.id),
           };
         });
 
         // Extract unique departments
         const depts = [...new Set(tutorList.map((t) => t.department).filter(Boolean))] as string[];
         setDepartments(depts.sort());
+
+        // Course options sorted by code
+        setCourses(Array.from(courseOptionMap.values()).sort((a, b) => a.code.localeCompare(b.code)));
 
         setTutors(tutorList);
         setFilteredTutors(tutorList);
