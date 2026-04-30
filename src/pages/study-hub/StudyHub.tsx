@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { SEO } from "@/components/seo/SEO";
+import { useMyCourses } from "@/hooks/useMyCourses";
 import { BookOpen, FileText, Search, Sparkles, TrendingUp } from "lucide-react";
 
 interface Course {
@@ -24,10 +25,12 @@ interface Course {
 const StudyHub = () => {
   const { user, isLoading: authLoading, primaryRole } = useAuth();
   const navigate = useNavigate();
+  const { courseIds: enrolledIds } = useMyCourses();
   const [courses, setCourses] = useState<Course[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [onlyMine, setOnlyMine] = useState(true);
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
 
   useEffect(() => {
@@ -56,11 +59,13 @@ const StudyHub = () => {
     })();
   }, [user]);
 
-  const filtered = courses.filter(
-    (c) =>
+  const filtered = courses.filter((c) => {
+    if (onlyMine && navRole === "student" && enrolledIds.length > 0 && !enrolledIds.includes(c.id)) return false;
+    return (
       c.code.toLowerCase().includes(search.toLowerCase()) ||
-      c.name.toLowerCase().includes(search.toLowerCase()),
-  );
+      c.name.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   if (authLoading || loading) {
     return (
@@ -101,14 +106,27 @@ const StudyHub = () => {
           </p>
         </div>
 
-        <div className="relative mb-6 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search courses..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="relative flex-1 min-w-[240px] max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search courses..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          {navRole === "student" && enrolledIds.length > 0 && (
+            <div className="flex gap-2">
+              <Button size="sm" variant={onlyMine ? "default" : "outline"} onClick={() => setOnlyMine(true)}>My Courses</Button>
+              <Button size="sm" variant={!onlyMine ? "default" : "outline"} onClick={() => setOnlyMine(false)}>All Courses</Button>
+            </div>
+          )}
+          {navRole === "student" && (
+            <Button size="sm" variant="ghost" asChild>
+              <Link to="/my-courses">Manage my courses →</Link>
+            </Button>
+          )}
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

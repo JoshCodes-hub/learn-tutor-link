@@ -88,6 +88,10 @@ const Inbox = lazy(() => import("@/pages/messages/Inbox"));
 const Announcements = lazy(() => import("@/pages/announcements/Announcements"));
 const QABoard = lazy(() => import("@/pages/qa/QABoard"));
 const QAQuestion = lazy(() => import("@/pages/qa/QAQuestion"));
+const MyCourses = lazy(() => import("@/pages/student/MyCourses"));
+const TutorCourses = lazy(() => import("@/pages/tutor/TutorCourses"));
+const AdminCourses = lazy(() => import("@/pages/admin/AdminCourses"));
+const CommunityWall = lazy(() => import("@/pages/community/CommunityWall"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -323,6 +327,10 @@ export const AnimatedRoutes = () => {
           <Route path="/exam-tomorrow" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route path="/can-i-pass" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route path="/two-hours-left" element={<PageTransition><ViralMode /></PageTransition>} />
+          <Route path="/my-courses" element={<PageTransition><MyCourses /></PageTransition>} />
+          <Route path="/tutor/courses" element={<PageTransition><TutorCourses /></PageTransition>} />
+          <Route path="/admin/courses" element={<AdminRoute><PageTransition><AdminCourses /></PageTransition></AdminRoute>} />
+          <Route path="/community-wall" element={<PageTransition><CommunityWall /></PageTransition>} />
           <Route
             path="*"
             element={

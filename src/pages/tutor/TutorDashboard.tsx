@@ -52,7 +52,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2, AlertCircle } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, AlertCircle, BookOpen } from "lucide-react";
 
 interface Course {
   id: string;
@@ -500,6 +500,20 @@ const TutorDashboard = () => {
               description: "Answer student questions",
               to: "/qa",
               tone: "slate",
+            },
+            {
+              icon: BookOpen,
+              label: "My Courses",
+              description: "Pick courses you handle",
+              to: "/tutor/courses",
+              tone: "rose",
+            },
+            {
+              icon: Users,
+              label: "Community Wall",
+              description: "Talk with the community",
+              to: "/community-wall",
+              tone: "sapphire",
             },
           ]}
         />

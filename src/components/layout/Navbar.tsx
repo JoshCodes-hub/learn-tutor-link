@@ -5,6 +5,7 @@ import { Menu, X, GraduationCap, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import TutorApplicationDialog from "@/components/landing/TutorApplicationDialog";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import logo from "@/assets/logo.png";
 
 const Navbar = () => {
@@ -13,7 +14,9 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isLoading, hasRole } = useAuth();
+  const { user, profile, isLoading, hasRole } = useAuth();
+  const initials = (profile?.full_name || user?.email || "U").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  const avatar = (profile as any)?.avatar_url || (profile as any)?.profile_image_url || null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -122,6 +125,16 @@ const Navbar = () => {
                       Dashboard
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
+                    <button
+                      onClick={() => navigate("/profile/edit")}
+                      aria-label="Edit profile"
+                      className="rounded-full ring-2 ring-primary/20 hover:ring-primary/50 transition-all"
+                    >
+                      <Avatar className="w-9 h-9">
+                        <AvatarImage src={avatar || undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{initials}</AvatarFallback>
+                      </Avatar>
+                    </button>
                   </>
                 ) : (
                   <>
@@ -196,10 +209,20 @@ const Navbar = () => {
                       <Button 
                         variant="hero" 
                         className="flex-1 justify-center" 
-                        onClick={() => navigate("/dashboard")}
+                        onClick={() => { setIsMenuOpen(false); navigate("/dashboard"); }}
                       >
                         Go to Dashboard
                       </Button>
+                      <button
+                        onClick={() => { setIsMenuOpen(false); navigate("/profile/edit"); }}
+                        aria-label="Edit profile"
+                        className="rounded-full ring-2 ring-primary/20"
+                      >
+                        <Avatar className="w-9 h-9">
+                          <AvatarImage src={avatar || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{initials}</AvatarFallback>
+                        </Avatar>
+                      </button>
                     </div>
                   ) : (
                     <>

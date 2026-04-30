@@ -836,6 +836,20 @@ const StudentDashboard = () => {
               to: "/qa",
               tone: "rose",
             },
+            {
+              icon: GraduationCap,
+              label: "My Courses",
+              description: "Manage enrolled courses",
+              to: "/my-courses",
+              tone: "emerald",
+            },
+            {
+              icon: Users,
+              label: "Community Wall",
+              description: "Talk with everyone",
+              to: "/community-wall",
+              tone: "sapphire",
+            },
           ]}
         />
 

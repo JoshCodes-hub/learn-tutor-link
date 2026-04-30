@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { NativeSettings } from "@/components/native/NativeSettings";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+const LEVELS = ["100", "200", "300", "400", "500", "600"];
+const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
 
 const DEPARTMENTS = [
   "Agricultural & Resource Economics",
@@ -69,6 +73,21 @@ const EditProfile = () => {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Extended fields
+  const [level, setLevel] = useState("");
+  const [currentCgpa, setCurrentCgpa] = useState("");
+  const [aspiringCgpa, setAspiringCgpa] = useState("");
+  const [matricNo, setMatricNo] = useState("");
+  const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("");
+  const [bio, setBio] = useState("");
+  const [stateOfOrigin, setStateOfOrigin] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [xHandle, setXHandle] = useState("");
+  const [interests, setInterests] = useState("");
+  const [hobbies, setHobbies] = useState("");
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
@@ -77,10 +96,24 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (profile) {
+      const p: any = profile;
       setFullName(profile.full_name || "");
       setDepartment(profile.department || "");
       setAvatarUrl(profile.avatar_url);
-      setCoverUrl((profile as any).cover_photo_url ?? null);
+      setCoverUrl(p.cover_photo_url ?? null);
+      setLevel(p.level || "");
+      setCurrentCgpa(p.current_cgpa != null ? String(p.current_cgpa) : "");
+      setAspiringCgpa(p.aspiring_cgpa != null ? String(p.aspiring_cgpa) : "");
+      setMatricNo(p.matric_no || "");
+      setPhone(p.phone || "");
+      setDob(p.date_of_birth || "");
+      setGender(p.gender || "");
+      setBio(p.bio || "");
+      setStateOfOrigin(p.state_of_origin || "");
+      setLinkedin(p.linkedin_handle || "");
+      setXHandle(p.x_handle || "");
+      setInterests((p.study_interests || []).join(", "));
+      setHobbies((p.hobbies || []).join(", "));
     }
   }, [profile]);
 
@@ -171,6 +204,8 @@ const EditProfile = () => {
 
     setIsSaving(true);
     try {
+      const toArr = (s: string) => s.split(",").map(t => t.trim()).filter(Boolean);
+      const num = (s: string) => (s.trim() === "" ? null : Math.min(5, Math.max(0, parseFloat(s))));
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -179,6 +214,19 @@ const EditProfile = () => {
           avatar_url: avatarUrl,
           profile_image_url: avatarUrl,
           cover_photo_url: coverUrl,
+          level: level || null,
+          current_cgpa: num(currentCgpa),
+          aspiring_cgpa: num(aspiringCgpa),
+          matric_no: matricNo.trim() || null,
+          phone: phone.trim() || null,
+          date_of_birth: dob || null,
+          gender: gender || null,
+          bio: bio.trim() || null,
+          state_of_origin: stateOfOrigin.trim() || null,
+          linkedin_handle: linkedin.trim() || null,
+          x_handle: xHandle.trim() || null,
+          study_interests: toArr(interests),
+          hobbies: toArr(hobbies),
         } as any)
         .eq("id", user.id);
 
@@ -334,6 +382,82 @@ const EditProfile = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Level</Label>
+                <Select value={level} onValueChange={setLevel}>
+                  <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                  <SelectContent>{LEVELS.map(l => <SelectItem key={l} value={l}>{l} Level</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Matric No</Label>
+                <Input value={matricNo} onChange={(e) => setMatricNo(e.target.value)} placeholder="e.g. CSC/19/0001" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Current CGPA</Label>
+                <Input type="number" step="0.01" min="0" max="5" value={currentCgpa} onChange={(e) => setCurrentCgpa(e.target.value)} placeholder="0.00 – 5.00" />
+              </div>
+              <div className="space-y-2">
+                <Label>Aspiring CGPA</Label>
+                <Input type="number" step="0.01" min="0" max="5" value={aspiringCgpa} onChange={(e) => setAspiringCgpa(e.target.value)} placeholder="Goal" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234..." />
+              </div>
+              <div className="space-y-2">
+                <Label>Date of Birth</Label>
+                <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Gender</Label>
+                <Select value={gender} onValueChange={setGender}>
+                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>{GENDERS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>State of Origin</Label>
+                <Input value={stateOfOrigin} onChange={(e) => setStateOfOrigin(e.target.value)} placeholder="e.g. Lagos" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Bio</Label>
+              <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell others about yourself..." rows={3} maxLength={500} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>LinkedIn</Label>
+                <Input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="username" />
+              </div>
+              <div className="space-y-2">
+                <Label>X (Twitter)</Label>
+                <Input value={xHandle} onChange={(e) => setXHandle(e.target.value)} placeholder="@handle" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Study Interests <span className="text-xs text-muted-foreground">(comma separated)</span></Label>
+              <Input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="AI, Algorithms, Calculus" />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Hobbies <span className="text-xs text-muted-foreground">(comma separated)</span></Label>
+              <Input value={hobbies} onChange={(e) => setHobbies(e.target.value)} placeholder="Football, Music, Reading" />
             </div>
 
             <div className="space-y-2">
