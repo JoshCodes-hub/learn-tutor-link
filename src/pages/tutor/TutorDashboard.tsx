@@ -52,7 +52,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2, AlertCircle, BookOpen } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, AlertCircle, BookOpen, Image as ImageIcon } from "lucide-react";
 
 interface Course {
   id: string;
@@ -462,6 +462,13 @@ const TutorDashboard = () => {
               description: "Author a new CBT in minutes",
               onClick: () => setShowUnifiedQuizCreator(true),
               tone: "gold",
+            },
+            {
+              icon: ImageIcon,
+              label: "Question Cards",
+              description: "Design branded shareable cards (PNG/PDF)",
+              to: "/tutor/question-cards",
+              tone: "violet",
             },
             {
               icon: AlertCircle,

@@ -61,7 +61,8 @@ import {
   RefreshCw,
   FileText,
   Share2,
-  Users
+  Users,
+  Headphones
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
@@ -849,6 +850,13 @@ const StudentDashboard = () => {
               description: "Read & download tutor materials",
               to: "/lecture-notes",
               tone: "emerald",
+            },
+            {
+              icon: Headphones,
+              label: "Audio Learning",
+              description: "Turn notes into audio you can study on the go",
+              to: "/audio-learning",
+              tone: "violet",
             },
             {
               icon: Users,
