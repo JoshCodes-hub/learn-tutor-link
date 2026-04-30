@@ -142,6 +142,30 @@ const StudentDashboard = () => {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [purchaseRequests, setPurchaseRequests] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+
+  // Profile completeness gate for paid quizzes
+  const tryStartPaidQuiz = (quiz: Quiz) => {
+    const isPaid = quiz.is_premium && (quiz.token_cost || 0) > 0 && !!quiz.tutor_id;
+    if (isPaid) {
+      // Lazy-import to avoid pulling in profile completeness logic for free quizzes
+      // Use the same source of truth as CompleteProfileCard.
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { getProfileCompleteness } = require("@/lib/profileCompleteness");
+      const { isComplete, missing } = getProfileCompleteness(profile);
+      if (!isComplete) {
+        toast({
+          title: "Complete your profile first",
+          description: `Add ${missing[0]?.label?.toLowerCase() || "your details"} (and ${missing.length - 1} more) before unlocking tutor-paid quizzes.`,
+          variant: "destructive",
+        });
+        navigate("/profile/edit");
+        return;
+      }
+    }
+    setSelectedQuiz(quiz);
+    setShowPurchaseQuiz(true);
+  };
+
   
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState("");
