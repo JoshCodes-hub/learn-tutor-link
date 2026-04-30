@@ -13,6 +13,7 @@ import { UploadMaterialDialog } from "@/components/study-hub/UploadMaterialDialo
 import { MaterialAIPanel } from "@/components/study-hub/MaterialAIPanel";
 import { ExportStudyPackDialog } from "@/components/study-hub/ExportStudyPackDialog";
 import { StudyCoachPanel } from "@/components/study-hub/StudyCoachPanel";
+import { LearningGoalsPanel } from "@/components/study-hub/LearningGoalsPanel";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
