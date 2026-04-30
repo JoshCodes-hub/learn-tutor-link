@@ -387,6 +387,130 @@ const Auth = () => {
                 )}
               </div>
 
+              {/* Academic details */}
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                  Academic details
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm font-medium">Academic path</Label>
+                    <Select
+                      value={academicPath}
+                      onValueChange={(v) => signUpForm.setValue("academicPath", v as any, { shouldValidate: true })}
+                    >
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Select path" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="university">University</SelectItem>
+                        <SelectItem value="jamb">JAMB / UTME</SelectItem>
+                        <SelectItem value="secondary">Secondary School</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {signUpForm.formState.errors.academicPath && (
+                      <p className="text-xs text-destructive">{signUpForm.formState.errors.academicPath.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-level" className="text-foreground text-sm font-medium">
+                      {academicPath === "university" ? "Level (e.g., 100, 200)" : academicPath === "secondary" ? "Class (e.g., SS2)" : "Attempt year"}
+                    </Label>
+                    <Input
+                      id="signup-level"
+                      placeholder={academicPath === "university" ? "100" : academicPath === "secondary" ? "SS2" : "2025"}
+                      className="h-11"
+                      {...signUpForm.register("level")}
+                    />
+                    {signUpForm.formState.errors.level && (
+                      <p className="text-xs text-destructive">{signUpForm.formState.errors.level.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-school" className="text-foreground text-sm font-medium">School / Institution</Label>
+                  <div className="relative">
+                    <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="signup-school"
+                      placeholder="Federal University of Technology, Akure"
+                      className="pl-9 h-11"
+                      {...signUpForm.register("school")}
+                    />
+                  </div>
+                  {signUpForm.formState.errors.school && (
+                    <p className="text-xs text-destructive">{signUpForm.formState.errors.school.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-department" className="text-foreground text-sm font-medium">Department / Course</Label>
+                  <Input
+                    id="signup-department"
+                    placeholder="Computer Science"
+                    className="h-11"
+                    {...signUpForm.register("department")}
+                  />
+                  {signUpForm.formState.errors.department && (
+                    <p className="text-xs text-destructive">{signUpForm.formState.errors.department.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact details */}
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <IdCard className="w-3.5 h-3.5 text-primary" />
+                  Contact & ID
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-phone" className="text-foreground text-sm font-medium">Phone</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input id="signup-phone" placeholder="080..." className="pl-9 h-11" {...signUpForm.register("phone")} />
+                    </div>
+                    {signUpForm.formState.errors.phone && (
+                      <p className="text-xs text-destructive">{signUpForm.formState.errors.phone.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-matric" className="text-foreground text-sm font-medium">Matric / Reg no.</Label>
+                    <Input id="signup-matric" placeholder="CSC/20/1234" className="h-11" {...signUpForm.register("matricNo")} />
+                    {signUpForm.formState.errors.matricNo && (
+                      <p className="text-xs text-destructive">{signUpForm.formState.errors.matricNo.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-foreground text-sm font-medium">State of origin</Label>
+                  <Select
+                    value={signUpForm.watch("state")}
+                    onValueChange={(v) => signUpForm.setValue("state", v, { shouldValidate: true })}
+                  >
+                    <SelectTrigger className="h-11">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <SelectValue placeholder="Select your state" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      {NIGERIAN_STATES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {signUpForm.formState.errors.state && (
+                    <p className="text-xs text-destructive">{signUpForm.formState.errors.state.message}</p>
+                  )}
+                </div>
+              </div>
+
               {/* Referral Code Section - Highlighted */}
               <div className="relative p-4 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-xl border border-primary/20">
                 <div className="absolute -top-3 left-4 bg-card px-2">
