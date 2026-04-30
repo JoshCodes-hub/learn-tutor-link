@@ -16,8 +16,9 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { SEO } from "@/components/seo/SEO";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, X, Globe, BookOpen, Trash2, Shield, GraduationCap } from "lucide-react";
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, X, Globe, BookOpen, Trash2, Shield, GraduationCap, Sparkles, Lightbulb, FileText } from "lucide-react";
 import { useMyCourses } from "@/hooks/useMyCourses";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Post {
   id: string;
@@ -70,6 +71,28 @@ const CommunityWall = () => {
   const [openComments, setOpenComments] = useState<Set<string>>(new Set());
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
   const [commentsByPost, setCommentsByPost] = useState<Record<string, Comment[]>>({});
+
+  // Ask AI per post
+  const [aiByPost, setAiByPost] = useState<Record<string, { loading: boolean; mode: "tips" | "summary" | null; content: string | null }>>({});
+
+  const askAI = async (post: Post, mode: "tips" | "summary") => {
+    if (!post.content?.trim()) { toast.error("This post has no text to analyze"); return; }
+    setAiByPost(prev => ({ ...prev, [post.id]: { loading: true, mode, content: null } }));
+    try {
+      const { data, error } = await supabase.functions.invoke("community-ask-ai", {
+        body: { text: post.content, mode },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setAiByPost(prev => ({ ...prev, [post.id]: { loading: false, mode, content: (data as any)?.content || "No response" } }));
+    } catch (err: any) {
+      setAiByPost(prev => ({ ...prev, [post.id]: { loading: false, mode: null, content: null } }));
+      toast.error(err?.message || "AI request failed");
+    }
+  };
+
+  const closeAI = (postId: string) =>
+    setAiByPost(prev => ({ ...prev, [postId]: { loading: false, mode: null, content: null } }));
 
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
 
@@ -373,7 +396,7 @@ const CommunityWall = () => {
                     <CardContent className="space-y-3">
                       {p.content && <p className="whitespace-pre-wrap text-sm">{p.content}</p>}
                       {p.image_url && <img src={p.image_url} alt="" className="rounded-lg border max-h-[480px] object-cover w-full" />}
-                      <div className="flex items-center gap-1 pt-1">
+                      <div className="flex items-center gap-1 pt-1 flex-wrap">
                         <Button variant="ghost" size="sm" onClick={() => toggleLike(p)} className="gap-1.5">
                           <Heart className={`w-4 h-4 ${likes.has(p.id) ? "fill-primary text-primary" : ""}`} />
                           {p.like_count}
@@ -382,7 +405,41 @@ const CommunityWall = () => {
                           <MessageCircle className="w-4 h-4" />
                           {p.comment_count}
                         </Button>
+                        {p.content && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="gap-1.5 ml-auto" disabled={aiByPost[p.id]?.loading}>
+                                {aiByPost[p.id]?.loading
+                                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                                  : <Sparkles className="w-4 h-4 text-primary" />}
+                                Ask AI
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => askAI(p, "tips")}>
+                                <Lightbulb className="w-4 h-4 mr-2" /> Study tips
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => askAI(p, "summary")}>
+                                <FileText className="w-4 h-4 mr-2" /> Summarize
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
+                      {aiByPost[p.id]?.content && (
+                        <div className="rounded-lg border bg-primary/5 p-3 text-sm">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                              <Sparkles className="w-3.5 h-3.5" />
+                              AI {aiByPost[p.id]?.mode === "summary" ? "summary" : "study tips"}
+                            </div>
+                            <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => closeAI(p.id)}>
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          <div className="whitespace-pre-wrap text-sm">{aiByPost[p.id]?.content}</div>
+                        </div>
+                      )}
                       {isOpen && (
                         <div className="border-t pt-3 space-y-3">
                           {(commentsByPost[p.id] || []).map(c => {
