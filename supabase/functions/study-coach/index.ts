@@ -19,12 +19,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, course, materials, mode, action } = await req.json() as {
+    const { messages, course, materials, mode, action, verifiedOnly } = await req.json() as {
       messages: Msg[];
       course?: { code?: string; name?: string };
       materials?: Material[];
       mode?: "study_hub" | "theory";
       action?: "chat" | "flashcards";
+      verifiedOnly?: boolean;
     };
 
     if (!Array.isArray(messages) || messages.length === 0) {
