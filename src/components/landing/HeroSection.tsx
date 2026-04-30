@@ -1,54 +1,33 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, GraduationCap, School, BookOpen, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowRight, GraduationCap, Sparkles, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import heroEditorial from "@/assets/hero-editorial.jpg";
 import heroCollab from "@/assets/hero-collab.jpg";
 import heroStudyDetail from "@/assets/hero-study-detail.jpg";
 
-type Role = "student" | "tutor" | "school";
-
-/**
- * Each slide carries:
- * - Its own per-breakpoint focal point (so the subject's face stays in frame on mobile/tablet/desktop)
- * - A synced "highlight" word that swaps inside the headline as the photo crossfades
- * - A synced editorial sub-line
- */
 const heroSlides = [
   {
     src: heroEditorial,
-    // Subject is right side → push focal right on mobile, center on desktop
     focal: "object-[78%_30%] sm:object-[72%_30%] md:object-[65%_35%] lg:object-[60%_35%]",
-    highlight: "Practice.",
     sub: "AI-graded CBT drills, instant explanations, real exam pacing.",
   },
   {
     src: heroCollab,
-    // Two subjects centered → keep tighter framing on mobile
     focal: "object-[55%_45%] sm:object-[50%_42%] md:object-[50%_40%]",
-    highlight: "Together.",
     sub: "Verified tutors, study teams and live mentorship that move you forward.",
   },
   {
     src: heroStudyDetail,
-    // Detail shot — keep notebook in frame
     focal: "object-[55%_55%] sm:object-[58%_52%] md:object-[60%_50%]",
-    highlight: "Mastery.",
     sub: "Theory rubrics, weak-area drills and an exam-readiness score you can trust.",
   },
 ];
 
-const roleConfig: Record<Role, { label: string; icon: typeof BookOpen; path: string; cta: string }> = {
-  student: { label: "Student", icon: BookOpen, path: "/auth?mode=signup&role=student", cta: "Start Practising — Free" },
-  tutor: { label: "Tutor", icon: GraduationCap, path: "/apply-tutor", cta: "Apply to Teach" },
-  school: { label: "School", icon: School, path: "/school/register", cta: "Register your School" },
-};
-
 const HeroSection = () => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [selectedRole, setSelectedRole] = useState<Role>("student");
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -58,7 +37,6 @@ const HeroSection = () => {
   }, []);
 
   const slide = heroSlides[currentImageIndex];
-  const ActiveRoleCta = roleConfig[selectedRole];
 
   return (
     <section className="relative w-full overflow-hidden" aria-label="Hero section">
@@ -134,106 +112,81 @@ const HeroSection = () => {
             AI-Powered Excellence
           </motion.p>
 
-          {/* Headline with synced highlight word */}
+          {/* Headline — bold, modern, no italic display swap */}
           <motion.h1
-            className="font-display text-[2.5rem] leading-[1.02] sm:text-5xl md:text-6xl lg:text-[5.25rem] font-bold text-white tracking-tight"
+            className="text-[2.5rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4.75rem] font-bold text-white tracking-tight"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.55 }}
           >
-            Learn.{" "}
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={slide.highlight}
-                initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -14, filter: "blur(6px)" }}
-                transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
-                className="inline-block text-gradient-primary italic font-display"
-              >
-                {slide.highlight}
-              </motion.span>
-            </AnimatePresence>
+            Prepare Smarter.
             <br />
-            Succeed.
+            <span className="text-gradient-primary">Perform Better.</span>
           </motion.h1>
 
-          {/* Synced sub-line */}
-          <div className="h-12 sm:h-10 max-w-xl">
+          {/* Static, clear subtext */}
+          <motion.p
+            className="text-white/80 text-base sm:text-lg leading-relaxed font-light max-w-xl"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.55 }}
+          >
+            AI-powered exam preparation system for university students.
+          </motion.p>
+
+          {/* Rotating context line (kept subtle, no big highlight word) */}
+          <div className="h-6 max-w-xl">
             <AnimatePresence mode="wait">
               <motion.p
                 key={slide.sub}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.55 }}
-                className="text-white/80 text-sm sm:text-base leading-relaxed font-light"
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.5 }}
+                className="text-white/55 text-xs sm:text-sm tracking-wide"
               >
                 {slide.sub}
               </motion.p>
             </AnimatePresence>
           </div>
 
-          {/* 30-second registration block — role picker FIRST, CTA adapts */}
+          {/* Two clear CTAs — Get Started (Student) + Apply as Tutor */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55, duration: 0.5 }}
-            className="space-y-3 pt-1"
+            className="space-y-3 pt-2"
           >
-            <p className="text-[10.5px] sm:text-[11px] uppercase tracking-[0.22em] text-white/55 font-medium">
-              I'm joining as
-            </p>
-
-            {/* Role picker */}
-            <div className="flex flex-wrap gap-2">
-              {(Object.keys(roleConfig) as Role[]).map((role) => {
-                const cfg = roleConfig[role];
-                const Icon = cfg.icon;
-                const active = selectedRole === role;
-                return (
-                  <button
-                    key={role}
-                    onClick={() => setSelectedRole(role)}
-                    className={`group flex items-center gap-2 backdrop-blur-md rounded-full pl-2 pr-4 py-1.5 transition-all active:scale-95 border ${
-                      active
-                        ? "bg-primary/25 border-primary/60 shadow-lg shadow-primary/20"
-                        : "bg-white/8 border-white/15 hover:bg-white/12 hover:border-white/30"
-                    }`}
-                    aria-pressed={active}
-                  >
-                    <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                        active ? "bg-primary text-primary-foreground" : "bg-primary/20 text-primary"
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                    </span>
-                    <span className="text-xs sm:text-sm font-medium text-white">{cfg.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Adaptive primary CTA + Sign in */}
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+            <div className="flex flex-col sm:flex-row gap-2.5">
               <Button
                 size="lg"
                 className="h-12 sm:h-13 px-7 sm:px-8 text-sm sm:text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-xl shadow-primary/30 active:scale-[0.97] transition-all w-full sm:w-auto"
-                onClick={() => navigate(ActiveRoleCta.path)}
+                onClick={() => navigate("/auth?mode=signup&intent=student")}
               >
-                {ActiveRoleCta.cta}
+                Get Started
                 <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
               <Button
                 variant="ghost"
                 size="lg"
-                className="h-12 sm:h-13 px-6 text-white/85 hover:text-white hover:bg-white/10 rounded-full border border-white/20 w-full sm:w-auto"
-                onClick={() => navigate("/auth")}
+                className="h-12 sm:h-13 px-6 text-white/90 hover:text-white hover:bg-white/10 rounded-full border border-white/25 w-full sm:w-auto"
+                onClick={() => navigate("/apply-tutor")}
               >
-                Sign In
+                <GraduationCap className="w-4 h-4 mr-1.5" />
+                Apply as Tutor
               </Button>
             </div>
+
+            {/* Sign in link */}
+            <p className="text-xs sm:text-sm text-white/60">
+              Already have an account?{" "}
+              <button
+                onClick={() => navigate("/auth")}
+                className="text-primary font-medium hover:underline"
+              >
+                Sign in
+              </button>
+            </p>
 
             {/* Trust micro-row */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-2 text-[11px] sm:text-xs text-white/65">
