@@ -4,8 +4,10 @@ import { AnimatePresence } from "framer-motion";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import PageTransition from "./PageTransition";
 import { AcademicPathGate } from "@/components/auth/AcademicPathGate";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 import { FEATURES } from "@/config/features";
 import ComingSoon from "@/pages/ComingSoon";
+import { Navigate } from "react-router-dom";
 
 // Eager load the native welcome screen for best LCP (new `/`)
 import Welcome from "@/pages/app/Welcome";
@@ -152,28 +154,35 @@ export const AnimatedRoutes = () => {
               </PageTransition>
             }
           />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           <Route
             path="/admin/applications"
             element={
-              <PageTransition>
-                <TutorApplications />
-              </PageTransition>
+              <AdminRoute>
+                <PageTransition>
+                  <TutorApplications />
+                </PageTransition>
+              </AdminRoute>
             }
           />
           <Route
             path="/admin/dashboard"
             element={
-              <PageTransition>
-                <AdminDashboard />
-              </PageTransition>
+              <AdminRoute>
+                <PageTransition>
+                  <AdminDashboard />
+                </PageTransition>
+              </AdminRoute>
             }
           />
           <Route
             path="/admin/startup-checklist"
             element={
-              <PageTransition>
-                <StartupChecklist />
-              </PageTransition>
+              <AdminRoute>
+                <PageTransition>
+                  <StartupChecklist />
+                </PageTransition>
+              </AdminRoute>
             }
           />
           <Route
@@ -286,7 +295,7 @@ export const AnimatedRoutes = () => {
           <Route path="/school/timetable" element={<PageTransition><SchoolStub title="Timetable" /></PageTransition>} />
           <Route path="/school/announcements" element={<PageTransition><SchoolAnnouncements /></PageTransition>} />
           <Route path="/school/settings" element={<PageTransition><SchoolSettings /></PageTransition>} />
-          <Route path="/admin/schools" element={<PageTransition><AdminSchoolApplications /></PageTransition>} />
+          <Route path="/admin/schools" element={<AdminRoute><PageTransition><AdminSchoolApplications /></PageTransition></AdminRoute>} />
           <Route path="/verify" element={<PageTransition><VerifyReportCard /></PageTransition>} />
           <Route path="/verify/:id" element={<PageTransition><VerifyReportCard /></PageTransition>} />
           <Route path="/student/report-card" element={<PageTransition><MyReportCard /></PageTransition>} />
