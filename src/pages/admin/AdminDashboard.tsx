@@ -308,6 +308,13 @@ const AdminDashboard = () => {
               tone: "emerald",
               badge: stats.pendingSchools > 0 ? stats.pendingSchools : undefined,
             },
+            {
+              icon: FileText,
+              label: "Manage Courses",
+              description: "Create & edit courses",
+              to: "/admin/courses",
+              tone: "sapphire",
+            },
           ]}
         />
 
