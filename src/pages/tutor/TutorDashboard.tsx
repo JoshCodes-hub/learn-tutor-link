@@ -501,6 +501,20 @@ const TutorDashboard = () => {
               to: "/qa",
               tone: "slate",
             },
+            {
+              icon: BookOpen,
+              label: "My Courses",
+              description: "Pick courses you handle",
+              to: "/tutor/courses",
+              tone: "rose",
+            },
+            {
+              icon: Users,
+              label: "Community Wall",
+              description: "Talk with the community",
+              to: "/community-wall",
+              tone: "sapphire",
+            },
           ]}
         />
 
