@@ -32,6 +32,9 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquare,
+  Coins,
+  BookOpen,
+  X as XIcon,
 } from "lucide-react";
 import { FollowTutorButton } from "@/components/tutor/FollowTutorButton";
 
