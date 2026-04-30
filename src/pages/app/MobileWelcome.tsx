@@ -299,12 +299,21 @@ const FeatureTile = ({
   icon: Icon,
   title,
   desc,
+  accent,
 }: {
   icon: any;
   title: string;
   desc: string;
+  accent?: boolean;
 }) => (
-  <div className="rounded-xl border border-border/60 p-3 hover:border-primary/40 hover:shadow-md transition-all bg-background/40">
+  <div
+    className={
+      "rounded-xl border p-3 hover:shadow-md transition-all " +
+      (accent
+        ? "border-primary/50 bg-primary/5 hover:border-primary"
+        : "border-border/60 bg-background/40 hover:border-primary/40")
+    }
+  >
     <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-2">
       <Icon className="w-4.5 h-4.5 text-primary" />
     </div>
