@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Send, Loader2, Bot, User, Wand2, BookOpen, MessageSquarePlus, RefreshCcw, FileDown, Layers, FileText } from "lucide-react";
+import { Sparkles, Send, Loader2, Bot, User, Wand2, BookOpen, MessageSquarePlus, RefreshCcw, FileDown, Layers, FileText, ShieldCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +16,15 @@ import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { FlashcardsDialog, Flashcard } from "./FlashcardsDialog";
 
-interface Material { id?: string; title: string; description?: string | null; file_type?: string | null }
+interface Material {
+  id?: string;
+  title: string;
+  description?: string | null;
+  file_type?: string | null;
+  tutor_id?: string | null;
+  tutor_name?: string | null;
+  tutor_avatar_url?: string | null;
+}
 interface Msg { role: "user" | "assistant"; content: string; sources?: number[] }
 
 interface Props {
@@ -50,8 +61,11 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
   const [generatingCards, setGeneratingCards] = useState(false);
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [cardsOpen, setCardsOpen] = useState(false);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  const hasAnyTutorMaterial = materials.some(m => !!m.tutor_id);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -91,7 +105,7 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next, course, materials, mode, action: "chat" }),
+        body: JSON.stringify({ messages: next, course, materials, mode, action: "chat", verifiedOnly }),
       });
 
       if (resp.status === 429) { toast.error("Rate limit hit. Try again shortly."); throw new Error("429"); }
@@ -252,11 +266,32 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
               </p>
             </div>
           </div>
-          {messages.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={reset} className="text-xs">
-              <RefreshCcw className="h-3.5 w-3.5" /> New
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {hasAnyTutorMaterial && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <label className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-200/70 bg-white/70 hover:bg-amber-50 cursor-pointer text-[11px] font-medium text-amber-900">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                    <span className="hidden sm:inline">Verified only</span>
+                    <Switch
+                      checked={verifiedOnly}
+                      onCheckedChange={setVerifiedOnly}
+                      className="scale-75 data-[state=checked]:bg-emerald-500"
+                      aria-label="Prefer tutor-verified explanations"
+                    />
+                  </label>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">When on, the coach will prioritize tutor-authored materials and label tutor-sourced answers as verified.</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {messages.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={reset} className="text-xs">
+                <RefreshCcw className="h-3.5 w-3.5" /> New
+              </Button>
+            )}
+          </div>
         </div>
 
         <div ref={scrollRef} className="relative max-h-[440px] min-h-[260px] overflow-y-auto px-5 py-4 space-y-4">
@@ -312,29 +347,60 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
                       <div className="prose prose-sm max-w-none prose-headings:font-serif prose-headings:font-semibold prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0.5 prose-strong:text-amber-800">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content || "…"}</ReactMarkdown>
                       </div>
-                      {m.sources && m.sources.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-amber-100 flex flex-wrap items-center gap-1.5">
-                          <FileText className="h-3 w-3 text-amber-700" />
-                          <span className="text-[10px] uppercase tracking-wider text-amber-800 font-semibold">Sources</span>
-                          {m.sources.map(n => {
-                            const mat = materials[n - 1];
-                            if (!mat) return null;
-                            return (
-                              <Tooltip key={n}>
-                                <TooltipTrigger asChild>
-                                  <Badge className="bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 cursor-default text-[10px]">
-                                    [{n}] {mat.title.length > 24 ? mat.title.slice(0, 22) + "…" : mat.title}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p className="font-semibold">{mat.title}</p>
-                                  {mat.description && <p className="text-xs">{mat.description}</p>}
-                                </TooltipContent>
-                              </Tooltip>
-                            );
-                          })}
-                        </div>
-                      )}
+                      {m.sources && m.sources.length > 0 && (() => {
+                        const cited = m.sources.map(n => ({ n, mat: materials[n - 1] })).filter(x => x.mat);
+                        const hasVerified = cited.some(c => !!c.mat?.tutor_id);
+                        return (
+                          <div className="mt-2 pt-2 border-t border-amber-100 space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <FileText className="h-3 w-3 text-amber-700" />
+                              <span className="text-[10px] uppercase tracking-wider text-amber-800 font-semibold">Sources</span>
+                              {hasVerified && (
+                                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] gap-1">
+                                  <ShieldCheck className="h-3 w-3" /> Tutor-Verified
+                                </Badge>
+                              )}
+                              {cited.map(({ n, mat }) => (
+                                <Tooltip key={n}>
+                                  <TooltipTrigger asChild>
+                                    <Badge className={cn(
+                                      "cursor-default text-[10px] border",
+                                      mat!.tutor_id
+                                        ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
+                                        : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+                                    )}>
+                                      [{n}] {mat!.title.length > 24 ? mat!.title.slice(0, 22) + "…" : mat!.title}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="font-semibold">{mat!.title}</p>
+                                    {mat!.description && <p className="text-xs">{mat!.description}</p>}
+                                    {mat!.tutor_name && (
+                                      <p className="text-xs mt-1 text-emerald-700 font-medium">Verified by Tutor: {mat!.tutor_name}</p>
+                                    )}
+                                  </TooltipContent>
+                                </Tooltip>
+                              ))}
+                            </div>
+                            {cited.filter(c => c.mat?.tutor_id).length > 0 && (
+                              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                <span className="text-[10px] uppercase tracking-wider text-emerald-800 font-semibold">Tutors</span>
+                                {[...new Map(cited.filter(c => c.mat?.tutor_id).map(c => [c.mat!.tutor_id, c.mat!])).values()].map(mat => (
+                                  <span key={mat.tutor_id} className="inline-flex items-center gap-1 rounded-full bg-white border border-emerald-100 pl-0.5 pr-2 py-0.5">
+                                    <Avatar className="h-4 w-4">
+                                      <AvatarImage src={mat.tutor_avatar_url ?? undefined} />
+                                      <AvatarFallback className="text-[8px] bg-emerald-100 text-emerald-700">
+                                        {(mat.tutor_name ?? "T").slice(0, 1).toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-[10px] text-emerald-800 font-medium">{mat.tutor_name ?? "Tutor"}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </>
                   ) : (
                     <p className="whitespace-pre-wrap">{m.content}</p>

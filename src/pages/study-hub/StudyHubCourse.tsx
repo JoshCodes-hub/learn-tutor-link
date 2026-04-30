@@ -36,6 +36,7 @@ const StudyHubCourse = () => {
   const navigate = useNavigate();
   const [course, setCourse] = useState<Course | null>(null);
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [tutorOwners, setTutorOwners] = useState<Record<string, { name: string | null; avatar: string | null }>>({});
   const [loading, setLoading] = useState(true);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -52,7 +53,27 @@ const StudyHubCourse = () => {
       supabase.from("study_materials").select("*").eq("course_id", courseId).order("created_at", { ascending: false }),
     ]);
     if (c) setCourse(c as Course);
-    setMaterials((m as Material[]) ?? []);
+    const mats = (m as Material[]) ?? [];
+    setMaterials(mats);
+
+    // Identify which owners are tutors so we can mark verified materials
+    const ownerIds = [...new Set(mats.map(x => x.owner_id).filter(Boolean))];
+    if (ownerIds.length > 0) {
+      const [{ data: roles }, { data: profs }] = await Promise.all([
+        supabase.from("user_roles").select("user_id").in("user_id", ownerIds).eq("role", "tutor"),
+        supabase.from("profiles").select("id, full_name, profile_image_url, avatar_url").in("id", ownerIds),
+      ]);
+      const tutorIds = new Set((roles ?? []).map((r: any) => r.user_id));
+      const map: Record<string, { name: string | null; avatar: string | null }> = {};
+      (profs ?? []).forEach((p: any) => {
+        if (tutorIds.has(p.id)) {
+          map[p.id] = { name: p.full_name, avatar: p.profile_image_url || p.avatar_url };
+        }
+      });
+      setTutorOwners(map);
+    } else {
+      setTutorOwners({});
+    }
     setLoading(false);
   };
 
@@ -190,7 +211,10 @@ const StudyHubCourse = () => {
             <div className="lg:sticky lg:top-24 space-y-6">
               <StudyCoachPanel
                 course={{ code: course.code, name: course.name }}
-                materials={materials.map(m => ({ id: m.id, title: m.title, description: m.description, file_type: m.file_type }))}
+                materials={materials.map(m => {
+                  const t = tutorOwners[m.owner_id];
+                  return { id: m.id, title: m.title, description: m.description, file_type: m.file_type, tutor_id: t ? m.owner_id : null, tutor_name: t?.name ?? null, tutor_avatar_url: t?.avatar ?? null };
+                })}
                 mode="study_hub"
               />
               {courseId && <LearningGoalsPanel courseId={courseId} />}

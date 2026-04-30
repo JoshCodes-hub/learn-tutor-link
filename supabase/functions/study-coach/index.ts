@@ -6,19 +6,26 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface Material { title: string; description?: string | null; file_type?: string | null }
+interface Material {
+  title: string;
+  description?: string | null;
+  file_type?: string | null;
+  tutor_name?: string | null;
+  tutor_id?: string | null;
+}
 interface Msg { role: "user" | "assistant"; content: string }
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, course, materials, mode, action } = await req.json() as {
+    const { messages, course, materials, mode, action, verifiedOnly } = await req.json() as {
       messages: Msg[];
       course?: { code?: string; name?: string };
       materials?: Material[];
       mode?: "study_hub" | "theory";
       action?: "chat" | "flashcards";
+      verifiedOnly?: boolean;
     };
 
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -32,7 +39,7 @@ serve(async (req) => {
 
     const matList = (materials ?? [])
       .slice(0, 30)
-      .map((m, i) => `${i + 1}. ${m.title}${m.description ? ` — ${m.description}` : ""}${m.file_type ? ` [${m.file_type}]` : ""}`)
+      .map((m, i) => `${i + 1}. ${m.title}${m.description ? ` — ${m.description}` : ""}${m.file_type ? ` [${m.file_type}]` : ""}${m.tutor_name ? ` (by Tutor: ${m.tutor_name})` : ""}`)
       .join("\n");
 
     const courseLine = course?.code || course?.name
@@ -108,6 +115,7 @@ Rules:
 - For "quiz me" or "test me", create 3 short questions with answers hidden behind "<details>" markdown.
 - Never invent file contents — only reference titles you were given.
 - Keep replies under ~250 words unless the student explicitly asks for more depth.
+${verifiedOnly ? "- VERIFIED MODE: The student wants tutor-verified explanations. STRONGLY prefer materials authored by a Tutor (marked '(by Tutor: …)' above). When you cite a tutor-authored material, lead with phrasing like 'According to your tutor's notes …'. If no tutor material applies, answer normally and clearly say 'No tutor-verified source for this — AI-generated.'" : ""}
 
 CITATIONS (mandatory):
 At the very END of every reply, on its own line, append a JSON block in this exact format:
