@@ -50,11 +50,13 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
 
-  const postAuthDestination = () => {
+  const postAuthDestination = (justSignedUp = false) => {
     if (redirect) return redirect;
     if (intent === "tutor") return "/apply-tutor";
     if (intent === "school_owner") return "/school/register";
     if (intent === "parent") return "/parent/dashboard";
+    // New students go through the onboarding wizard before the dashboard
+    if (justSignedUp) return "/onboarding/match";
     return "/dashboard";
   };
 
