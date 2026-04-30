@@ -333,6 +333,18 @@ const BrowseTutors = () => {
               <SelectItem value="name">Name (A-Z)</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={minRating} onValueChange={setMinRating}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <Star className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Min rating" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Any rating</SelectItem>
+              <SelectItem value="3">3.0+ stars</SelectItem>
+              <SelectItem value="4">4.0+ stars</SelectItem>
+              <SelectItem value="4.5">4.5+ stars</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Results Count */}
