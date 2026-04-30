@@ -438,6 +438,23 @@ const BrowseTutors = () => {
                         </span>
                       )}
                     </div>
+
+                    <div className="mt-4 pt-4 border-t border-border flex items-center justify-between gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigate(`/messages/${tutor.id}`);
+                        }}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1" /> Message
+                      </Button>
+                      <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                        View profile →
+                      </span>
+                    </div>
                   </Link>
                 );
               })}
