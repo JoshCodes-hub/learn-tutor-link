@@ -893,10 +893,7 @@ const StudentDashboard = () => {
               onSelectQuiz={(quizId) => navigate(`/quiz/${quizId}/practice`)}
               onPurchaseQuiz={(quizId) => {
                 const quiz = quizzes.find(q => q.id === quizId);
-                if (quiz) {
-                  setSelectedQuiz(quiz);
-                  setShowPurchaseQuiz(true);
-                }
+                if (quiz) tryStartPaidQuiz(quiz);
               }}
             />
           </div>
