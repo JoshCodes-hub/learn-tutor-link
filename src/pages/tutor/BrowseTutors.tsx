@@ -585,12 +585,26 @@ const BrowseTutors = () => {
                     </div>
 
                     {tutor.bio && (
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                         {tutor.bio}
                       </p>
                     )}
 
-                    <div className="flex items-center flex-wrap gap-4 text-sm">
+                    {/* Course chips */}
+                    {tutor.courseCodes.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {tutor.courseCodes.slice(0, 4).map((code) => (
+                          <span key={code} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                            {code}
+                          </span>
+                        ))}
+                        {tutor.courseCodes.length > 4 && (
+                          <span className="text-[10px] text-muted-foreground">+{tutor.courseCodes.length - 4} more</span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center flex-wrap gap-x-4 gap-y-1.5 text-sm">
                       <span className="flex items-center gap-1 text-muted-foreground">
                         <Brain className="w-4 h-4" />
                         {tutor.quizCount} quizzes
@@ -610,7 +624,21 @@ const BrowseTutors = () => {
                           </span>
                         </span>
                       )}
+                      {/* Price badge */}
+                      {tutor.hasPaid ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                          <Coins className="w-3 h-3" />
+                          {tutor.minPrice === tutor.maxPrice
+                            ? `${tutor.minPrice} tk`
+                            : `${tutor.minPrice}–${tutor.maxPrice} tk`}
+                        </span>
+                      ) : tutor.hasFree ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Free
+                        </span>
+                      ) : null}
                     </div>
+
 
                     <div className="mt-4 pt-4 border-t border-border flex items-center justify-between gap-2">
                       <Button
