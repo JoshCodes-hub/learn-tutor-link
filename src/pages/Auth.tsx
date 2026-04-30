@@ -121,7 +121,7 @@ const Auth = () => {
         title: "Account created!",
         description: welcomeMsg,
       });
-      navigate(postAuthDestination());
+      navigate(postAuthDestination(true));
     }
     setIsSubmitting(false);
   };
