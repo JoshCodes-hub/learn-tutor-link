@@ -61,6 +61,7 @@ const BrowseTutors = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedSpec, setSelectedSpec] = useState<string>(profile?.academic_path || "all");
   const [sortBy, setSortBy] = useState<string>("rating");
+  const [minRating, setMinRating] = useState<string>("0");
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
