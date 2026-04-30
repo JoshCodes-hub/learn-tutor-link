@@ -130,6 +130,10 @@ keyframes: {
           "0%, 100%": { boxShadow: "0 0 5px hsl(var(--primary) / 0.3)" },
           "50%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3)" },
         },
+        "logo-breathe": {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.95" },
+          "50%": { transform: "scale(1.06)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -146,6 +150,7 @@ keyframes: {
         "press": "press 0.15s ease-out",
         "wiggle": "wiggle 0.3s ease-in-out",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "logo-breathe": "logo-breathe 2.4s ease-in-out infinite",
       },
     },
   },
