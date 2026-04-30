@@ -50,7 +50,7 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  if (isLoading || primaryRole !== "admin") {
+  if (isLoading || (primaryRole as string | null) !== "admin") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -61,8 +61,10 @@ const Dashboard = () => {
     );
   }
 
+  const role = primaryRole as string | null;
+
   const getRoleIcon = () => {
-    switch (primaryRole) {
+    switch (role) {
       case "admin":
         return <Shield className="w-5 h-5" />;
       case "tutor":
@@ -73,7 +75,7 @@ const Dashboard = () => {
   };
 
   const getRoleColor = () => {
-    switch (primaryRole) {
+    switch (role) {
       case "admin":
         return "bg-destructive/10 text-destructive";
       case "tutor":
@@ -151,9 +153,9 @@ const Dashboard = () => {
             Welcome back, {profile?.full_name || "there"}! 👋
           </h1>
           <p className="text-muted-foreground">
-            {primaryRole === "admin" && "Manage the platform and review tutor applications."}
-            {primaryRole === "tutor" && "Create content and track your earnings."}
-            {primaryRole === "student" && "Ready to ace your exams? Let's practice!"}
+            {role === "admin" && "Manage the platform and review tutor applications."}
+            {role === "tutor" && "Create content and track your earnings."}
+            {role === "student" && "Ready to ace your exams? Let's practice!"}
           </p>
         </div>
 
@@ -188,7 +190,7 @@ const Dashboard = () => {
         </div>
 
         {/* Role-specific content */}
-        {primaryRole === "student" && (
+        {role === "student" && (
           <div className="bg-gradient-card rounded-2xl border border-border p-6">
             <div className="flex items-center gap-3 mb-4">
               <GraduationCap className="w-6 h-6 text-accent" />

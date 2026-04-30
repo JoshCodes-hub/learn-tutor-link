@@ -50,11 +50,13 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
 
-  const postAuthDestination = () => {
+  const postAuthDestination = (justSignedUp = false) => {
     if (redirect) return redirect;
     if (intent === "tutor") return "/apply-tutor";
     if (intent === "school_owner") return "/school/register";
     if (intent === "parent") return "/parent/dashboard";
+    // New students go through the onboarding wizard before the dashboard
+    if (justSignedUp) return "/onboarding/match";
     return "/dashboard";
   };
 
@@ -119,7 +121,7 @@ const Auth = () => {
         title: "Account created!",
         description: welcomeMsg,
       });
-      navigate(postAuthDestination());
+      navigate(postAuthDestination(true));
     }
     setIsSubmitting(false);
   };
@@ -132,17 +134,24 @@ const Auth = () => {
         noindex={true}
         url="https://overraprep.com/auth"
       />
-      <main className="min-h-screen bg-gradient-hero flex items-center justify-center p-4" role="main">
-        <article className="w-full max-w-md">
+      <main className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden" role="main">
+        {/* Premium gold ambient glow */}
+        <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-primary/10 blur-3xl" aria-hidden />
+
+        <article className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
           <a href="/" className="inline-flex items-center group">
-            <img 
-              src={logo} 
-              alt="OverraPrep AI FUTA" 
-              className="h-12 w-auto object-contain"
+            <img
+              src={logo}
+              alt="OverraPrep AI"
+              className="h-14 w-auto object-contain drop-shadow-[0_4px_20px_hsl(var(--primary)/0.35)]"
             />
           </a>
+          <p className="mt-3 text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold">
+            Read with Ease
+          </p>
         </div>
 
         {isSignUp && intent && INTENT_LABELS[intent] && (
@@ -161,7 +170,7 @@ const Auth = () => {
         )}
 
         {/* Auth Card */}
-        <div className="bg-card rounded-2xl border border-border shadow-xl p-8">
+        <div className="bg-card rounded-3xl border border-primary/15 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.25)] p-8 backdrop-blur-sm">
           {/* Tab Switcher */}
           <div className="flex mb-8 bg-muted rounded-lg p-1">
             <button
