@@ -375,6 +375,14 @@ const TutorProfile = () => {
                   <Heart className={`w-4 h-4 mr-2 ${isFavorite ? "fill-current" : ""}`} />
                   {isFavorite ? "Following" : "Follow"}
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/messages?peer=${tutorId}`)}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Message
+                </Button>
                 <span className="text-sm text-muted-foreground">
                   {followerCount} {followerCount === 1 ? "follower" : "followers"}
                 </span>
