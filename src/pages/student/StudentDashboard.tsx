@@ -71,6 +71,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
 import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineBanner";
 import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
+import { CompleteProfileCard } from "@/components/student/CompleteProfileCard";
 
 interface Stats {
   totalAttempts: number;
@@ -740,23 +741,25 @@ const StudentDashboard = () => {
       <main className="container mx-auto px-4 py-6 md:py-8 max-w-6xl">
         <DashboardOfflineBanner onReattempt={refreshQuizzes} />
 
-        {/* Welcome — calm, editorial */}
-        <section className="mb-8 pb-6 border-b border-border/60">
-          <div className="flex items-end justify-between flex-wrap gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground mb-2">
+        {/* Cinematic hero with avatar */}
+        <DashboardHero
+          role="student"
+          fullName={profile?.full_name}
+          avatarUrl={(profile as any)?.avatar_url || (profile as any)?.profile_image_url}
+          subtitle={
+            <>
+              {getReadinessLabel()} — let's keep building momentum.{" "}
+              <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground/80 ml-1">
                 {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
-              </p>
-              <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
-                Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}.
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {getReadinessLabel()} — let's keep building momentum.
-              </p>
-            </div>
-            <LastUpdatedBadge timestamp={lastUpdated} />
-          </div>
-        </section>
+              </span>
+            </>
+          }
+          actions={<LastUpdatedBadge timestamp={lastUpdated} />}
+          className="mb-6"
+        />
+
+        {/* Complete profile nudge */}
+        <CompleteProfileCard profile={profile} />
 
         {/* Core stats — only 3, focused on study outcomes */}
         <div className="grid grid-cols-3 gap-3 md:gap-5 mb-8">

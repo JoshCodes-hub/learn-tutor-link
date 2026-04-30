@@ -3,14 +3,23 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, ArrowRight, Loader2, Gift } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2, Gift, GraduationCap, Phone, MapPin, BookOpen, IdCard } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
+import { supabase } from "@/integrations/supabase/client";
+
+const NIGERIAN_STATES = [
+  "Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta",
+  "Ebonyi","Edo","Ekiti","Enugu","FCT","Gombe","Imo","Jigawa","Kaduna","Kano","Katsina","Kebbi",
+  "Kogi","Kwara","Lagos","Nasarawa","Niger","Ogun","Ondo","Osun","Oyo","Plateau","Rivers","Sokoto",
+  "Taraba","Yobe","Zamfara",
+];
 
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -18,12 +27,19 @@ const signInSchema = z.object({
 });
 
 const signUpSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters").max(100, "Full name is too long"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().trim().min(2, "Full name must be at least 2 characters").max(100, "Full name is too long"),
+  email: z.string().trim().email("Please enter a valid email address").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters").max(72),
   confirmPassword: z.string(),
+  academicPath: z.enum(["secondary", "jamb", "university"], { required_error: "Select your academic path" }),
+  level: z.string().trim().min(1, "Level is required").max(40),
+  department: z.string().trim().min(2, "Department is required").max(120),
+  school: z.string().trim().min(2, "School is required").max(120),
+  phone: z.string().trim().min(7, "Enter a valid phone number").max(20),
+  matricNo: z.string().trim().min(2, "Matric number is required").max(40),
+  state: z.string().trim().min(2, "Select state of origin").max(60),
   referralCode: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
@@ -74,8 +90,23 @@ const Auth = () => {
 
   const signUpForm = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "", referralCode: referralCodeFromUrl },
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      academicPath: "university" as const,
+      level: "",
+      department: "",
+      school: "Federal University of Technology, Akure",
+      phone: "",
+      matricNo: "",
+      state: "",
+      referralCode: referralCodeFromUrl,
+    },
   });
+
+  const academicPath = signUpForm.watch("academicPath");
 
   const handleSignIn = async (data: SignInFormData) => {
     setIsSubmitting(true);
@@ -102,7 +133,7 @@ const Auth = () => {
   const handleSignUp = async (data: SignUpFormData) => {
     setIsSubmitting(true);
     const { error } = await signUp(data.email, data.password, data.fullName, data.referralCode);
-    
+
     if (error) {
       let message = error.message;
       if (error.message.includes("already registered")) {
@@ -114,7 +145,31 @@ const Auth = () => {
         description: message,
       });
     } else {
-      const welcomeMsg = data.referralCode 
+      // Persist extra profile details (best-effort; profile row is created by trigger)
+      try {
+        const { data: { user: newUser } } = await supabase.auth.getUser();
+        if (newUser?.id) {
+          const meta = {
+            school: data.school,
+          };
+          await supabase
+            .from("profiles")
+            .update({
+              academic_path: data.academicPath,
+              level: data.level,
+              department: data.department,
+              phone: data.phone,
+              matric_no: data.matricNo,
+              state_of_origin: data.state,
+              academic_metadata: meta,
+            })
+            .eq("id", newUser.id);
+        }
+      } catch (e) {
+        console.warn("Could not persist extra signup details:", e);
+      }
+
+      const welcomeMsg = data.referralCode
         ? "Welcome to OverraPrep AI! Complete your first quiz to earn bonus tokens."
         : "Welcome to OverraPrep AI. You can now start practicing.";
       toast({
@@ -330,6 +385,130 @@ const Auth = () => {
                 {signUpForm.formState.errors.confirmPassword && (
                   <p className="text-sm text-destructive">{signUpForm.formState.errors.confirmPassword.message}</p>
                 )}
+              </div>
+
+              {/* Academic details */}
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                  Academic details
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-foreground text-sm font-medium">Academic path</Label>
+                    <Select
+                      value={academicPath}
+                      onValueChange={(v) => signUpForm.setValue("academicPath", v as any, { shouldValidate: true })}
+                    >
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Select path" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="university">University</SelectItem>
+                        <SelectItem value="jamb">JAMB / UTME</SelectItem>
+                        <SelectItem value="secondary">Secondary School</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {signUpForm.formState.errors.academicPath && (
+                      <p className="text-xs text-destructive">{signUpForm.formState.errors.academicPath.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-level" className="text-foreground text-sm font-medium">
+                      {academicPath === "university" ? "Level (e.g., 100, 200)" : academicPath === "secondary" ? "Class (e.g., SS2)" : "Attempt year"}
+                    </Label>
+                    <Input
+                      id="signup-level"
+                      placeholder={academicPath === "university" ? "100" : academicPath === "secondary" ? "SS2" : "2025"}
+                      className="h-11"
+                      {...signUpForm.register("level")}
+                    />
+                    {signUpForm.formState.errors.level && (
+                      <p className="text-xs text-destructive">{signUpForm.formState.errors.level.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-school" className="text-foreground text-sm font-medium">School / Institution</Label>
+                  <div className="relative">
+                    <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="signup-school"
+                      placeholder="Federal University of Technology, Akure"
+                      className="pl-9 h-11"
+                      {...signUpForm.register("school")}
+                    />
+                  </div>
+                  {signUpForm.formState.errors.school && (
+                    <p className="text-xs text-destructive">{signUpForm.formState.errors.school.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-department" className="text-foreground text-sm font-medium">Department / Course</Label>
+                  <Input
+                    id="signup-department"
+                    placeholder="Computer Science"
+                    className="h-11"
+                    {...signUpForm.register("department")}
+                  />
+                  {signUpForm.formState.errors.department && (
+                    <p className="text-xs text-destructive">{signUpForm.formState.errors.department.message}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact details */}
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <IdCard className="w-3.5 h-3.5 text-primary" />
+                  Contact & ID
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-phone" className="text-foreground text-sm font-medium">Phone</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input id="signup-phone" placeholder="080..." className="pl-9 h-11" {...signUpForm.register("phone")} />
+                    </div>
+                    {signUpForm.formState.errors.phone && (
+                      <p className="text-xs text-destructive">{signUpForm.formState.errors.phone.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-matric" className="text-foreground text-sm font-medium">Matric / Reg no.</Label>
+                    <Input id="signup-matric" placeholder="CSC/20/1234" className="h-11" {...signUpForm.register("matricNo")} />
+                    {signUpForm.formState.errors.matricNo && (
+                      <p className="text-xs text-destructive">{signUpForm.formState.errors.matricNo.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-foreground text-sm font-medium">State of origin</Label>
+                  <Select
+                    value={signUpForm.watch("state")}
+                    onValueChange={(v) => signUpForm.setValue("state", v, { shouldValidate: true })}
+                  >
+                    <SelectTrigger className="h-11">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground" />
+                        <SelectValue placeholder="Select your state" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      {NIGERIAN_STATES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {signUpForm.formState.errors.state && (
+                    <p className="text-xs text-destructive">{signUpForm.formState.errors.state.message}</p>
+                  )}
+                </div>
               </div>
 
               {/* Referral Code Section - Highlighted */}
