@@ -47,7 +47,35 @@ interface Tutor {
   studentCount: number;
   averageRating: number;
   ratingCount: number;
+  /** course IDs the tutor has active quizzes in */
+  courseIds: string[];
+  /** course codes the tutor teaches (display) */
+  courseCodes: string[];
+  /** lowest token cost across the tutor's paid quizzes (0 if all free) */
+  minPrice: number;
+  /** highest token cost across the tutor's paid quizzes */
+  maxPrice: number;
+  /** at least one paid quiz */
+  hasPaid: boolean;
+  /** at least one free quiz */
+  hasFree: boolean;
 }
+
+interface CourseOption {
+  id: string;
+  code: string;
+  name: string;
+}
+
+const PRICE_BUCKETS = [
+  { value: "all", label: "Any price" },
+  { value: "free", label: "Free only" },
+  { value: "paid", label: "Paid only" },
+  { value: "lt10", label: "≤ 10 tokens" },
+  { value: "10-25", label: "10 – 25 tokens" },
+  { value: "25-50", label: "25 – 50 tokens" },
+  { value: "gt50", label: "50+ tokens" },
+] as const;
 
 const TUTORS_PER_PAGE = 9;
 
@@ -58,8 +86,11 @@ const BrowseTutors = () => {
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [filteredTutors, setFilteredTutors] = useState<Tutor[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
+  const [courses, setCourses] = useState<CourseOption[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [selectedCourse, setSelectedCourse] = useState<string>("all");
+  const [selectedPrice, setSelectedPrice] = useState<string>("all");
   const [selectedSpec, setSelectedSpec] = useState<string>(profile?.academic_path || "all");
   const [sortBy, setSortBy] = useState<string>("rating");
   const [minRating, setMinRating] = useState<string>("0");
