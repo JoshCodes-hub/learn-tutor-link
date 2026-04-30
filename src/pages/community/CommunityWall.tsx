@@ -72,6 +72,28 @@ const CommunityWall = () => {
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
   const [commentsByPost, setCommentsByPost] = useState<Record<string, Comment[]>>({});
 
+  // Ask AI per post
+  const [aiByPost, setAiByPost] = useState<Record<string, { loading: boolean; mode: "tips" | "summary" | null; content: string | null }>>({});
+
+  const askAI = async (post: Post, mode: "tips" | "summary") => {
+    if (!post.content?.trim()) { toast.error("This post has no text to analyze"); return; }
+    setAiByPost(prev => ({ ...prev, [post.id]: { loading: true, mode, content: null } }));
+    try {
+      const { data, error } = await supabase.functions.invoke("community-ask-ai", {
+        body: { text: post.content, mode },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setAiByPost(prev => ({ ...prev, [post.id]: { loading: false, mode, content: (data as any)?.content || "No response" } }));
+    } catch (err: any) {
+      setAiByPost(prev => ({ ...prev, [post.id]: { loading: false, mode: null, content: null } }));
+      toast.error(err?.message || "AI request failed");
+    }
+  };
+
+  const closeAI = (postId: string) =>
+    setAiByPost(prev => ({ ...prev, [postId]: { loading: false, mode: null, content: null } }));
+
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
 
   useEffect(() => {
