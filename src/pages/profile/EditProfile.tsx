@@ -73,6 +73,21 @@ const EditProfile = () => {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Extended fields
+  const [level, setLevel] = useState("");
+  const [currentCgpa, setCurrentCgpa] = useState("");
+  const [aspiringCgpa, setAspiringCgpa] = useState("");
+  const [matricNo, setMatricNo] = useState("");
+  const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("");
+  const [bio, setBio] = useState("");
+  const [stateOfOrigin, setStateOfOrigin] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [xHandle, setXHandle] = useState("");
+  const [interests, setInterests] = useState("");
+  const [hobbies, setHobbies] = useState("");
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
@@ -81,10 +96,24 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (profile) {
+      const p: any = profile;
       setFullName(profile.full_name || "");
       setDepartment(profile.department || "");
       setAvatarUrl(profile.avatar_url);
-      setCoverUrl((profile as any).cover_photo_url ?? null);
+      setCoverUrl(p.cover_photo_url ?? null);
+      setLevel(p.level || "");
+      setCurrentCgpa(p.current_cgpa != null ? String(p.current_cgpa) : "");
+      setAspiringCgpa(p.aspiring_cgpa != null ? String(p.aspiring_cgpa) : "");
+      setMatricNo(p.matric_no || "");
+      setPhone(p.phone || "");
+      setDob(p.date_of_birth || "");
+      setGender(p.gender || "");
+      setBio(p.bio || "");
+      setStateOfOrigin(p.state_of_origin || "");
+      setLinkedin(p.linkedin_handle || "");
+      setXHandle(p.x_handle || "");
+      setInterests((p.study_interests || []).join(", "));
+      setHobbies((p.hobbies || []).join(", "));
     }
   }, [profile]);
 
