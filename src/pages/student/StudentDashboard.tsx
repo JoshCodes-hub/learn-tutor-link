@@ -71,6 +71,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
 import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineBanner";
 import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
+import { CompleteProfileCard } from "@/components/student/CompleteProfileCard";
 
 interface Stats {
   totalAttempts: number;
