@@ -24,7 +24,7 @@ interface Q {
 }
 
 export default function QABoard() {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const [items, setItems] = useState<Q[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);

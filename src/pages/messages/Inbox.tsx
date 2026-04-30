@@ -17,7 +17,7 @@ interface ThreadPreview {
 }
 
 export default function Inbox() {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const [params, setParams] = useSearchParams();
   const peerParam = params.get("peer");
   const [threads, setThreads] = useState<ThreadPreview[]>([]);
