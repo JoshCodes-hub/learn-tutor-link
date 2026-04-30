@@ -10,6 +10,7 @@ import {
   Sparkles,
   Globe,
   ChevronRight,
+  Headphones,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import appIcon from "@/assets/app-icon.png";
