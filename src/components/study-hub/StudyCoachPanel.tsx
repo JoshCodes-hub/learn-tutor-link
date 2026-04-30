@@ -16,7 +16,15 @@ import jsPDF from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { FlashcardsDialog, Flashcard } from "./FlashcardsDialog";
 
-interface Material { id?: string; title: string; description?: string | null; file_type?: string | null }
+interface Material {
+  id?: string;
+  title: string;
+  description?: string | null;
+  file_type?: string | null;
+  tutor_id?: string | null;
+  tutor_name?: string | null;
+  tutor_avatar_url?: string | null;
+}
 interface Msg { role: "user" | "assistant"; content: string; sources?: number[] }
 
 interface Props {
