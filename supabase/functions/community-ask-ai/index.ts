@@ -1,7 +1,20 @@
-// Ask-AI for community posts: produces study tips or a summary from post text.
+// Ask-AI for community posts: multiple output styles.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const STYLES: Record<string, string> = {
+  tips:
+    "You generate 3-5 concise, actionable study tips related to a student community post. Use a numbered markdown list. No preamble.",
+  summary:
+    "You summarize student community posts. Output a tight 2-3 sentence summary in plain language. No preamble.",
+  cbt_tips:
+    "You are a CBT exam coach for Nigerian university students. From the post, produce 4-6 CBT-exam-focused tips: time-management, MCQ elimination, common traps, and quick recall tricks. Numbered markdown list. No preamble.",
+  concept:
+    "You are a study tutor. Identify the core concept(s) in the post and explain each in 2-3 sentences using simple language and a relatable example. Use markdown headings per concept. No preamble.",
+  likely_questions:
+    "You generate 5 likely exam-style questions a CBT might ask based on the post. Mix MCQ and short-answer. For each, give the question and (in italics) a one-line answer hint. Numbered markdown list. No preamble.",
 };
 
 Deno.serve(async (req) => {
@@ -19,14 +32,10 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const m = mode === "summary" ? "summary" : "tips";
+    const m = typeof mode === "string" && STYLES[mode] ? mode : "tips";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
-    const system = m === "summary"
-      ? "You summarize student community posts. Output a tight 2-3 sentence summary in plain language. No preamble."
-      : "You generate 3-5 concise, actionable study tips related to a student community post. Use a numbered markdown list. No preamble.";
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -34,7 +43,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: STYLES[m] },
           { role: "user", content: text },
         ],
       }),
@@ -60,7 +69,7 @@ Deno.serve(async (req) => {
 
     const data = await resp.json();
     const content = data?.choices?.[0]?.message?.content ?? "";
-    return new Response(JSON.stringify({ content }), {
+    return new Response(JSON.stringify({ content, mode: m }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

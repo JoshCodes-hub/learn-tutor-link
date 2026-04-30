@@ -16,9 +16,23 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { SEO } from "@/components/seo/SEO";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, X, Globe, BookOpen, Trash2, Shield, GraduationCap, Sparkles, Lightbulb, FileText } from "lucide-react";
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, X, Globe, BookOpen, Trash2, Shield, GraduationCap, Sparkles, Lightbulb, FileText, AtSign, BookCheck, ListChecks, Brain } from "lucide-react";
 import { useMyCourses } from "@/hooks/useMyCourses";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+
+type AIMode = "tips" | "summary" | "cbt_tips" | "concept" | "likely_questions";
+
+const AI_MODES: { value: AIMode; label: string; icon: any; desc: string }[] = [
+  { value: "tips", label: "Study tips", icon: Lightbulb, desc: "Actionable study advice" },
+  { value: "cbt_tips", label: "CBT exam tips", icon: BookCheck, desc: "Time, traps, recall tricks" },
+  { value: "summary", label: "Concept summary", icon: FileText, desc: "Tight 2-3 sentence summary" },
+  { value: "concept", label: "Concept explainer", icon: Brain, desc: "Explain core ideas simply" },
+  { value: "likely_questions", label: "Likely questions", icon: ListChecks, desc: "5 exam-style questions" },
+];
+
+const AI_PREF_KEY = "community-ai-mode";
 
 interface Post {
   id: string;
@@ -73,9 +87,20 @@ const CommunityWall = () => {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, Comment[]>>({});
 
   // Ask AI per post
-  const [aiByPost, setAiByPost] = useState<Record<string, { loading: boolean; mode: "tips" | "summary" | null; content: string | null }>>({});
+  const [aiByPost, setAiByPost] = useState<Record<string, { loading: boolean; mode: AIMode | null; content: string | null }>>({});
+  const [aiMode, setAiMode] = useState<AIMode>(() => {
+    const saved = (typeof localStorage !== "undefined" && localStorage.getItem(AI_PREF_KEY)) as AIMode | null;
+    return (saved && AI_MODES.some(m => m.value === saved)) ? saved : "tips";
+  });
+  useEffect(() => {
+    try { localStorage.setItem(AI_PREF_KEY, aiMode); } catch {}
+  }, [aiMode]);
 
-  const askAI = async (post: Post, mode: "tips" | "summary") => {
+  // Tutor mention picker
+  const [tutorPickerOpen, setTutorPickerOpen] = useState(false);
+  const [tutorList, setTutorList] = useState<{ id: string; full_name: string | null; tutor_code: string | null }[]>([]);
+
+  const askAI = async (post: Post, mode: AIMode) => {
     if (!post.content?.trim()) { toast.error("This post has no text to analyze"); return; }
     setAiByPost(prev => ({ ...prev, [post.id]: { loading: true, mode, content: null } }));
     try {
@@ -93,6 +118,22 @@ const CommunityWall = () => {
 
   const closeAI = (postId: string) =>
     setAiByPost(prev => ({ ...prev, [postId]: { loading: false, mode: null, content: null } }));
+
+  // Load tutors lazily when picker opens
+  const loadTutors = useCallback(async () => {
+    if (tutorList.length > 0) return;
+    const { data: roleRows } = await (supabase as any).from("user_roles").select("user_id").eq("role", "tutor");
+    const ids = Array.from(new Set((roleRows ?? []).map((r: any) => r.user_id)));
+    if (!ids.length) { setTutorList([]); return; }
+    const { data: profs } = await supabase.from("profiles").select("id, full_name, tutor_code").in("id", ids as string[]);
+    setTutorList(((profs as any) ?? []).filter((t: any) => !!t.tutor_code));
+  }, [tutorList.length]);
+
+  const insertMention = (code: string) => {
+    const tag = `@${code} `;
+    setContent(prev => prev.endsWith(" ") || prev.length === 0 ? prev + tag : prev + " " + tag);
+    setTutorPickerOpen(false);
+  };
 
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as "admin" | "tutor" | "student";
 
@@ -341,11 +382,39 @@ const CommunityWall = () => {
                     </button>
                   </div>
                 )}
-                <div className="flex items-center justify-between">
-                  <Button variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
-                    <ImageIcon className="w-4 h-4 mr-1" /> Image
-                  </Button>
-                  <input type="file" ref={fileInput} accept="image/*" className="hidden" onChange={onPickImage} />
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
+                      <ImageIcon className="w-4 h-4 mr-1" /> Image
+                    </Button>
+                    <input type="file" ref={fileInput} accept="image/*" className="hidden" onChange={onPickImage} />
+                    <Popover open={tutorPickerOpen} onOpenChange={(o) => { setTutorPickerOpen(o); if (o) loadTutors(); }}>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" title="Mention a tutor">
+                          <AtSign className="w-4 h-4 mr-1" /> Tag tutor
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search tutors..." />
+                          <CommandList>
+                            <CommandEmpty>No tutors found</CommandEmpty>
+                            <CommandGroup>
+                              {tutorList.map(t => (
+                                <CommandItem key={t.id} value={`${t.full_name || ""} ${t.tutor_code}`} onSelect={() => insertMention(t.tutor_code!)}>
+                                  <GraduationCap className="w-3.5 h-3.5 mr-2 text-primary" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm truncate">{t.full_name || "Tutor"}</div>
+                                    <div className="text-xs text-muted-foreground">@{t.tutor_code}</div>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <Button size="sm" disabled={posting || (!content.trim() && !imageFile)} onClick={submitPost}>
                     {posting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                     Post
@@ -394,7 +463,15 @@ const CommunityWall = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {p.content && <p className="whitespace-pre-wrap text-sm">{p.content}</p>}
+                      {p.content && (
+                        <p className="whitespace-pre-wrap text-sm">
+                          {p.content.split(/(@TUT-[A-Z0-9]{4,})/gi).map((part, i) =>
+                            /^@TUT-[A-Z0-9]{4,}$/i.test(part)
+                              ? <span key={i} className="inline-flex items-center gap-0.5 rounded-md bg-primary/10 text-primary px-1.5 py-0.5 text-xs font-medium align-baseline"><AtSign className="w-3 h-3" />{part.slice(1).toUpperCase()}</span>
+                              : <span key={i}>{part}</span>
+                          )}
+                        </p>
+                      )}
                       {p.image_url && <img src={p.image_url} alt="" className="rounded-lg border max-h-[480px] object-cover w-full" />}
                       <div className="flex items-center gap-1 pt-1 flex-wrap">
                         <Button variant="ghost" size="sm" onClick={() => toggleLike(p)} className="gap-1.5">
@@ -405,33 +482,56 @@ const CommunityWall = () => {
                           <MessageCircle className="w-4 h-4" />
                           {p.comment_count}
                         </Button>
-                        {p.content && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="gap-1.5 ml-auto" disabled={aiByPost[p.id]?.loading}>
+                        {p.content && (() => {
+                          const current = AI_MODES.find(m => m.value === aiMode)!;
+                          const Icon = current.icon;
+                          return (
+                            <div className="ml-auto flex items-center">
+                              <Button variant="ghost" size="sm" className="gap-1.5 rounded-r-none pr-2"
+                                disabled={aiByPost[p.id]?.loading}
+                                onClick={() => askAI(p, aiMode)}>
                                 {aiByPost[p.id]?.loading
                                   ? <Loader2 className="w-4 h-4 animate-spin" />
                                   : <Sparkles className="w-4 h-4 text-primary" />}
-                                Ask AI
+                                <span className="hidden sm:inline">{current.label}</span>
+                                <span className="sm:hidden">Ask AI</span>
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => askAI(p, "tips")}>
-                                <Lightbulb className="w-4 h-4 mr-2" /> Study tips
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => askAI(p, "summary")}>
-                                <FileText className="w-4 h-4 mr-2" /> Summarize
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="rounded-l-none border-l px-2" disabled={aiByPost[p.id]?.loading}>
+                                    <Icon className="w-3.5 h-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-64">
+                                  <DropdownMenuLabel className="text-xs">AI output style</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuRadioGroup value={aiMode} onValueChange={(v) => setAiMode(v as AIMode)}>
+                                    {AI_MODES.map(m => {
+                                      const MIcon = m.icon;
+                                      return (
+                                        <DropdownMenuRadioItem key={m.value} value={m.value} className="flex-col items-start gap-0 py-2">
+                                          <div className="flex items-center gap-2"><MIcon className="w-3.5 h-3.5 text-primary" /> <span className="text-sm font-medium">{m.label}</span></div>
+                                          <span className="text-xs text-muted-foreground ml-5">{m.desc}</span>
+                                        </DropdownMenuRadioItem>
+                                      );
+                                    })}
+                                  </DropdownMenuRadioGroup>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => askAI(p, aiMode)}>
+                                    <Sparkles className="w-3.5 h-3.5 mr-2" /> Run with current style
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          );
+                        })()}
                       </div>
                       {aiByPost[p.id]?.content && (
                         <div className="rounded-lg border bg-primary/5 p-3 text-sm">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
                               <Sparkles className="w-3.5 h-3.5" />
-                              AI {aiByPost[p.id]?.mode === "summary" ? "summary" : "study tips"}
+                              AI · {AI_MODES.find(m => m.value === aiByPost[p.id]?.mode)?.label || "Result"}
                             </div>
                             <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => closeAI(p.id)}>
                               <X className="w-3 h-3" />
