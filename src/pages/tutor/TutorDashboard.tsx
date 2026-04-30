@@ -52,7 +52,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2, AlertCircle } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, AlertCircle, BookOpen } from "lucide-react";
 
 interface Course {
   id: string;
