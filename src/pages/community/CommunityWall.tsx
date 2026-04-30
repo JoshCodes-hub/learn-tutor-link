@@ -396,7 +396,7 @@ const CommunityWall = () => {
                     <CardContent className="space-y-3">
                       {p.content && <p className="whitespace-pre-wrap text-sm">{p.content}</p>}
                       {p.image_url && <img src={p.image_url} alt="" className="rounded-lg border max-h-[480px] object-cover w-full" />}
-                      <div className="flex items-center gap-1 pt-1">
+                      <div className="flex items-center gap-1 pt-1 flex-wrap">
                         <Button variant="ghost" size="sm" onClick={() => toggleLike(p)} className="gap-1.5">
                           <Heart className={`w-4 h-4 ${likes.has(p.id) ? "fill-primary text-primary" : ""}`} />
                           {p.like_count}
@@ -405,7 +405,41 @@ const CommunityWall = () => {
                           <MessageCircle className="w-4 h-4" />
                           {p.comment_count}
                         </Button>
+                        {p.content && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="gap-1.5 ml-auto" disabled={aiByPost[p.id]?.loading}>
+                                {aiByPost[p.id]?.loading
+                                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                                  : <Sparkles className="w-4 h-4 text-primary" />}
+                                Ask AI
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => askAI(p, "tips")}>
+                                <Lightbulb className="w-4 h-4 mr-2" /> Study tips
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => askAI(p, "summary")}>
+                                <FileText className="w-4 h-4 mr-2" /> Summarize
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
+                      {aiByPost[p.id]?.content && (
+                        <div className="rounded-lg border bg-primary/5 p-3 text-sm">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                              <Sparkles className="w-3.5 h-3.5" />
+                              AI {aiByPost[p.id]?.mode === "summary" ? "summary" : "study tips"}
+                            </div>
+                            <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => closeAI(p.id)}>
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          <div className="whitespace-pre-wrap text-sm">{aiByPost[p.id]?.content}</div>
+                        </div>
+                      )}
                       {isOpen && (
                         <div className="border-t pt-3 space-y-3">
                           {(commentsByPost[p.id] || []).map(c => {
