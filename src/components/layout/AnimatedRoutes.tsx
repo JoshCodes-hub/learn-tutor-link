@@ -327,6 +327,10 @@ export const AnimatedRoutes = () => {
           <Route path="/exam-tomorrow" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route path="/can-i-pass" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route path="/two-hours-left" element={<PageTransition><ViralMode /></PageTransition>} />
+          <Route path="/my-courses" element={<PageTransition><MyCourses /></PageTransition>} />
+          <Route path="/tutor/courses" element={<PageTransition><TutorCourses /></PageTransition>} />
+          <Route path="/admin/courses" element={<AdminRoute><PageTransition><AdminCourses /></PageTransition></AdminRoute>} />
+          <Route path="/community-wall" element={<PageTransition><CommunityWall /></PageTransition>} />
           <Route
             path="*"
             element={
