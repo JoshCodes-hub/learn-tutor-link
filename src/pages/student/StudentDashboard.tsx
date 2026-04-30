@@ -837,11 +837,11 @@ const StudentDashboard = () => {
               tone: "rose",
             },
             {
-              icon: BookOpen,
+              icon: GraduationCap,
               label: "My Courses",
               description: "Manage enrolled courses",
               to: "/my-courses",
-              tone: "amber",
+              tone: "emerald",
             },
             {
               icon: Users,
