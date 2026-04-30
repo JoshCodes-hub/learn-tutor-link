@@ -172,66 +172,43 @@ const HeroSection = () => {
             </AnimatePresence>
           </div>
 
-          {/* 30-second registration block — role picker FIRST, CTA adapts */}
+          {/* Two clear CTAs — Get Started (Student) + Apply as Tutor */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55, duration: 0.5 }}
-            className="space-y-3 pt-1"
+            className="space-y-3 pt-2"
           >
-            <p className="text-[10.5px] sm:text-[11px] uppercase tracking-[0.22em] text-white/55 font-medium">
-              I'm joining as
-            </p>
-
-            {/* Role picker */}
-            <div className="flex flex-wrap gap-2">
-              {(Object.keys(roleConfig) as Role[]).map((role) => {
-                const cfg = roleConfig[role];
-                const Icon = cfg.icon;
-                const active = selectedRole === role;
-                return (
-                  <button
-                    key={role}
-                    onClick={() => setSelectedRole(role)}
-                    className={`group flex items-center gap-2 backdrop-blur-md rounded-full pl-2 pr-4 py-1.5 transition-all active:scale-95 border ${
-                      active
-                        ? "bg-primary/25 border-primary/60 shadow-lg shadow-primary/20"
-                        : "bg-white/8 border-white/15 hover:bg-white/12 hover:border-white/30"
-                    }`}
-                    aria-pressed={active}
-                  >
-                    <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                        active ? "bg-primary text-primary-foreground" : "bg-primary/20 text-primary"
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                    </span>
-                    <span className="text-xs sm:text-sm font-medium text-white">{cfg.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Adaptive primary CTA + Sign in */}
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+            <div className="flex flex-col sm:flex-row gap-2.5">
               <Button
                 size="lg"
                 className="h-12 sm:h-13 px-7 sm:px-8 text-sm sm:text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-xl shadow-primary/30 active:scale-[0.97] transition-all w-full sm:w-auto"
-                onClick={() => navigate(ActiveRoleCta.path)}
+                onClick={() => navigate("/auth?mode=signup&intent=student")}
               >
-                {ActiveRoleCta.cta}
+                Get Started
                 <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
               <Button
                 variant="ghost"
                 size="lg"
-                className="h-12 sm:h-13 px-6 text-white/85 hover:text-white hover:bg-white/10 rounded-full border border-white/20 w-full sm:w-auto"
-                onClick={() => navigate("/auth")}
+                className="h-12 sm:h-13 px-6 text-white/90 hover:text-white hover:bg-white/10 rounded-full border border-white/25 w-full sm:w-auto"
+                onClick={() => navigate("/apply-tutor")}
               >
-                Sign In
+                <GraduationCap className="w-4 h-4 mr-1.5" />
+                Apply as Tutor
               </Button>
             </div>
+
+            {/* Sign in link */}
+            <p className="text-xs sm:text-sm text-white/60">
+              Already have an account?{" "}
+              <button
+                onClick={() => navigate("/auth")}
+                className="text-primary font-medium hover:underline"
+              >
+                Sign in
+              </button>
+            </p>
 
             {/* Trust micro-row */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-2 text-[11px] sm:text-xs text-white/65">
