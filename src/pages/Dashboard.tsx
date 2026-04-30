@@ -27,16 +27,21 @@ const Dashboard = () => {
   const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (isLoading) return;
+    if (!user) {
       navigate("/auth");
-    } else if (!isLoading && user && primaryRole) {
-      // Redirect to role-specific dashboard
-      if (primaryRole === "tutor") {
-        navigate("/tutor/dashboard", { replace: true });
-      } else if (primaryRole === "student") {
-        navigate("/student/dashboard", { replace: true });
-      }
+      return;
+    }
+    // Redirect to role-specific dashboard.
+    // Default to student dashboard when no role has loaded yet —
+    // every new signup gets the 'student' role via the DB trigger,
+    // so this is the safe fallback.
+    if (primaryRole === "tutor") {
+      navigate("/tutor/dashboard", { replace: true });
+    } else if (primaryRole === "admin") {
       // Admin stays on this page
+    } else {
+      navigate("/student/dashboard", { replace: true });
     }
   }, [user, isLoading, primaryRole, navigate]);
 
@@ -45,7 +50,7 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  if (isLoading || (primaryRole && primaryRole !== "admin")) {
+  if (isLoading || primaryRole !== "admin") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
