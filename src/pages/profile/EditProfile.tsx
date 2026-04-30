@@ -25,6 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { uploadToBucketWithVerification } from "@/lib/storageUpload";
+import { CoverCropDialog } from "@/components/profile/CoverCropDialog";
 
 const LEVELS = ["100", "200", "300", "400", "500", "600"];
 const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
