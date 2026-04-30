@@ -388,65 +388,127 @@ const BrowseTutors = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, code, or department..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        <div className="bg-card rounded-xl border border-border p-4 mb-6">
+          <div className="flex flex-col lg:flex-row lg:flex-wrap gap-3">
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, code, department, or course (e.g. CSC201)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted text-muted-foreground"
+                >
+                  <XIcon className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            <Select value={selectedSpec} onValueChange={setSelectedSpec}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <SelectValue placeholder="Path" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Paths</SelectItem>
+                <SelectItem value="secondary">Secondary</SelectItem>
+                <SelectItem value="jamb">JAMB</SelectItem>
+                <SelectItem value="university">University</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <BookOpen className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="All Courses" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="all">All Courses</SelectItem>
+                {courses.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.code} — {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedPrice} onValueChange={setSelectedPrice}>
+              <SelectTrigger className="w-full sm:w-[170px]">
+                <Coins className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Any price" />
+              </SelectTrigger>
+              <SelectContent>
+                {PRICE_BUCKETS.map((b) => (
+                  <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full sm:w-[160px]">
+                <ArrowUpDown className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="rating">Highest Rated</SelectItem>
+                <SelectItem value="quizzes">Most Quizzes</SelectItem>
+                <SelectItem value="students">Most Students</SelectItem>
+                <SelectItem value="name">Name (A-Z)</SelectItem>
+                <SelectItem value="price-asc">Price: low to high</SelectItem>
+                <SelectItem value="price-desc">Price: high to low</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={minRating} onValueChange={setMinRating}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <Star className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Min rating" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">Any rating</SelectItem>
+                <SelectItem value="3">3.0+ stars</SelectItem>
+                <SelectItem value="4">4.0+ stars</SelectItem>
+                <SelectItem value="4.5">4.5+ stars</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {(searchQuery || selectedDepartment !== "all" || selectedCourse !== "all" || selectedPrice !== "all" || selectedSpec !== "all" || minRating !== "0") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedDepartment("all");
+                  setSelectedCourse("all");
+                  setSelectedPrice("all");
+                  setSelectedSpec("all");
+                  setMinRating("0");
+                }}
+              >
+                <XIcon className="w-4 h-4 mr-1" /> Clear filters
+              </Button>
+            )}
           </div>
-          <Select value={selectedSpec} onValueChange={setSelectedSpec}>
-            <SelectTrigger className="w-full sm:w-[160px]">
-              <SelectValue placeholder="Path" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Paths</SelectItem>
-              <SelectItem value="secondary">Secondary</SelectItem>
-              <SelectItem value="jamb">JAMB</SelectItem>
-              <SelectItem value="university">University</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="All Departments" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Departments</SelectItem>
-              {departments.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-[160px]">
-              <ArrowUpDown className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="rating">Highest Rated</SelectItem>
-              <SelectItem value="quizzes">Most Quizzes</SelectItem>
-              <SelectItem value="students">Most Students</SelectItem>
-              <SelectItem value="name">Name (A-Z)</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={minRating} onValueChange={setMinRating}>
-            <SelectTrigger className="w-full sm:w-[150px]">
-              <Star className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Min rating" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">Any rating</SelectItem>
-              <SelectItem value="3">3.0+ stars</SelectItem>
-              <SelectItem value="4">4.0+ stars</SelectItem>
-              <SelectItem value="4.5">4.5+ stars</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
+
 
         {/* Results Count */}
         <p className="text-sm text-muted-foreground mb-4">
