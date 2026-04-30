@@ -474,26 +474,49 @@ const CommunityWall = () => {
                           <MessageCircle className="w-4 h-4" />
                           {p.comment_count}
                         </Button>
-                        {p.content && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="gap-1.5 ml-auto" disabled={aiByPost[p.id]?.loading}>
+                        {p.content && (() => {
+                          const current = AI_MODES.find(m => m.value === aiMode)!;
+                          const Icon = current.icon;
+                          return (
+                            <div className="ml-auto flex items-center">
+                              <Button variant="ghost" size="sm" className="gap-1.5 rounded-r-none pr-2"
+                                disabled={aiByPost[p.id]?.loading}
+                                onClick={() => askAI(p, aiMode)}>
                                 {aiByPost[p.id]?.loading
                                   ? <Loader2 className="w-4 h-4 animate-spin" />
                                   : <Sparkles className="w-4 h-4 text-primary" />}
-                                Ask AI
+                                <span className="hidden sm:inline">{current.label}</span>
+                                <span className="sm:hidden">Ask AI</span>
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => askAI(p, "tips")}>
-                                <Lightbulb className="w-4 h-4 mr-2" /> Study tips
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => askAI(p, "summary")}>
-                                <FileText className="w-4 h-4 mr-2" /> Summarize
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="rounded-l-none border-l px-2" disabled={aiByPost[p.id]?.loading}>
+                                    <Icon className="w-3.5 h-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-64">
+                                  <DropdownMenuLabel className="text-xs">AI output style</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuRadioGroup value={aiMode} onValueChange={(v) => setAiMode(v as AIMode)}>
+                                    {AI_MODES.map(m => {
+                                      const MIcon = m.icon;
+                                      return (
+                                        <DropdownMenuRadioItem key={m.value} value={m.value} className="flex-col items-start gap-0 py-2">
+                                          <div className="flex items-center gap-2"><MIcon className="w-3.5 h-3.5 text-primary" /> <span className="text-sm font-medium">{m.label}</span></div>
+                                          <span className="text-xs text-muted-foreground ml-5">{m.desc}</span>
+                                        </DropdownMenuRadioItem>
+                                      );
+                                    })}
+                                  </DropdownMenuRadioGroup>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => askAI(p, aiMode)}>
+                                    <Sparkles className="w-3.5 h-3.5 mr-2" /> Run with current style
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          );
+                        })()}
                       </div>
                       {aiByPost[p.id]?.content && (
                         <div className="rounded-lg border bg-primary/5 p-3 text-sm">
