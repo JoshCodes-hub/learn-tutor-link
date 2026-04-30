@@ -967,6 +967,53 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_goals: {
+        Row: {
+          completed_topics: Json
+          course_id: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          target_date: string | null
+          title: string
+          topics: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_topics?: Json
+          course_id: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          target_date?: string | null
+          title: string
+          topics?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_topics?: Json
+          course_id?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          target_date?: string | null
+          title?: string
+          topics?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_goals_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lecture_notes: {
         Row: {
           course_id: string | null

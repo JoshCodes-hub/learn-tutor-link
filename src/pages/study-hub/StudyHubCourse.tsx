@@ -13,6 +13,7 @@ import { UploadMaterialDialog } from "@/components/study-hub/UploadMaterialDialo
 import { MaterialAIPanel } from "@/components/study-hub/MaterialAIPanel";
 import { ExportStudyPackDialog } from "@/components/study-hub/ExportStudyPackDialog";
 import { StudyCoachPanel } from "@/components/study-hub/StudyCoachPanel";
+import { LearningGoalsPanel } from "@/components/study-hub/LearningGoalsPanel";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -184,14 +185,15 @@ const StudyHubCourse = () => {
             )}
           </div>
 
-          {/* AI Coach panel */}
-          <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-24">
+          {/* AI Coach + Goals */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="lg:sticky lg:top-24 space-y-6">
               <StudyCoachPanel
                 course={{ code: course.code, name: course.name }}
                 materials={materials.map(m => ({ id: m.id, title: m.title, description: m.description, file_type: m.file_type }))}
                 mode="study_hub"
               />
+              {courseId && <LearningGoalsPanel courseId={courseId} />}
             </div>
           </div>
         </div>
