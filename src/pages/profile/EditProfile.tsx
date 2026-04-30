@@ -384,6 +384,82 @@ const EditProfile = () => {
               </Select>
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Level</Label>
+                <Select value={level} onValueChange={setLevel}>
+                  <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                  <SelectContent>{LEVELS.map(l => <SelectItem key={l} value={l}>{l} Level</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Matric No</Label>
+                <Input value={matricNo} onChange={(e) => setMatricNo(e.target.value)} placeholder="e.g. CSC/19/0001" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Current CGPA</Label>
+                <Input type="number" step="0.01" min="0" max="5" value={currentCgpa} onChange={(e) => setCurrentCgpa(e.target.value)} placeholder="0.00 – 5.00" />
+              </div>
+              <div className="space-y-2">
+                <Label>Aspiring CGPA</Label>
+                <Input type="number" step="0.01" min="0" max="5" value={aspiringCgpa} onChange={(e) => setAspiringCgpa(e.target.value)} placeholder="Goal" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234..." />
+              </div>
+              <div className="space-y-2">
+                <Label>Date of Birth</Label>
+                <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Gender</Label>
+                <Select value={gender} onValueChange={setGender}>
+                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>{GENDERS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>State of Origin</Label>
+                <Input value={stateOfOrigin} onChange={(e) => setStateOfOrigin(e.target.value)} placeholder="e.g. Lagos" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Bio</Label>
+              <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell others about yourself..." rows={3} maxLength={500} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>LinkedIn</Label>
+                <Input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="username" />
+              </div>
+              <div className="space-y-2">
+                <Label>X (Twitter)</Label>
+                <Input value={xHandle} onChange={(e) => setXHandle(e.target.value)} placeholder="@handle" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Study Interests <span className="text-xs text-muted-foreground">(comma separated)</span></Label>
+              <Input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="AI, Algorithms, Calculus" />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Hobbies <span className="text-xs text-muted-foreground">(comma separated)</span></Label>
+              <Input value={hobbies} onChange={(e) => setHobbies(e.target.value)} placeholder="Football, Music, Reading" />
+            </div>
+
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
