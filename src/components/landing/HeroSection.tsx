@@ -1,54 +1,33 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, GraduationCap, School, BookOpen, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowRight, GraduationCap, Sparkles, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import heroEditorial from "@/assets/hero-editorial.jpg";
 import heroCollab from "@/assets/hero-collab.jpg";
 import heroStudyDetail from "@/assets/hero-study-detail.jpg";
 
-type Role = "student" | "tutor" | "school";
-
-/**
- * Each slide carries:
- * - Its own per-breakpoint focal point (so the subject's face stays in frame on mobile/tablet/desktop)
- * - A synced "highlight" word that swaps inside the headline as the photo crossfades
- * - A synced editorial sub-line
- */
 const heroSlides = [
   {
     src: heroEditorial,
-    // Subject is right side → push focal right on mobile, center on desktop
     focal: "object-[78%_30%] sm:object-[72%_30%] md:object-[65%_35%] lg:object-[60%_35%]",
-    highlight: "Practice.",
     sub: "AI-graded CBT drills, instant explanations, real exam pacing.",
   },
   {
     src: heroCollab,
-    // Two subjects centered → keep tighter framing on mobile
     focal: "object-[55%_45%] sm:object-[50%_42%] md:object-[50%_40%]",
-    highlight: "Together.",
     sub: "Verified tutors, study teams and live mentorship that move you forward.",
   },
   {
     src: heroStudyDetail,
-    // Detail shot — keep notebook in frame
     focal: "object-[55%_55%] sm:object-[58%_52%] md:object-[60%_50%]",
-    highlight: "Mastery.",
     sub: "Theory rubrics, weak-area drills and an exam-readiness score you can trust.",
   },
 ];
 
-const roleConfig: Record<Role, { label: string; icon: typeof BookOpen; path: string; cta: string }> = {
-  student: { label: "Student", icon: BookOpen, path: "/auth?mode=signup&role=student", cta: "Start Practising — Free" },
-  tutor: { label: "Tutor", icon: GraduationCap, path: "/apply-tutor", cta: "Apply to Teach" },
-  school: { label: "School", icon: School, path: "/school/register", cta: "Register your School" },
-};
-
 const HeroSection = () => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [selectedRole, setSelectedRole] = useState<Role>("student");
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -58,7 +37,6 @@ const HeroSection = () => {
   }, []);
 
   const slide = heroSlides[currentImageIndex];
-  const ActiveRoleCta = roleConfig[selectedRole];
 
   return (
     <section className="relative w-full overflow-hidden" aria-label="Hero section">
