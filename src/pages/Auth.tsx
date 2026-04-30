@@ -171,6 +171,25 @@ const Auth = () => {
           const meta = {
             school: data.school,
           };
+
+          // Upload avatar if user picked one
+          let uploadedAvatarUrl: string | null = null;
+          if (avatarFile) {
+            try {
+              const ext = (avatarFile.name.split(".").pop() || "jpg").toLowerCase();
+              const path = `${newUser.id}/avatar.${ext}`;
+              const { error: upErr } = await supabase.storage
+                .from("avatars")
+                .upload(path, avatarFile, { upsert: true, contentType: avatarFile.type });
+              if (!upErr) {
+                const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+                uploadedAvatarUrl = `${pub.publicUrl}?v=${Date.now()}`;
+              }
+            } catch (upErr) {
+              console.warn("Avatar upload failed:", upErr);
+            }
+          }
+
           await supabase
             .from("profiles")
             .update({
@@ -181,6 +200,9 @@ const Auth = () => {
               matric_no: data.matricNo,
               state_of_origin: data.state,
               academic_metadata: meta,
+              ...(uploadedAvatarUrl
+                ? { avatar_url: uploadedAvatarUrl, profile_image_url: uploadedAvatarUrl }
+                : {}),
             })
             .eq("id", newUser.id);
         }
