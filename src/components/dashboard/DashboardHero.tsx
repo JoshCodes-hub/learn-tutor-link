@@ -1,60 +1,52 @@
 import { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Sun, Moon, Sunrise } from "lucide-react";
+import { BadgeCheck, Camera, Mail, Phone, MapPin, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 type Role = "student" | "tutor" | "admin" | "school" | "parent";
 
-const ROLE_BADGE: Record<Role, { label: string; gradient: string; ring: string }> = {
-  student: {
-    label: "Scholar",
-    gradient: "from-amber-400 via-amber-500 to-amber-600",
-    ring: "ring-amber-400/40",
-  },
-  tutor: {
-    label: "Tutor",
-    gradient: "from-violet-500 via-fuchsia-500 to-amber-500",
-    ring: "ring-violet-400/40",
-  },
-  admin: {
-    label: "Administrator",
-    gradient: "from-slate-700 via-slate-800 to-amber-600",
-    ring: "ring-amber-400/40",
-  },
-  school: {
-    label: "School",
-    gradient: "from-emerald-500 via-teal-500 to-amber-500",
-    ring: "ring-emerald-400/40",
-  },
-  parent: {
-    label: "Guardian",
-    gradient: "from-rose-400 via-amber-400 to-amber-600",
-    ring: "ring-rose-400/40",
-  },
+const ROLE_PILL: Record<Role, { label: string }> = {
+  student: { label: "Student" },
+  tutor: { label: "Tutor" },
+  admin: { label: "Administrator" },
+  school: { label: "School" },
+  parent: { label: "Guardian" },
 };
+
+interface ContactInfo {
+  email?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  joined?: string | null; // pre-formatted
+}
 
 interface DashboardHeroProps {
   role: Role;
   fullName?: string | null;
   avatarUrl?: string | null;
-  /** LinkedIn-style cover/banner image rendered behind the avatar. */
+  /** Cover/banner image rendered behind the avatar. */
   coverUrl?: string | null;
+  /** School / institution line (bold). */
+  institution?: string | null;
+  /** Department + level subtitle (e.g. "Computer Science • Level 300"). */
+  meta?: ReactNode;
+  /** Optional intro / greeting subtitle (used when meta is not provided). */
   subtitle?: ReactNode;
-  /** Optional right-side slot for actions (buttons) */
+  /** Show verified check next to name */
+  verified?: boolean;
+  /** Show "Edit Profile" CTA inside the cover band */
+  showEditProfile?: boolean;
+  /** Contact strip beneath the card. Hidden if all fields are empty. */
+  contact?: ContactInfo;
+  /** Optional right-side slot for actions (replaces Edit Profile if provided) */
   actions?: ReactNode;
-  /** Optional bottom slot for an inline strip (streak, tokens) */
+  /** Optional bottom slot below the contact strip */
   footer?: ReactNode;
   className?: string;
 }
-
-const greetingFor = (hour: number) => {
-  if (hour < 5) return { label: "Burning the midnight oil", icon: Moon };
-  if (hour < 12) return { label: "Good morning", icon: Sunrise };
-  if (hour < 17) return { label: "Good afternoon", icon: Sun };
-  if (hour < 21) return { label: "Good evening", icon: Sun };
-  return { label: "Good night", icon: Moon };
-};
 
 const initials = (name?: string | null) => {
   if (!name) return "U";
@@ -67,117 +59,178 @@ const initials = (name?: string | null) => {
 };
 
 /**
- * Cinematic dashboard header. Gold gradient aura, glassy plate,
- * time-aware greeting, halo avatar with role badge, and slots
- * for actions and a footer strip (streak, tokens, etc.).
+ * Premium gold profile header inspired by LinkedIn-style cover cards.
+ * Vibrant amber banner, large halo avatar, name + verified badge,
+ * role pill, institution line, and an optional contact strip footer.
  */
 export const DashboardHero = ({
   role,
   fullName,
   avatarUrl,
   coverUrl,
+  institution,
+  meta,
   subtitle,
+  verified = true,
+  showEditProfile = true,
+  contact,
   actions,
   footer,
   className,
 }: DashboardHeroProps) => {
-  const hour = new Date().getHours();
-  const { label: greet, icon: GreetIcon } = greetingFor(hour);
-  const badge = ROLE_BADGE[role];
-  const firstName = fullName?.split(" ")[0] || "there";
+  const pill = ROLE_PILL[role];
+  const displayName = fullName || "Welcome";
+
+  const hasContact = !!(contact && (contact.email || contact.phone || contact.location || contact.joined));
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "relative overflow-hidden rounded-3xl border border-amber-100/60",
-        "bg-gradient-to-br from-white via-amber-50/40 to-white",
-        "shadow-[0_8px_40px_-16px_rgba(180,140,40,0.35)]",
-        "p-5 md:p-8",
+        "relative overflow-hidden rounded-3xl border border-amber-200/60 bg-white",
+        "shadow-[0_18px_50px_-22px_rgba(180,140,40,0.45)]",
         className
       )}
     >
-      {/* Decorative gold orbs */}
-      <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-gradient-to-br from-amber-300/40 via-amber-400/20 to-transparent blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-gradient-to-tr from-amber-200/30 via-yellow-200/10 to-transparent blur-3xl" />
-      {/* LinkedIn-style cover band (subtle, behind everything) */}
-      {coverUrl && (
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-28 md:h-36 overflow-hidden"
-          aria-hidden
-        >
+      {/* === Gold cover band === */}
+      <div className="relative h-40 sm:h-48 md:h-56 w-full overflow-hidden">
+        {/* Base gold gradient (always present for brand consistency) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600" />
+        {/* User cover image overlay */}
+        {coverUrl && (
           <div
-            className="absolute inset-0 bg-cover bg-center"
+            className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-90"
             style={{ backgroundImage: `url(${coverUrl})` }}
+            aria-hidden
           />
-          {/* Soft gold/white wash so foreground text stays readable */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/70 to-white" />
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-50/30 via-transparent to-amber-50/30" />
-        </div>
-      )}
-      {/* Faint gold grid */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(180,140,40,0.6) 1px, transparent 1px), linear-gradient(to bottom, rgba(180,140,40,0.6) 1px, transparent 1px)",
-          backgroundSize: "44px 44px",
-        }}
-      />
-
-      <div className="relative flex flex-col md:flex-row md:items-center gap-5 md:gap-7">
-        {/* Avatar with halo + role badge */}
-        <div className="relative shrink-0">
-          <div className={cn("absolute -inset-1.5 rounded-full bg-gradient-to-br blur-md opacity-70", badge.gradient)} />
-          <Avatar className={cn("relative h-16 w-16 md:h-20 md:w-20 ring-4 ring-white", badge.ring)}>
-            <AvatarImage src={avatarUrl ?? undefined} alt={fullName ?? "User avatar"} />
-            <AvatarFallback className={cn("text-white font-semibold bg-gradient-to-br", badge.gradient)}>
-              {initials(fullName)}
-            </AvatarFallback>
-          </Avatar>
-          <span
-            className={cn(
-              "absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider text-white shadow-md",
-              "bg-gradient-to-r",
-              badge.gradient
-            )}
-          >
-            {badge.label}
-          </span>
-        </div>
-
-        {/* Greeting block */}
-        <div className="flex-1 min-w-0">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/70 border border-amber-200/50 backdrop-blur text-xs font-medium text-amber-900 shadow-sm">
-            <GreetIcon className="h-3.5 w-3.5 text-amber-600" />
-            <span>{greet}</span>
-            <Sparkles className="h-3 w-3 text-amber-500" />
-          </div>
-          <h1 className="mt-2 font-serif text-2xl md:text-4xl font-semibold tracking-tight text-foreground leading-tight">
-            Welcome back,{" "}
-            <span className="bg-gradient-to-r from-amber-700 via-amber-600 to-amber-500 bg-clip-text text-transparent">
-              {firstName}
-            </span>
-          </h1>
-          {subtitle && (
-            <p className="mt-1.5 text-sm md:text-[15px] text-muted-foreground max-w-xl leading-relaxed">
-              {subtitle}
-            </p>
-          )}
-        </div>
-
-        {/* Actions slot */}
-        {actions && (
-          <div className="flex flex-wrap gap-2 md:gap-3 md:items-center md:justify-end">
-            {actions}
-          </div>
         )}
+        {/* Decorative flowing curves */}
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full opacity-30"
+          viewBox="0 0 800 200"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,150 C200,90 400,180 800,80 L800,200 L0,200 Z"
+            fill="rgba(255,255,255,0.18)"
+          />
+          <path
+            d="M0,170 C250,120 500,200 800,130"
+            stroke="rgba(255,255,255,0.35)"
+            strokeWidth="1.5"
+            fill="none"
+          />
+          <path
+            d="M0,120 C300,60 550,160 800,60"
+            stroke="rgba(255,255,255,0.25)"
+            strokeWidth="1"
+            fill="none"
+          />
+        </svg>
+        {/* Soft inner glow */}
+        <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/25 blur-3xl" />
+
+        {/* Right-side action (Edit Profile / custom actions) */}
+        <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10">
+          {actions
+            ? actions
+            : showEditProfile && (
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-white text-amber-700 hover:bg-amber-50 shadow-md font-semibold rounded-full px-4 sm:px-5"
+                >
+                  <Link to="/profile/edit">
+                    <Camera className="w-4 h-4 mr-1.5" />
+                    Edit Profile
+                  </Link>
+                </Button>
+              )}
+        </div>
+
+        {/* === Profile content overlaid on the band === */}
+        <div className="relative z-[1] h-full flex items-center px-5 sm:px-7 md:px-8 gap-4 sm:gap-5 md:gap-6">
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <div className="absolute -inset-1 rounded-full bg-white/70 blur-md" aria-hidden />
+            <Avatar className="relative h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 ring-4 ring-white shadow-xl">
+              <AvatarImage src={avatarUrl ?? undefined} alt={displayName} />
+              <AvatarFallback className="text-amber-700 font-bold text-2xl bg-gradient-to-br from-amber-100 to-amber-200">
+                {initials(fullName)}
+              </AvatarFallback>
+            </Avatar>
+            {/* online dot */}
+            <span className="absolute bottom-1 left-1 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white" aria-hidden />
+          </div>
+
+          {/* Name + meta */}
+          <div className="flex-1 min-w-0 text-white">
+            <div className="flex items-center gap-2 min-w-0">
+              <h1 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate drop-shadow-sm">
+                {displayName}
+              </h1>
+              {verified && (
+                <BadgeCheck className="h-5 w-5 sm:h-6 sm:w-6 text-white fill-amber-700/40 shrink-0" aria-label="Verified" />
+              )}
+            </div>
+
+            <div className="mt-1.5">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white text-amber-700 text-xs font-semibold shadow-sm">
+                {pill.label}
+              </span>
+            </div>
+
+            {institution && (
+              <p className="mt-1.5 text-sm sm:text-[15px] font-semibold text-white/95 truncate drop-shadow-sm">
+                {institution}
+              </p>
+            )}
+            {meta ? (
+              <p className="text-xs sm:text-sm text-white/85 truncate">{meta}</p>
+            ) : subtitle ? (
+              <p className="text-xs sm:text-sm text-white/85 truncate">{subtitle}</p>
+            ) : null}
+          </div>
+        </div>
       </div>
 
+      {/* === Contact strip === */}
+      {hasContact && (
+        <div className="px-5 sm:px-7 md:px-8 py-3.5 bg-white">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-muted-foreground">
+            {contact?.email && (
+              <div className="flex items-center gap-2 min-w-0">
+                <Mail className="h-4 w-4 text-amber-600 shrink-0" />
+                <span className="truncate">{contact.email}</span>
+              </div>
+            )}
+            {contact?.phone && (
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-amber-600 shrink-0" />
+                <span>{contact.phone}</span>
+              </div>
+            )}
+            {contact?.location && (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-amber-600 shrink-0" />
+                <span>{contact.location}</span>
+              </div>
+            )}
+            {contact?.joined && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-amber-600 shrink-0" />
+                <span>Joined {contact.joined}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {footer && (
-        <div className="relative mt-5 pt-5 border-t border-amber-100/60">
+        <div className="px-5 sm:px-7 md:px-8 py-4 border-t border-amber-100/70 bg-gradient-to-b from-white to-amber-50/30">
           {footer}
         </div>
       )}
