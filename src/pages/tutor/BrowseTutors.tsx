@@ -331,6 +331,17 @@ const BrowseTutors = () => {
       case "name":
         filtered.sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
         break;
+      case "price-asc":
+        filtered.sort((a, b) => {
+          // Free tutors first, then by min price ascending
+          const aPrice = a.hasPaid ? a.minPrice : -1;
+          const bPrice = b.hasPaid ? b.minPrice : -1;
+          return aPrice - bPrice;
+        });
+        break;
+      case "price-desc":
+        filtered.sort((a, b) => (b.maxPrice || 0) - (a.maxPrice || 0));
+        break;
     }
 
     setFilteredTutors(filtered);
