@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap, Clock, Shield, GraduationCap, School } from "lucide-react";
+import TutorApplicationDialog from "./TutorApplicationDialog";
 
 const benefits = [
   { icon: Zap, text: "Instant AI explanations" },
@@ -10,6 +12,7 @@ const benefits = [
 
 const CTASection = () => {
   const navigate = useNavigate();
+  const [showTutorDialog, setShowTutorDialog] = useState(false);
 
   return (
     <section className="py-20 lg:py-28 relative overflow-hidden">
@@ -79,7 +82,7 @@ const CTASection = () => {
           {/* Partner CTAs — Tutor + School */}
           <div className="grid md:grid-cols-2 gap-5 mt-10">
             <button
-              onClick={() => navigate("/apply-tutor")}
+              onClick={() => setShowTutorDialog(true)}
               className="group text-left p-6 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all"
             >
               <div className="flex items-start gap-4">
