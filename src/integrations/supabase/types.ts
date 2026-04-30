@@ -372,6 +372,30 @@ export type Database = {
           },
         ]
       }
+      community_messages: {
+        Row: {
+          community_id: string
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_shared_quizzes: {
         Row: {
           community_id: string
@@ -520,6 +544,33 @@ export type Database = {
           name?: string
           path_type?: Database["public"]["Enums"]["academic_path"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      direct_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          recipient_id?: string
+          sender_id?: string
         }
         Relationships: []
       }
@@ -808,6 +859,57 @@ export type Database = {
         }
         Relationships: []
       }
+      lecture_notes: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          description: string | null
+          download_count: number
+          file_path: string
+          file_size_bytes: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          is_published: boolean
+          title: string
+          tutor_id: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number
+          file_path: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          is_published?: boolean
+          title: string
+          tutor_id: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number
+          file_path?: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          is_published?: boolean
+          title?: string
+          tutor_id?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -948,6 +1050,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      qa_answers: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_accepted: boolean
+          question_id: string
+          updated_at: string
+          upvotes: number
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_accepted?: boolean
+          question_id: string
+          updated_at?: string
+          upvotes?: number
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_accepted?: boolean
+          question_id?: string
+          updated_at?: string
+          upvotes?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "qa_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_questions: {
+        Row: {
+          answer_count: number
+          body: string
+          course_id: string | null
+          created_at: string
+          id: string
+          is_resolved: boolean
+          title: string
+          updated_at: string
+          upvotes: number
+          user_id: string
+        }
+        Insert: {
+          answer_count?: number
+          body: string
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          title: string
+          updated_at?: string
+          upvotes?: number
+          user_id: string
+        }
+        Update: {
+          answer_count?: number
+          body?: string
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          title?: string
+          updated_at?: string
+          upvotes?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       question_reports: {
         Row: {
@@ -2616,6 +2798,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tutor_announcements: {
+        Row: {
+          body: string
+          course_id: string | null
+          created_at: string
+          id: string
+          is_pinned: boolean
+          title: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          title: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          title?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       tutor_applications: {
         Row: {
