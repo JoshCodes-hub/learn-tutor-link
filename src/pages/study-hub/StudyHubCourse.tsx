@@ -211,7 +211,10 @@ const StudyHubCourse = () => {
             <div className="lg:sticky lg:top-24 space-y-6">
               <StudyCoachPanel
                 course={{ code: course.code, name: course.name }}
-                materials={materials.map(m => ({ id: m.id, title: m.title, description: m.description, file_type: m.file_type }))}
+                materials={materials.map(m => {
+                  const t = tutorOwners[m.owner_id];
+                  return { id: m.id, title: m.title, description: m.description, file_type: m.file_type, tutor_id: t ? m.owner_id : null, tutor_name: t?.name ?? null, tutor_avatar_url: t?.avatar ?? null };
+                })}
                 mode="study_hub"
               />
               {courseId && <LearningGoalsPanel courseId={courseId} />}
