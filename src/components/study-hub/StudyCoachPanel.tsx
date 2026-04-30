@@ -61,8 +61,11 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
   const [generatingCards, setGeneratingCards] = useState(false);
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [cardsOpen, setCardsOpen] = useState(false);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  const hasAnyTutorMaterial = materials.some(m => !!m.tutor_id);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
