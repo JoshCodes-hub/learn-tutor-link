@@ -15,16 +15,8 @@ const Welcome = () => {
   const navigate = useNavigate();
   const { user, primaryRole, isLoading } = useAuth();
 
-  // 24h splash throttle
-  const [showSplash, setShowSplash] = useState(() => {
-    try {
-      const last = localStorage.getItem("lastSplashShown");
-      if (!last) return true;
-      return (Date.now() - parseInt(last)) / 36e5 > 24;
-    } catch {
-      return true;
-    }
-  });
+  // Always show splash on app open (per brand requirement)
+  const [showSplash, setShowSplash] = useState(true);
 
   // Redirect signed-in users to their dashboard
   useEffect(() => {
