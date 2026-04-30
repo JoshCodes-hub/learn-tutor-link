@@ -176,6 +176,16 @@ export function TutorManagement() {
 
       if (roleError) throw roleError;
 
+      // Fan out a notification to students in the same department.
+      // Failures here are non-fatal — approval already succeeded.
+      try {
+        await supabase.functions.invoke("notify-new-tutor", {
+          body: { tutor_user_id: selectedApp.user_id },
+        });
+      } catch (notifyErr) {
+        console.warn("notify-new-tutor failed", notifyErr);
+      }
+
       toast.success("Tutor application approved!");
       setSelectedApp(null);
       setAdminNotes("");
