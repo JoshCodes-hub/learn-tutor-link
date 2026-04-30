@@ -336,6 +336,64 @@ export type Database = {
           },
         ]
       }
+      community_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_members: {
         Row: {
           community_id: string
@@ -395,6 +453,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      community_posts: {
+        Row: {
+          author_id: string
+          channel_type: string
+          comment_count: number
+          content: string
+          course_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          like_count: number
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          channel_type?: string
+          comment_count?: number
+          content: string
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          like_count?: number
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          channel_type?: string
+          comment_count?: number
+          content?: string
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          like_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       community_shared_quizzes: {
         Row: {
@@ -517,6 +622,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          level: string | null
           name: string
           path_type: Database["public"]["Enums"]["academic_path"]
           updated_at: string
@@ -529,6 +635,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          level?: string | null
           name: string
           path_type?: Database["public"]["Enums"]["academic_path"]
           updated_at?: string
@@ -541,6 +648,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          level?: string | null
           name?: string
           path_type?: Database["public"]["Enums"]["academic_path"]
           updated_at?: string
@@ -977,65 +1085,104 @@ export type Database = {
         Row: {
           academic_metadata: Json
           academic_path: Database["public"]["Enums"]["academic_path"] | null
+          aspiring_cgpa: number | null
           avatar_url: string | null
+          bio: string | null
           cover_photo_url: string | null
           created_at: string
+          current_cgpa: number | null
+          date_of_birth: string | null
           department: string | null
           email: string
           full_name: string | null
+          gender: string | null
+          hobbies: string[] | null
           id: string
+          level: string | null
+          linkedin_handle: string | null
+          matric_no: string | null
           onboarding_completed: boolean
+          phone: string | null
           profile_image_url: string | null
           referral_code: string | null
           referred_by: string | null
+          state_of_origin: string | null
+          study_interests: string[] | null
           tutor_code: string | null
           tutor_match_prefs: Json
           tutor_specialization:
             | Database["public"]["Enums"]["academic_path"]
             | null
           updated_at: string
+          x_handle: string | null
         }
         Insert: {
           academic_metadata?: Json
           academic_path?: Database["public"]["Enums"]["academic_path"] | null
+          aspiring_cgpa?: number | null
           avatar_url?: string | null
+          bio?: string | null
           cover_photo_url?: string | null
           created_at?: string
+          current_cgpa?: number | null
+          date_of_birth?: string | null
           department?: string | null
           email: string
           full_name?: string | null
+          gender?: string | null
+          hobbies?: string[] | null
           id: string
+          level?: string | null
+          linkedin_handle?: string | null
+          matric_no?: string | null
           onboarding_completed?: boolean
+          phone?: string | null
           profile_image_url?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          state_of_origin?: string | null
+          study_interests?: string[] | null
           tutor_code?: string | null
           tutor_match_prefs?: Json
           tutor_specialization?:
             | Database["public"]["Enums"]["academic_path"]
             | null
           updated_at?: string
+          x_handle?: string | null
         }
         Update: {
           academic_metadata?: Json
           academic_path?: Database["public"]["Enums"]["academic_path"] | null
+          aspiring_cgpa?: number | null
           avatar_url?: string | null
+          bio?: string | null
           cover_photo_url?: string | null
           created_at?: string
+          current_cgpa?: number | null
+          date_of_birth?: string | null
           department?: string | null
           email?: string
           full_name?: string | null
+          gender?: string | null
+          hobbies?: string[] | null
           id?: string
+          level?: string | null
+          linkedin_handle?: string | null
+          matric_no?: string | null
           onboarding_completed?: boolean
+          phone?: string | null
           profile_image_url?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          state_of_origin?: string | null
+          study_interests?: string[] | null
           tutor_code?: string | null
           tutor_match_prefs?: Json
           tutor_specialization?:
             | Database["public"]["Enums"]["academic_path"]
             | null
           updated_at?: string
+          x_handle?: string | null
         }
         Relationships: [
           {
@@ -2072,6 +2219,35 @@ export type Database = {
         }
         Relationships: []
       }
+      student_courses: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_quiz_purchases: {
         Row: {
           id: string
@@ -2966,6 +3142,35 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tutor_courses: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          tutor_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          tutor_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          tutor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutor_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tutor_earnings: {
         Row: {
