@@ -1,34 +1,78 @@
-import { Sparkles } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 /**
- * Branded full-screen loading state. Gold & White luxury aesthetic with a
- * shimmering serif wordmark, soft halo, and subtle pulse — never a generic spinner.
+ * Branded full-screen loading state.
+ * Official OverraPrep gold logo, centered with a smooth pulse + halo.
+ * Fixed dimensions prevent any layout shift during mount/unmount.
  */
 export const LoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-amber-50/20 to-background">
-    <div className="flex flex-col items-center gap-5">
-      <div className="relative">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-300/40 to-amber-500/30 blur-2xl animate-pulse" />
-        <div className="relative h-16 w-16 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/30 flex items-center justify-center">
-          <Sparkles className="h-7 w-7 text-white animate-pulse" />
-          <div className="absolute inset-0 rounded-full border-2 border-amber-200/60 border-t-transparent animate-spin" />
-        </div>
+  <div
+    className="fixed inset-0 z-[9998] flex items-center justify-center bg-background"
+    style={{
+      paddingTop: "env(safe-area-inset-top)",
+      paddingBottom: "env(safe-area-inset-bottom)",
+    }}
+    role="status"
+    aria-live="polite"
+    aria-label="Loading"
+  >
+    <div className="relative flex flex-col items-center gap-5">
+      {/* Reserve space — prevents layout shift */}
+      <div className="relative w-28 h-28 flex items-center justify-center">
+        {/* Soft gold halo */}
+        <div
+          className="absolute inset-0 rounded-full bg-primary/25 blur-2xl animate-pulse"
+          aria-hidden
+        />
+        {/* Spinning gold ring */}
+        <div
+          className="absolute inset-0 rounded-full border-2 border-primary/30 border-t-primary animate-spin"
+          aria-hidden
+        />
+        {/* Official logo — gentle breathing animation, no layout shift */}
+        <img
+          src={logo}
+          alt=""
+          width={88}
+          height={88}
+          className="relative w-22 h-22 object-contain animate-logo-breathe"
+          style={{
+            width: 88,
+            height: 88,
+            filter: "drop-shadow(0 6px 16px hsl(43 80% 45% / 0.35))",
+          }}
+        />
       </div>
-      <div className="flex flex-col items-center gap-1">
-        <span className="font-serif text-base font-semibold tracking-wide bg-gradient-to-r from-amber-700 via-amber-500 to-amber-700 bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer">
-          Preparing your experience
-        </span>
-        <span className="text-xs text-muted-foreground">Just a moment…</span>
-      </div>
+      <span className="text-xs font-medium tracking-wide text-muted-foreground">
+        Loading…
+      </span>
     </div>
   </div>
 );
 
 export const LoadingCard = () => (
-  <div className="flex items-center justify-center p-10">
-    <div className="relative">
-      <div className="absolute inset-0 rounded-full bg-amber-400/30 blur-xl animate-pulse" />
-      <div className="relative h-10 w-10 rounded-full border-2 border-amber-300/50 border-t-amber-600 animate-spin" />
+  <div
+    className="flex items-center justify-center p-10"
+    role="status"
+    aria-label="Loading"
+  >
+    <div className="relative w-16 h-16 flex items-center justify-center">
+      <div
+        className="absolute inset-0 rounded-full bg-primary/20 blur-xl animate-pulse"
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 rounded-full border-2 border-primary/30 border-t-primary animate-spin"
+        aria-hidden
+      />
+      <img
+        src={logo}
+        alt=""
+        width={40}
+        height={40}
+        className="relative object-contain animate-logo-breathe"
+        style={{ width: 40, height: 40 }}
+      />
     </div>
   </div>
 );
