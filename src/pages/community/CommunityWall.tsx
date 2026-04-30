@@ -16,9 +16,23 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { SEO } from "@/components/seo/SEO";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, X, Globe, BookOpen, Trash2, Shield, GraduationCap, Sparkles, Lightbulb, FileText } from "lucide-react";
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, X, Globe, BookOpen, Trash2, Shield, GraduationCap, Sparkles, Lightbulb, FileText, AtSign, BookCheck, ListChecks, Brain } from "lucide-react";
 import { useMyCourses } from "@/hooks/useMyCourses";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+
+type AIMode = "tips" | "summary" | "cbt_tips" | "concept" | "likely_questions";
+
+const AI_MODES: { value: AIMode; label: string; icon: any; desc: string }[] = [
+  { value: "tips", label: "Study tips", icon: Lightbulb, desc: "Actionable study advice" },
+  { value: "cbt_tips", label: "CBT exam tips", icon: BookCheck, desc: "Time, traps, recall tricks" },
+  { value: "summary", label: "Concept summary", icon: FileText, desc: "Tight 2-3 sentence summary" },
+  { value: "concept", label: "Concept explainer", icon: Brain, desc: "Explain core ideas simply" },
+  { value: "likely_questions", label: "Likely questions", icon: ListChecks, desc: "5 exam-style questions" },
+];
+
+const AI_PREF_KEY = "community-ai-mode";
 
 interface Post {
   id: string;
@@ -73,9 +87,20 @@ const CommunityWall = () => {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, Comment[]>>({});
 
   // Ask AI per post
-  const [aiByPost, setAiByPost] = useState<Record<string, { loading: boolean; mode: "tips" | "summary" | null; content: string | null }>>({});
+  const [aiByPost, setAiByPost] = useState<Record<string, { loading: boolean; mode: AIMode | null; content: string | null }>>({});
+  const [aiMode, setAiMode] = useState<AIMode>(() => {
+    const saved = (typeof localStorage !== "undefined" && localStorage.getItem(AI_PREF_KEY)) as AIMode | null;
+    return (saved && AI_MODES.some(m => m.value === saved)) ? saved : "tips";
+  });
+  useEffect(() => {
+    try { localStorage.setItem(AI_PREF_KEY, aiMode); } catch {}
+  }, [aiMode]);
 
-  const askAI = async (post: Post, mode: "tips" | "summary") => {
+  // Tutor mention picker
+  const [tutorPickerOpen, setTutorPickerOpen] = useState(false);
+  const [tutorList, setTutorList] = useState<{ id: string; full_name: string | null; tutor_code: string | null }[]>([]);
+
+  const askAI = async (post: Post, mode: AIMode) => {
     if (!post.content?.trim()) { toast.error("This post has no text to analyze"); return; }
     setAiByPost(prev => ({ ...prev, [post.id]: { loading: true, mode, content: null } }));
     try {
