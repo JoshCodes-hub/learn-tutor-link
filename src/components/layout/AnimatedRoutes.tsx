@@ -55,6 +55,8 @@ const WeakAreaDrill = lazy(() => import("@/pages/student/WeakAreaDrill"));
 const MasteryBreakdown = lazy(() => import("@/pages/student/MasteryBreakdown"));
 const OfflinePractice = lazy(() => import("@/pages/student/OfflinePractice"));
 const OfflineRunner = lazy(() => import("@/pages/student/OfflineRunner"));
+const AudioLearning = lazy(() => import("@/pages/student/AudioLearning"));
+const TutorQuestionCards = lazy(() => import("@/pages/tutor/TutorQuestionCards"));
 const TutorDashboard = lazy(() => import("@/pages/tutor/TutorDashboard"));
 const TutorProfile = lazy(() => import("@/pages/tutor/TutorProfile"));
 const BrowseTutors = lazy(() => import("@/pages/tutor/BrowseTutors"));
@@ -277,6 +279,8 @@ export const AnimatedRoutes = () => {
           <Route path="/student/mastery" element={<PageTransition><MasteryBreakdown /></PageTransition>} />
           <Route path="/student/offline" element={<PageTransition><OfflinePractice /></PageTransition>} />
           <Route path="/student/offline/:setId" element={<PageTransition><OfflineRunner /></PageTransition>} />
+          <Route path="/audio-learning" element={<PageTransition><AudioLearning /></PageTransition>} />
+          <Route path="/tutor/question-cards" element={<PageTransition><TutorQuestionCards /></PageTransition>} />
           <Route path="/study-hub" element={<PageTransition><StudyHub /></PageTransition>} />
           <Route path="/study-hub/:courseId" element={<PageTransition><StudyHubCourse /></PageTransition>} />
           <Route path="/pq-intelligence/:courseId" element={<PageTransition><PQIntelligence /></PageTransition>} />
