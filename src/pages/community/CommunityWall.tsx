@@ -16,8 +16,9 @@ import {
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { SEO } from "@/components/seo/SEO";
 import { toast } from "sonner";
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, X, Globe, BookOpen, Trash2, Shield, GraduationCap } from "lucide-react";
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, X, Globe, BookOpen, Trash2, Shield, GraduationCap, Sparkles, Lightbulb, FileText } from "lucide-react";
 import { useMyCourses } from "@/hooks/useMyCourses";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Post {
   id: string;
