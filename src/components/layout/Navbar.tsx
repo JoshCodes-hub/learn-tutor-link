@@ -5,6 +5,7 @@ import { Menu, X, GraduationCap, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import TutorApplicationDialog from "@/components/landing/TutorApplicationDialog";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import logo from "@/assets/logo.png";
 
 const Navbar = () => {
