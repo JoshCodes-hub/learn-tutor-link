@@ -10,6 +10,7 @@ import {
   Sparkles,
   Globe,
   ChevronRight,
+  Headphones,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import appIcon from "@/assets/app-icon.png";
@@ -131,6 +132,12 @@ const MobileWelcome = () => {
                 desc="Practice unlimited questions with instant feedback."
               />
               <FeatureTile
+                icon={Headphones}
+                title="Audio Learning"
+                desc="Upload notes, listen anywhere in clear English."
+                accent
+              />
+              <FeatureTile
                 icon={PencilLine}
                 title="Theory Writing"
                 desc="Write, get AI feedback and improve faster."
@@ -145,6 +152,40 @@ const MobileWelcome = () => {
                 title="Smart Notes"
                 desc="Access, upload and organize study materials."
               />
+              <FeatureTile
+                icon={Sparkles}
+                title="Question Cards"
+                desc="Tutors craft branded card sets, students study them."
+              />
+            </div>
+          </SectionCard>
+
+          {/* Ambassadors */}
+          <SectionCard title="Our Ambassadors" delay={0.15}>
+            <div className="flex gap-3 overflow-x-auto -mx-1 px-1 pb-1 snap-x">
+              {[
+                { name: "Adaeze O.", role: "Computer Science · 400L", initials: "AO", grad: "from-amber-400 to-amber-600" },
+                { name: "Tunde A.", role: "Mech. Eng. · 500L", initials: "TA", grad: "from-rose-400 to-amber-500" },
+                { name: "Chiamaka E.", role: "Biochemistry · 300L", initials: "CE", grad: "from-emerald-400 to-amber-500" },
+                { name: "Ibrahim Y.", role: "Civil Eng. · 400L", initials: "IY", grad: "from-violet-400 to-amber-500" },
+              ].map((a) => (
+                <div
+                  key={a.name}
+                  className="snap-start shrink-0 w-32 rounded-2xl border border-border/60 bg-background/40 p-2.5 text-center"
+                >
+                  <div
+                    className={`w-14 h-14 mx-auto rounded-full bg-gradient-to-br ${a.grad} text-white font-bold text-sm flex items-center justify-center mb-1.5 shadow-md`}
+                  >
+                    {a.initials}
+                  </div>
+                  <p className="font-semibold text-[11px] text-foreground truncate">{a.name}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{a.role}</p>
+                  <p className="mt-1 inline-flex items-center gap-0.5 text-[9px] font-semibold text-primary">
+                    <Star className="w-2.5 h-2.5 fill-primary text-primary" />
+                    Ambassador
+                  </p>
+                </div>
+              ))}
             </div>
           </SectionCard>
 
@@ -258,12 +299,21 @@ const FeatureTile = ({
   icon: Icon,
   title,
   desc,
+  accent,
 }: {
   icon: any;
   title: string;
   desc: string;
+  accent?: boolean;
 }) => (
-  <div className="rounded-xl border border-border/60 p-3 hover:border-primary/40 hover:shadow-md transition-all bg-background/40">
+  <div
+    className={
+      "rounded-xl border p-3 hover:shadow-md transition-all " +
+      (accent
+        ? "border-primary/50 bg-primary/5 hover:border-primary"
+        : "border-border/60 bg-background/40 hover:border-primary/40")
+    }
+  >
     <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-2">
       <Icon className="w-4.5 h-4.5 text-primary" />
     </div>

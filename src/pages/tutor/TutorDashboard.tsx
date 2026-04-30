@@ -339,6 +339,7 @@ const TutorDashboard = () => {
           role="tutor"
           fullName={profile?.full_name}
           avatarUrl={profile?.avatar_url}
+          coverUrl={(profile as any)?.cover_photo_url}
           subtitle="Curate your courses, craft world-class quizzes, and watch your students rise."
           actions={
             <Button

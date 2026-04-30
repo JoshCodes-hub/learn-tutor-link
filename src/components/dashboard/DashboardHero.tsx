@@ -38,6 +38,8 @@ interface DashboardHeroProps {
   role: Role;
   fullName?: string | null;
   avatarUrl?: string | null;
+  /** LinkedIn-style cover/banner image rendered behind the avatar. */
+  coverUrl?: string | null;
   subtitle?: ReactNode;
   /** Optional right-side slot for actions (buttons) */
   actions?: ReactNode;
@@ -73,6 +75,7 @@ export const DashboardHero = ({
   role,
   fullName,
   avatarUrl,
+  coverUrl,
   subtitle,
   actions,
   footer,
@@ -99,6 +102,21 @@ export const DashboardHero = ({
       {/* Decorative gold orbs */}
       <div className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-gradient-to-br from-amber-300/40 via-amber-400/20 to-transparent blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-gradient-to-tr from-amber-200/30 via-yellow-200/10 to-transparent blur-3xl" />
+      {/* LinkedIn-style cover band (subtle, behind everything) */}
+      {coverUrl && (
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-28 md:h-36 overflow-hidden"
+          aria-hidden
+        >
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${coverUrl})` }}
+          />
+          {/* Soft gold/white wash so foreground text stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/70 to-white" />
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-50/30 via-transparent to-amber-50/30" />
+        </div>
+      )}
       {/* Faint gold grid */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
