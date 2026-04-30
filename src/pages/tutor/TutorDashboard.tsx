@@ -340,14 +340,30 @@ const TutorDashboard = () => {
           fullName={profile?.full_name}
           avatarUrl={profile?.avatar_url}
           coverUrl={(profile as any)?.cover_photo_url}
-          subtitle="Curate your courses, craft world-class quizzes, and watch your students rise."
+          institution="Federal University of Technology, Akure (FUTA)"
+          meta={
+            [
+              (profile as any)?.department,
+              (profile as any)?.tutor_code,
+            ]
+              .filter(Boolean)
+              .join(" • ") || "Tutor on OverraPrep"
+          }
+          contact={{
+            email: user?.email,
+            phone: (profile as any)?.phone,
+            location: (profile as any)?.state_of_origin || null,
+            joined: (profile as any)?.created_at
+              ? new Date((profile as any).created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
+              : null,
+          }}
           actions={
             <Button
-              size="lg"
+              size="sm"
               onClick={() => setShowUnifiedQuizCreator(true)}
-              className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white shadow-lg shadow-amber-500/25"
+              className="bg-white text-amber-700 hover:bg-amber-50 shadow-md font-semibold rounded-full px-4 sm:px-5"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-1.5" />
               New Quiz
             </Button>
           }

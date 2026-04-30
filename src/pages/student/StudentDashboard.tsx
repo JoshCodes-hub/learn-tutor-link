@@ -772,15 +772,25 @@ const StudentDashboard = () => {
           fullName={profile?.full_name}
           avatarUrl={(profile as any)?.avatar_url || (profile as any)?.profile_image_url}
           coverUrl={(profile as any)?.cover_photo_url}
-          subtitle={
-            <>
-              {getReadinessLabel()} — let's keep building momentum.{" "}
-              <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground/80 ml-1">
-                {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
-              </span>
-            </>
+          institution="Federal University of Technology, Akure (FUTA)"
+          meta={
+            [
+              (profile as any)?.department,
+              (profile as any)?.level ? `Level ${(profile as any).level}` : null,
+            ]
+              .filter(Boolean)
+              .join(" • ") || undefined
           }
-          actions={<LastUpdatedBadge timestamp={lastUpdated} />}
+          contact={{
+            email: user?.email,
+            phone: (profile as any)?.phone,
+            location: (profile as any)?.state_of_origin
+              ? `${(profile as any).state_of_origin}${(profile as any).state_of_origin?.toLowerCase().includes("state") ? "" : ", Nigeria"}`
+              : null,
+            joined: (profile as any)?.created_at
+              ? new Date((profile as any).created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
+              : null,
+          }}
           className="mb-6"
         />
 
