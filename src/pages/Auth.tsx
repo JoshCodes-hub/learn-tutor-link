@@ -27,12 +27,19 @@ const signInSchema = z.object({
 });
 
 const signUpSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters").max(100, "Full name is too long"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().trim().min(2, "Full name must be at least 2 characters").max(100, "Full name is too long"),
+  email: z.string().trim().email("Please enter a valid email address").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters").max(72),
   confirmPassword: z.string(),
+  academicPath: z.enum(["secondary", "jamb", "university"], { required_error: "Select your academic path" }),
+  level: z.string().trim().min(1, "Level is required").max(40),
+  department: z.string().trim().min(2, "Department is required").max(120),
+  school: z.string().trim().min(2, "School is required").max(120),
+  phone: z.string().trim().min(7, "Enter a valid phone number").max(20),
+  matricNo: z.string().trim().min(2, "Matric number is required").max(40),
+  state: z.string().trim().min(2, "Select state of origin").max(60),
   referralCode: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
