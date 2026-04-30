@@ -43,7 +43,7 @@ const Index = () => {
         keywords="FUTA, CBT, exam preparation, past questions, AI tutoring"
         url="https://overraprepaifuta.vercel.app/website"
         structuredData={homepageStructuredData}
-        noindex
+        noindex={false}
       />
       <OnboardingTour />
       <div className="min-h-screen">
