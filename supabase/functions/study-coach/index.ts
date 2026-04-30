@@ -38,7 +38,7 @@ serve(async (req) => {
 
     const matList = (materials ?? [])
       .slice(0, 30)
-      .map((m, i) => `${i + 1}. ${m.title}${m.description ? ` — ${m.description}` : ""}${m.file_type ? ` [${m.file_type}]` : ""}`)
+      .map((m, i) => `${i + 1}. ${m.title}${m.description ? ` — ${m.description}` : ""}${m.file_type ? ` [${m.file_type}]` : ""}${m.tutor_name ? ` (by Tutor: ${m.tutor_name})` : ""}`)
       .join("\n");
 
     const courseLine = course?.code || course?.name
