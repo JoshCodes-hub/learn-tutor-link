@@ -14,7 +14,9 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isLoading, hasRole } = useAuth();
+  const { user, profile, isLoading, hasRole } = useAuth();
+  const initials = (profile?.full_name || user?.email || "U").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+  const avatar = (profile as any)?.avatar_url || (profile as any)?.profile_image_url || null;
 
   useEffect(() => {
     const handleScroll = () => {
