@@ -382,11 +382,39 @@ const CommunityWall = () => {
                     </button>
                   </div>
                 )}
-                <div className="flex items-center justify-between">
-                  <Button variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
-                    <ImageIcon className="w-4 h-4 mr-1" /> Image
-                  </Button>
-                  <input type="file" ref={fileInput} accept="image/*" className="hidden" onChange={onPickImage} />
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => fileInput.current?.click()}>
+                      <ImageIcon className="w-4 h-4 mr-1" /> Image
+                    </Button>
+                    <input type="file" ref={fileInput} accept="image/*" className="hidden" onChange={onPickImage} />
+                    <Popover open={tutorPickerOpen} onOpenChange={(o) => { setTutorPickerOpen(o); if (o) loadTutors(); }}>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="sm" title="Mention a tutor">
+                          <AtSign className="w-4 h-4 mr-1" /> Tag tutor
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search tutors..." />
+                          <CommandList>
+                            <CommandEmpty>No tutors found</CommandEmpty>
+                            <CommandGroup>
+                              {tutorList.map(t => (
+                                <CommandItem key={t.id} value={`${t.full_name || ""} ${t.tutor_code}`} onSelect={() => insertMention(t.tutor_code!)}>
+                                  <GraduationCap className="w-3.5 h-3.5 mr-2 text-primary" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm truncate">{t.full_name || "Tutor"}</div>
+                                    <div className="text-xs text-muted-foreground">@{t.tutor_code}</div>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <Button size="sm" disabled={posting || (!content.trim() && !imageFile)} onClick={submitPost}>
                     {posting ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                     Post
