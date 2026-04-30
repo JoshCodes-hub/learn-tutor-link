@@ -134,40 +134,38 @@ const HeroSection = () => {
             AI-Powered Excellence
           </motion.p>
 
-          {/* Headline with synced highlight word */}
+          {/* Headline — bold, modern, no italic display swap */}
           <motion.h1
-            className="font-display text-[2.5rem] leading-[1.02] sm:text-5xl md:text-6xl lg:text-[5.25rem] font-bold text-white tracking-tight"
+            className="text-[2.5rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-[4.75rem] font-bold text-white tracking-tight"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, duration: 0.55 }}
           >
-            Learn.{" "}
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={slide.highlight}
-                initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -14, filter: "blur(6px)" }}
-                transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
-                className="inline-block text-gradient-primary italic font-display"
-              >
-                {slide.highlight}
-              </motion.span>
-            </AnimatePresence>
+            Prepare Smarter.
             <br />
-            Succeed.
+            <span className="text-gradient-primary">Perform Better.</span>
           </motion.h1>
 
-          {/* Synced sub-line */}
-          <div className="h-12 sm:h-10 max-w-xl">
+          {/* Static, clear subtext */}
+          <motion.p
+            className="text-white/80 text-base sm:text-lg leading-relaxed font-light max-w-xl"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.55 }}
+          >
+            AI-powered exam preparation system for university students.
+          </motion.p>
+
+          {/* Rotating context line (kept subtle, no big highlight word) */}
+          <div className="h-6 max-w-xl">
             <AnimatePresence mode="wait">
               <motion.p
                 key={slide.sub}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.55 }}
-                className="text-white/80 text-sm sm:text-base leading-relaxed font-light"
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.5 }}
+                className="text-white/55 text-xs sm:text-sm tracking-wide"
               >
                 {slide.sub}
               </motion.p>
