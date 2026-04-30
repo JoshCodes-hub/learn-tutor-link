@@ -474,11 +474,32 @@ const TutorDashboard = () => {
               tone: "rose",
             },
             {
+              icon: FileText,
+              label: "Lecture Notes",
+              description: "Upload PDFs, slides & materials",
+              to: "/lecture-notes",
+              tone: "emerald",
+            },
+            {
               icon: Users,
-              label: "View Your Students",
-              description: "See who's practicing your content",
-              to: user?.id ? `/tutor/${user.id}` : "/tutors",
+              label: "Inbox",
+              description: "Chat with your students",
+              to: "/messages",
+              tone: "sapphire",
+            },
+            {
+              icon: Sparkles,
+              label: "Announcements",
+              description: "Broadcast updates to students",
+              to: "/announcements",
               tone: "violet",
+            },
+            {
+              icon: User,
+              label: "Q&A Board",
+              description: "Answer student questions",
+              to: "/qa",
+              tone: "slate",
             },
           ]}
         />

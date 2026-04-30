@@ -83,6 +83,11 @@ const MyReportCard = lazy(() => import("@/pages/student/MyReportCard"));
 const Terms = lazy(() => import("@/pages/legal/Terms"));
 const Privacy = lazy(() => import("@/pages/legal/Privacy"));
 const PrivacySettings = lazy(() => import("@/pages/settings/PrivacySettings"));
+const LectureNotes = lazy(() => import("@/pages/tutor/LectureNotes"));
+const Inbox = lazy(() => import("@/pages/messages/Inbox"));
+const Announcements = lazy(() => import("@/pages/announcements/Announcements"));
+const QABoard = lazy(() => import("@/pages/qa/QABoard"));
+const QAQuestion = lazy(() => import("@/pages/qa/QAQuestion"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -310,6 +315,11 @@ export const AnimatedRoutes = () => {
           <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
           <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
           <Route path="/settings/privacy" element={<PageTransition><PrivacySettings /></PageTransition>} />
+          <Route path="/lecture-notes" element={<PageTransition><LectureNotes /></PageTransition>} />
+          <Route path="/messages" element={<PageTransition><Inbox /></PageTransition>} />
+          <Route path="/announcements" element={<PageTransition><Announcements /></PageTransition>} />
+          <Route path="/qa" element={<PageTransition><QABoard /></PageTransition>} />
+          <Route path="/qa/:id" element={<PageTransition><QAQuestion /></PageTransition>} />
           <Route path="/exam-tomorrow" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route path="/can-i-pass" element={<PageTransition><ViralMode /></PageTransition>} />
           <Route path="/two-hours-left" element={<PageTransition><ViralMode /></PageTransition>} />
