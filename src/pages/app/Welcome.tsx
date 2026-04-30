@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import SplashScreen from "@/components/SplashScreen";
-import WelcomeCarousel from "@/components/onboarding/WelcomeCarousel";
+import MobileWelcome from "@/pages/app/MobileWelcome";
 import { SEO } from "@/components/seo/SEO";
 
 /**
@@ -26,15 +26,6 @@ const Welcome = () => {
     }
   });
 
-  // First-visit-only carousel
-  const [showCarousel, setShowCarousel] = useState(() => {
-    try {
-      return localStorage.getItem("welcomeSeen") !== "1";
-    } catch {
-      return true;
-    }
-  });
-
   // Redirect signed-in users to their dashboard
   useEffect(() => {
     if (isLoading || !user) return;
@@ -44,13 +35,6 @@ const Welcome = () => {
     else if (primaryRole === "student") navigate("/student/dashboard", { replace: true });
   }, [user, primaryRole, isLoading, navigate]);
 
-  // After splash, go straight to the landing page (Index)
-  useEffect(() => {
-    if (showSplash) return;
-    if (isLoading || user) return;
-    navigate("/website", { replace: true });
-  }, [showSplash, isLoading, user, navigate]);
-
   const handleSplashDone = () => {
     try {
       localStorage.setItem("lastSplashShown", Date.now().toString());
@@ -58,23 +42,13 @@ const Welcome = () => {
     setShowSplash(false);
   };
 
-  const handleCarouselDone = () => {
-    try {
-      localStorage.setItem("welcomeSeen", "1");
-    } catch {}
-    setShowCarousel(false);
-    navigate("/website", { replace: true });
-  };
-
   return (
     <>
       <SEO title="Welcome" description="OverraPrep AI — the smart learning and school management app." noindex url="/" />
       {showSplash ? (
         <SplashScreen onComplete={handleSplashDone} />
-      ) : showCarousel ? (
-        <WelcomeCarousel onFinish={handleCarouselDone} />
       ) : (
-        <div className="min-h-screen bg-background" />
+        <MobileWelcome />
       )}
     </>
   );
