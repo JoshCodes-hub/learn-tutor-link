@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import PageTransition from "./PageTransition";
 import { AcademicPathGate } from "@/components/auth/AcademicPathGate";
+import { TutorPendingGate } from "@/components/auth/TutorPendingGate";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { FEATURES } from "@/config/features";
 import ComingSoon from "@/pages/ComingSoon";
