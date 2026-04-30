@@ -4,37 +4,17 @@ import { motion } from "framer-motion";
 import { UserCog, ArrowRight, CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { getProfileCompleteness } from "@/lib/profileCompleteness";
 
 interface CompleteProfileCardProps {
   profile: any;
   onDismiss?: () => void;
 }
 
-const REQUIRED_FIELDS: { key: string; label: string }[] = [
-  { key: "academic_path", label: "Academic path" },
-  { key: "level", label: "Level" },
-  { key: "department", label: "Department" },
-  { key: "phone", label: "Phone number" },
-  { key: "matric_no", label: "Matric number" },
-  { key: "state_of_origin", label: "State of origin" },
-  { key: "avatar_url", label: "Profile picture" },
-];
-
 export const CompleteProfileCard = ({ profile, onDismiss }: CompleteProfileCardProps) => {
   const navigate = useNavigate();
 
-  const { missing, percent } = useMemo(() => {
-    if (!profile) return { missing: REQUIRED_FIELDS, percent: 0 };
-    const filled = REQUIRED_FIELDS.filter((f) => {
-      const v = (profile as any)?.[f.key] ?? (f.key === "avatar_url" ? (profile as any)?.profile_image_url : null);
-      return v !== null && v !== undefined && String(v).trim() !== "";
-    });
-    const missing = REQUIRED_FIELDS.filter((f) => !filled.includes(f));
-    return {
-      missing,
-      percent: Math.round((filled.length / REQUIRED_FIELDS.length) * 100),
-    };
-  }, [profile]);
+  const { missing, percent } = useMemo(() => getProfileCompleteness(profile), [profile]);
 
   if (missing.length === 0) return null;
 

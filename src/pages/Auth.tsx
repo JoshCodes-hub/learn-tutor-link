@@ -62,9 +62,28 @@ const Auth = () => {
   const redirect = searchParams.get("redirect") || "";
   const [isSignUp, setIsSignUp] = useState(modeFromUrl === "signup" || !!referralCodeFromUrl || !!intent);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
+
+  const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ variant: "destructive", title: "Invalid file", description: "Please select an image." });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "File too large", description: "Profile photo must be under 5MB." });
+      return;
+    }
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setAvatarPreview(String(ev.target?.result || ""));
+    reader.readAsDataURL(file);
+  };
 
   const postAuthDestination = (justSignedUp = false) => {
     if (redirect) return redirect;
@@ -152,6 +171,25 @@ const Auth = () => {
           const meta = {
             school: data.school,
           };
+
+          // Upload avatar if user picked one
+          let uploadedAvatarUrl: string | null = null;
+          if (avatarFile) {
+            try {
+              const ext = (avatarFile.name.split(".").pop() || "jpg").toLowerCase();
+              const path = `${newUser.id}/avatar.${ext}`;
+              const { error: upErr } = await supabase.storage
+                .from("avatars")
+                .upload(path, avatarFile, { upsert: true, contentType: avatarFile.type });
+              if (!upErr) {
+                const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+                uploadedAvatarUrl = `${pub.publicUrl}?v=${Date.now()}`;
+              }
+            } catch (upErr) {
+              console.warn("Avatar upload failed:", upErr);
+            }
+          }
+
           await supabase
             .from("profiles")
             .update({
@@ -162,6 +200,9 @@ const Auth = () => {
               matric_no: data.matricNo,
               state_of_origin: data.state,
               academic_metadata: meta,
+              ...(uploadedAvatarUrl
+                ? { avatar_url: uploadedAvatarUrl, profile_image_url: uploadedAvatarUrl }
+                : {}),
             })
             .eq("id", newUser.id);
         }
@@ -311,6 +352,32 @@ const Auth = () => {
           ) : (
             /* Sign Up Form */
             <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-5">
+              {/* Avatar picker */}
+              <div className="flex flex-col items-center gap-2">
+                <label
+                  htmlFor="signup-avatar"
+                  className="relative h-20 w-20 rounded-full border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary transition-all flex items-center justify-center cursor-pointer overflow-hidden group"
+                  aria-label="Upload profile picture"
+                >
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Profile preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors" />
+                  )}
+                  <span className="absolute bottom-0 inset-x-0 bg-primary/85 text-[10px] font-semibold text-primary-foreground py-0.5 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    {avatarPreview ? "Change" : "Upload"}
+                  </span>
+                  <input
+                    id="signup-avatar"
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleAvatarPick}
+                  />
+                </label>
+                <p className="text-[11px] text-muted-foreground">Add a profile photo (optional)</p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="signup-name" className="text-foreground font-medium">
                   Full Name
