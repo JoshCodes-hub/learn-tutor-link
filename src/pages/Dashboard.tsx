@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { Button } from "@/components/ui/button";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
+import TutorApplicationDialog from "@/components/landing/TutorApplicationDialog";
 import { SEO } from "@/components/seo/SEO";
 import { 
   LogOut, 
@@ -25,6 +26,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user, profile, primaryRole, isLoading, signOut, hasRole } = useAuth();
   const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
+  const [showTutorDialog, setShowTutorDialog] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -231,6 +233,8 @@ const Dashboard = () => {
         userRole={primaryRole as "student" | "tutor" | "admin"}
         userName={profile?.full_name || undefined}
       />
+
+      <TutorApplicationDialog open={showTutorDialog} onOpenChange={setShowTutorDialog} />
     </div>
     </>
   );
