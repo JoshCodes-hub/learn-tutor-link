@@ -86,7 +86,7 @@ export default function QAQuestion() {
   return (
     <div className="min-h-screen bg-[#FAFAF7]">
       <SEO title={q.title} description={q.body.slice(0, 160)} />
-      <DashboardNav />
+      <DashboardNav role={(hasRole?.("admin") ? "admin" : hasRole?.("tutor") ? "tutor" : "student")} />
       <main className="max-w-4xl mx-auto px-4 py-8">
         <Link to="/qa" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
           <ArrowLeft className="w-4 h-4 mr-1" /> Back to Q&A

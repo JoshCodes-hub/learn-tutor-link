@@ -85,7 +85,7 @@ export default function Inbox() {
   return (
     <div className="min-h-screen bg-[#FAFAF7]">
       <SEO title="Inbox · Messages" description="Chat with your tutors and students." />
-      <DashboardNav />
+      <DashboardNav role={(hasRole?.("admin") ? "admin" : hasRole?.("tutor") ? "tutor" : "student")} />
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Messages</h1>

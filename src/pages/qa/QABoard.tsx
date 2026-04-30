@@ -75,7 +75,7 @@ export default function QABoard() {
   return (
     <div className="min-h-screen bg-[#FAFAF7]">
       <SEO title="Q&A Board" description="Ask questions and get answers from tutors." />
-      <DashboardNav />
+      <DashboardNav role={(hasRole?.("admin") ? "admin" : hasRole?.("tutor") ? "tutor" : "student")} />
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
           <div>

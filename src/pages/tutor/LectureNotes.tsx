@@ -110,7 +110,7 @@ export default function LectureNotes() {
   return (
     <div className="min-h-screen bg-[#FAFAF7]">
       <SEO title="Lecture Notes" description="Tutor-uploaded study materials and lecture notes." />
-      <DashboardNav />
+      <DashboardNav role={(hasRole?.("admin") ? "admin" : hasRole?.("tutor") ? "tutor" : "student")} />
       <main className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-end justify-between mb-6 gap-3 flex-wrap">
           <div>
