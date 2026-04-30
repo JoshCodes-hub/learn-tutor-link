@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { SEO } from "@/components/seo/SEO";
+import { useMyCourses } from "@/hooks/useMyCourses";
 import { BookOpen, FileText, Search, Sparkles, TrendingUp } from "lucide-react";
 
 interface Course {
