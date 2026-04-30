@@ -446,7 +446,7 @@ const BrowseTutors = () => {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          navigate(`/messages/${tutor.id}`);
+                          navigate(`/messages?peer=${tutor.id}`);
                         }}
                       >
                         <MessageSquare className="w-4 h-4 mr-1" /> Message
