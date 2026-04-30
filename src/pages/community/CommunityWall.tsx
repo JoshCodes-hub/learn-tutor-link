@@ -463,7 +463,15 @@ const CommunityWall = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {p.content && <p className="whitespace-pre-wrap text-sm">{p.content}</p>}
+                      {p.content && (
+                        <p className="whitespace-pre-wrap text-sm">
+                          {p.content.split(/(@TUT-[A-Z0-9]{4,})/gi).map((part, i) =>
+                            /^@TUT-[A-Z0-9]{4,}$/i.test(part)
+                              ? <span key={i} className="inline-flex items-center gap-0.5 rounded-md bg-primary/10 text-primary px-1.5 py-0.5 text-xs font-medium align-baseline"><AtSign className="w-3 h-3" />{part.slice(1).toUpperCase()}</span>
+                              : <span key={i}>{part}</span>
+                          )}
+                        </p>
+                      )}
                       {p.image_url && <img src={p.image_url} alt="" className="rounded-lg border max-h-[480px] object-cover w-full" />}
                       <div className="flex items-center gap-1 pt-1 flex-wrap">
                         <Button variant="ghost" size="sm" onClick={() => toggleLike(p)} className="gap-1.5">
