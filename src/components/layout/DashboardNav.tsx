@@ -18,6 +18,8 @@ import {
   Compass,
   MessageSquare,
   School,
+  Headphones,
+  Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -48,6 +50,7 @@ const linksByRole: Record<Role, NavLink[]> = {
     { to: "/survival-kits", label: "Survival Kits", icon: LifeBuoy, paths: ["university"] },
     { to: "/strategy", label: "Strategy", icon: Compass },
     { to: "/ai-tutor", label: "AI Tutor", icon: MessageSquare },
+    { to: "/audio-learning", label: "Audio Learning", icon: Headphones },
     { to: "/tutors", label: "Tutors", icon: GraduationCap },
     { to: "/community", label: "Community", icon: Users },
     { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
@@ -55,6 +58,7 @@ const linksByRole: Record<Role, NavLink[]> = {
   ],
   tutor: [
     { to: "/tutor/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/tutor/question-cards", label: "Question Cards", icon: ImageIcon },
     { to: "/study-hub", label: "Study Hub", icon: Library },
     { to: "/theory", label: "Theory Prep", icon: BookOpen },
     { to: "/survival-kits", label: "Survival Kits", icon: LifeBuoy },
