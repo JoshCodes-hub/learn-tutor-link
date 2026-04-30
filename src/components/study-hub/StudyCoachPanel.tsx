@@ -266,11 +266,32 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
               </p>
             </div>
           </div>
-          {messages.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={reset} className="text-xs">
-              <RefreshCcw className="h-3.5 w-3.5" /> New
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {hasAnyTutorMaterial && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <label className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-200/70 bg-white/70 hover:bg-amber-50 cursor-pointer text-[11px] font-medium text-amber-900">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                    <span className="hidden sm:inline">Verified only</span>
+                    <Switch
+                      checked={verifiedOnly}
+                      onCheckedChange={setVerifiedOnly}
+                      className="scale-75 data-[state=checked]:bg-emerald-500"
+                      aria-label="Prefer tutor-verified explanations"
+                    />
+                  </label>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">When on, the coach will prioritize tutor-authored materials and label tutor-sourced answers as verified.</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {messages.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={reset} className="text-xs">
+                <RefreshCcw className="h-3.5 w-3.5" /> New
+              </Button>
+            )}
+          </div>
         </div>
 
         <div ref={scrollRef} className="relative max-h-[440px] min-h-[260px] overflow-y-auto px-5 py-4 space-y-4">
