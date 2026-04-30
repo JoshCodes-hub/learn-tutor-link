@@ -871,6 +871,7 @@ export type Database = {
           file_url: string
           id: string
           is_published: boolean
+          thumbnail_url: string | null
           title: string
           tutor_id: string
           updated_at: string
@@ -887,6 +888,7 @@ export type Database = {
           file_url: string
           id?: string
           is_published?: boolean
+          thumbnail_url?: string | null
           title: string
           tutor_id: string
           updated_at?: string
@@ -903,6 +905,7 @@ export type Database = {
           file_url?: string
           id?: string
           is_published?: boolean
+          thumbnail_url?: string | null
           title?: string
           tutor_id?: string
           updated_at?: string
@@ -3281,6 +3284,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_lecture_note_download: {
+        Args: { p_note_id: string }
+        Returns: undefined
+      }
+      increment_lecture_note_view: {
+        Args: { p_note_id: string }
+        Returns: undefined
       }
       is_school_member: {
         Args: { _role?: string; _school_id: string }

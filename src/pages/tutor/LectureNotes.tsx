@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
@@ -11,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { FileText, Upload, Loader2, Trash2, ExternalLink, Eye, Download } from "lucide-react";
 import { toast } from "sonner";
+import FilePreview from "@/components/lecture/FilePreview";
 
 interface Note {
   id: string;
@@ -22,9 +22,12 @@ interface Note {
   file_size_bytes: number | null;
   view_count: number;
   download_count: number;
+  thumbnail_url: string | null;
   created_at: string;
   tutor_id: string;
 }
+
+type Step = "select" | "preview";
 
 export default function LectureNotes() {
   const { user, hasRole } = useAuth();
@@ -32,9 +35,11 @@ export default function LectureNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<Step>("select");
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [thumbBlob, setThumbBlob] = useState<Blob | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [filterMine, setFilterMine] = useState(false);
@@ -49,25 +54,45 @@ export default function LectureNotes() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    load();
-  }, [filterMine, user?.id]);
+  useEffect(() => { load(); }, [filterMine, user?.id]);
+
+  const resetForm = () => {
+    setTitle(""); setDesc(""); setFile(null); setThumbBlob(null); setStep("select");
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const onPickFile = (f: File | null) => {
+    setFile(f);
+    setThumbBlob(null);
+    if (f) setStep("preview");
+  };
 
   const upload = async () => {
     if (!user || !file || !title.trim()) return;
     if (file.size > 25 * 1024 * 1024) return toast.error("File too large (max 25MB)");
     setUploading(true);
+
     const ext = file.name.split(".").pop() || "bin";
-    const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const slug = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const path = `${user.id}/${slug}.${ext}`;
     const { error: upErr } = await supabase.storage.from("lecture-notes").upload(path, file, {
       contentType: file.type,
       upsert: false,
     });
-    if (upErr) {
-      setUploading(false);
-      return toast.error(upErr.message);
-    }
+    if (upErr) { setUploading(false); return toast.error(upErr.message); }
     const { data: pub } = supabase.storage.from("lecture-notes").getPublicUrl(path);
+
+    let thumbnail_url: string | null = null;
+    if (thumbBlob) {
+      const thumbPath = `${user.id}/${slug}-thumb.png`;
+      const { error: tErr } = await supabase.storage
+        .from("lecture-notes")
+        .upload(thumbPath, thumbBlob, { contentType: "image/png", upsert: false });
+      if (!tErr) {
+        thumbnail_url = supabase.storage.from("lecture-notes").getPublicUrl(thumbPath).data.publicUrl;
+      }
+    }
+
     const { error: insErr } = await supabase.from("lecture_notes").insert({
       tutor_id: user.id,
       title: title.trim(),
@@ -76,14 +101,12 @@ export default function LectureNotes() {
       file_path: path,
       file_type: file.type,
       file_size_bytes: file.size,
+      thumbnail_url,
     });
     setUploading(false);
     if (insErr) return toast.error(insErr.message);
     toast.success("Lecture note published");
-    setTitle("");
-    setDesc("");
-    setFile(null);
-    if (fileRef.current) fileRef.current.value = "";
+    resetForm();
     setOpen(false);
     load();
   };
@@ -98,7 +121,17 @@ export default function LectureNotes() {
   };
 
   const trackView = async (n: Note) => {
-    await supabase.from("lecture_notes").update({ view_count: n.view_count + 1 }).eq("id", n.id);
+    setNotes((prev) => prev.map((x) => x.id === n.id ? { ...x, view_count: x.view_count + 1 } : x));
+    await (supabase as any).rpc("increment_lecture_note_view", { p_note_id: n.id });
+  };
+
+  const handleDownload = async (n: Note, e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Optimistic UI bump
+    setNotes((prev) => prev.map((x) => x.id === n.id ? { ...x, download_count: x.download_count + 1 } : x));
+    // Fire-and-forget RPC; don't block the browser's download
+    (supabase as any).rpc("increment_lecture_note_download", { p_note_id: n.id })
+      .then(({ error }: any) => { if (error) console.error("download tracking failed", error); });
+    // Let the default <a download> behavior continue
   };
 
   const fmtSize = (b: number | null) => {
@@ -119,52 +152,76 @@ export default function LectureNotes() {
           </div>
           <div className="flex gap-2">
             {isTutor && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilterMine((v) => !v)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setFilterMine((v) => !v)}>
                 {filterMine ? "Show all" : "My notes"}
               </Button>
             )}
             {isTutor && (
-              <Dialog open={open} onOpenChange={setOpen}>
+              <Dialog
+                open={open}
+                onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}
+              >
                 <DialogTrigger asChild>
                   <Button className="bg-amber-500 hover:bg-amber-600 text-white">
                     <Upload className="w-4 h-4 mr-2" /> Upload note
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-lg">
                   <DialogHeader>
-                    <DialogTitle>Upload Lecture Note</DialogTitle>
+                    <DialogTitle>
+                      {step === "select" ? "Upload Lecture Note" : "Confirm before publishing"}
+                    </DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-3">
-                    <div>
-                      <Label>Title *</Label>
-                      <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} />
+
+                  {step === "select" && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label>Title *</Label>
+                        <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} />
+                      </div>
+                      <div>
+                        <Label>Description</Label>
+                        <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={1000} rows={3} />
+                      </div>
+                      <div>
+                        <Label>File (PDF, DOCX, PPTX, image — max 25MB)</Label>
+                        <Input
+                          ref={fileRef}
+                          type="file"
+                          accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,image/*"
+                          onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          You'll see a preview/thumbnail in the next step.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <Label>Description</Label>
-                      <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={1000} rows={3} />
+                  )}
+
+                  {step === "preview" && file && (
+                    <div className="space-y-3">
+                      <FilePreview file={file} onThumbnailReady={setThumbBlob} />
+                      <div className="text-xs text-muted-foreground">
+                        Title: <span className="font-medium text-foreground">{title || "(untitled)"}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-2">
+                        <Button variant="outline" onClick={() => { setStep("select"); setFile(null); setThumbBlob(null); if (fileRef.current) fileRef.current.value = ""; }}>
+                          Choose a different file
+                        </Button>
+                        <Button
+                          onClick={upload}
+                          disabled={uploading || !title.trim()}
+                          className="bg-amber-500 hover:bg-amber-600 text-white"
+                        >
+                          {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                          Publish
+                        </Button>
+                      </div>
+                      {!title.trim() && (
+                        <p className="text-xs text-destructive">Add a title in the previous step before publishing.</p>
+                      )}
                     </div>
-                    <div>
-                      <Label>File (PDF, DOCX, PPTX, image — max 25MB)</Label>
-                      <Input
-                        ref={fileRef}
-                        type="file"
-                        accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,image/*"
-                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                      />
-                    </div>
-                    <Button
-                      onClick={upload}
-                      disabled={uploading || !file || !title.trim()}
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-                    >
-                      {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                      Publish
-                    </Button>
-                  </div>
+                  )}
                 </DialogContent>
               </Dialog>
             )}
@@ -188,32 +245,37 @@ export default function LectureNotes() {
             {notes.map((n) => (
               <div key={n.id} className="border rounded-2xl bg-white p-5 hover:shadow-md transition">
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5" />
-                  </div>
+                  {n.thumbnail_url ? (
+                    <img
+                      src={n.thumbnail_url}
+                      alt=""
+                      className="h-16 w-12 rounded-md object-cover border bg-muted shrink-0"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="h-16 w-12 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold truncate">{n.title}</h3>
                     {n.description && <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{n.description}</p>}
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2 flex-wrap">
                       <span>{fmtSize(n.file_size_bytes)}</span>
                       <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {n.view_count}</span>
+                      <span className="flex items-center gap-1"><Download className="w-3 h-3" /> {n.download_count}</span>
                       <span>{new Date(n.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    onClick={() => trackView(n)}
-                  >
+                  <Button asChild size="sm" variant="outline" onClick={() => trackView(n)}>
                     <a href={n.file_url} target="_blank" rel="noreferrer">
                       <ExternalLink className="w-4 h-4 mr-1" /> Open
                     </a>
                   </Button>
                   <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-600 text-white">
-                    <a href={n.file_url} download>
+                    <a href={n.file_url} download onClick={(e) => handleDownload(n, e)}>
                       <Download className="w-4 h-4 mr-1" /> Download
                     </a>
                   </Button>

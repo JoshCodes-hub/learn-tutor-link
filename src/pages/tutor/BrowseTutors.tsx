@@ -31,6 +31,7 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 import { FollowTutorButton } from "@/components/tutor/FollowTutorButton";
 
@@ -61,6 +62,7 @@ const BrowseTutors = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedSpec, setSelectedSpec] = useState<string>(profile?.academic_path || "all");
   const [sortBy, setSortBy] = useState<string>("rating");
+  const [minRating, setMinRating] = useState<string>("0");
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -210,6 +212,11 @@ const BrowseTutors = () => {
       filtered = filtered.filter((t) => t.specialization === selectedSpec);
     }
 
+    const minR = Number(minRating);
+    if (minR > 0) {
+      filtered = filtered.filter((t) => t.averageRating >= minR);
+    }
+
     // Sort tutors
     switch (sortBy) {
       case "rating":
@@ -228,7 +235,7 @@ const BrowseTutors = () => {
 
     setFilteredTutors(filtered);
     setCurrentPage(1); // Reset to first page on filter change
-  }, [searchQuery, selectedDepartment, selectedSpec, sortBy, tutors]);
+  }, [searchQuery, selectedDepartment, selectedSpec, sortBy, minRating, tutors]);
 
   if (isLoading) {
     return (
@@ -327,6 +334,18 @@ const BrowseTutors = () => {
               <SelectItem value="name">Name (A-Z)</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={minRating} onValueChange={setMinRating}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <Star className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Min rating" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Any rating</SelectItem>
+              <SelectItem value="3">3.0+ stars</SelectItem>
+              <SelectItem value="4">4.0+ stars</SelectItem>
+              <SelectItem value="4.5">4.5+ stars</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Results Count */}
@@ -418,6 +437,23 @@ const BrowseTutors = () => {
                           </span>
                         </span>
                       )}
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-border flex items-center justify-between gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigate(`/messages?peer=${tutor.id}`);
+                        }}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1" /> Message
+                      </Button>
+                      <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                        View profile →
+                      </span>
                     </div>
                   </Link>
                 );
