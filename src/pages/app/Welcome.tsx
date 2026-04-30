@@ -44,12 +44,12 @@ const Welcome = () => {
     else if (primaryRole === "student") navigate("/student/dashboard", { replace: true });
   }, [user, primaryRole, isLoading, navigate]);
 
-  // When neither splash nor carousel is needed, send to /start
+  // After splash, go straight to the landing page (Index)
   useEffect(() => {
-    if (showSplash || showCarousel) return;
+    if (showSplash) return;
     if (isLoading || user) return;
-    navigate("/start", { replace: true });
-  }, [showSplash, showCarousel, isLoading, user, navigate]);
+    navigate("/website", { replace: true });
+  }, [showSplash, isLoading, user, navigate]);
 
   const handleSplashDone = () => {
     try {
@@ -63,7 +63,7 @@ const Welcome = () => {
       localStorage.setItem("welcomeSeen", "1");
     } catch {}
     setShowCarousel(false);
-    navigate("/start", { replace: true });
+    navigate("/website", { replace: true });
   };
 
   return (
