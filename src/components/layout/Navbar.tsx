@@ -209,10 +209,20 @@ const Navbar = () => {
                       <Button 
                         variant="hero" 
                         className="flex-1 justify-center" 
-                        onClick={() => navigate("/dashboard")}
+                        onClick={() => { setIsMenuOpen(false); navigate("/dashboard"); }}
                       >
                         Go to Dashboard
                       </Button>
+                      <button
+                        onClick={() => { setIsMenuOpen(false); navigate("/profile/edit"); }}
+                        aria-label="Edit profile"
+                        className="rounded-full ring-2 ring-primary/20"
+                      >
+                        <Avatar className="w-9 h-9">
+                          <AvatarImage src={avatar || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{initials}</AvatarFallback>
+                        </Avatar>
+                      </button>
                     </div>
                   ) : (
                     <>
