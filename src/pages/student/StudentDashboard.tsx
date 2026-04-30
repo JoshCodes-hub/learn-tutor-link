@@ -1153,6 +1153,51 @@ const StudentDashboard = () => {
             </div>
           )}
         </div>
+
+        {/* Slim wallet strip — moved out of focus zone */}
+        <div className="mt-10 mb-6 flex items-center justify-between gap-4 p-4 rounded-lg border border-border bg-card">
+          <div className="flex items-center gap-3 min-w-0">
+            <Wallet className="w-5 h-5 text-primary shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {wallet?.balance ?? 0} tokens available
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                Used to unlock premium quizzes & tutor packs
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setShowBuyTokens(true)} className="shrink-0">
+            <Coins className="w-4 h-4 mr-1.5" />
+            Top up
+          </Button>
+        </div>
+
+        {/* Community & rewards — collapsed by default to keep focus on study */}
+        <details className="group mb-8 rounded-lg border border-border bg-card overflow-hidden">
+          <summary className="flex items-center justify-between cursor-pointer list-none p-4 hover:bg-muted/40 transition-colors">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Community, teams & rewards</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="border-t border-border p-4 md:p-6 space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <ReadinessRing />
+              <SubjectCombinationTracker />
+              <Achievements />
+              <ReferralCard />
+              <TeamCard />
+              <FavoriteTutors />
+            </div>
+            <MyCommunities />
+            <div className="grid md:grid-cols-2 gap-5">
+              <TeamChallenges />
+              <TeamChat />
+            </div>
+          </div>
+        </details>
       </main>
 
       {/* Buy Tokens Dialog */}
