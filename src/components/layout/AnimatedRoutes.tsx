@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import PageTransition from "./PageTransition";
 import { AcademicPathGate } from "@/components/auth/AcademicPathGate";
+import { TutorPendingGate } from "@/components/auth/TutorPendingGate";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { FEATURES } from "@/config/features";
 import ComingSoon from "@/pages/ComingSoon";
@@ -89,8 +90,9 @@ export const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Suspense fallback={<LoadingSpinner />} key={location.pathname}>
-       <AcademicPathGate>
-        <Routes location={location}>
+       <TutorPendingGate>
+        <AcademicPathGate>
+         <Routes location={location}>
           <Route path="/" element={<PageTransition><Welcome /></PageTransition>} />
           <Route path="/start" element={<PageTransition><ChooseProduct /></PageTransition>} />
           <Route path="/start/persona" element={<PageTransition><ChoosePersona /></PageTransition>} />
@@ -320,7 +322,8 @@ export const AnimatedRoutes = () => {
             }
           />
         </Routes>
-       </AcademicPathGate>
+        </AcademicPathGate>
+       </TutorPendingGate>
       </Suspense>
     </AnimatePresence>
   );
