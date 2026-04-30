@@ -50,8 +50,7 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  const role = primaryRole as string | null;
-  if (isLoading || role !== "admin") {
+  if (isLoading || (primaryRole as string | null) !== "admin") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -61,6 +60,8 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const role = primaryRole as string | null;
 
   const getRoleIcon = () => {
     switch (role) {
