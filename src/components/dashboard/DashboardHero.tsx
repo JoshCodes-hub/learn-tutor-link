@@ -96,19 +96,21 @@ export const DashboardHero = ({
     >
       {/* === Gold cover band === */}
       <div className="relative h-40 sm:h-48 md:h-56 w-full overflow-hidden">
-        {/* Base gold gradient (always present for brand consistency) */}
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600" />
+        {/* Base gold gradient — slightly darker for AA contrast against white text */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700" />
         {/* User cover image overlay */}
         {coverUrl && (
           <div
             className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-90"
             style={{ backgroundImage: `url(${coverUrl})` }}
-            aria-hidden
+            role="img"
+            aria-label={`${displayName}'s cover photo`}
           />
         )}
         {/* Decorative flowing curves */}
         <svg
-          aria-hidden
+          aria-hidden="true"
+          focusable="false"
           className="pointer-events-none absolute inset-0 h-full w-full opacity-30"
           viewBox="0 0 800 200"
           preserveAspectRatio="none"
@@ -131,7 +133,12 @@ export const DashboardHero = ({
           />
         </svg>
         {/* Soft inner glow */}
-        <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/25 blur-3xl" />
+        <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/25 blur-3xl" aria-hidden="true" />
+        {/* Bottom-left scrim — boosts text contrast over busy cover photos */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/30 via-black/10 to-transparent"
+          aria-hidden="true"
+        />
 
         {/* Right-side action (Edit Profile / custom actions) */}
         <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10">
@@ -141,10 +148,10 @@ export const DashboardHero = ({
                 <Button
                   asChild
                   size="sm"
-                  className="bg-white text-amber-700 hover:bg-amber-50 shadow-md font-semibold rounded-full px-4 sm:px-5"
+                  className="bg-white text-amber-800 hover:bg-amber-50 shadow-md font-semibold rounded-full px-4 sm:px-5 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-amber-600"
                 >
-                  <Link to="/profile/edit">
-                    <Camera className="w-4 h-4 mr-1.5" />
+                  <Link to="/profile/edit" aria-label="Edit your profile">
+                    <Camera className="w-4 h-4 mr-1.5" aria-hidden="true" />
                     Edit Profile
                   </Link>
                 </Button>
