@@ -125,6 +125,16 @@ const Navbar = () => {
                       Dashboard
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
+                    <button
+                      onClick={() => navigate("/profile/edit")}
+                      aria-label="Edit profile"
+                      className="rounded-full ring-2 ring-primary/20 hover:ring-primary/50 transition-all"
+                    >
+                      <Avatar className="w-9 h-9">
+                        <AvatarImage src={avatar || undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{initials}</AvatarFallback>
+                      </Avatar>
+                    </button>
                   </>
                 ) : (
                   <>
