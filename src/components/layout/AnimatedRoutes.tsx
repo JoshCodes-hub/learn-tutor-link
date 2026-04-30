@@ -322,7 +322,8 @@ export const AnimatedRoutes = () => {
             }
           />
         </Routes>
-       </AcademicPathGate>
+        </AcademicPathGate>
+       </TutorPendingGate>
       </Suspense>
     </AnimatePresence>
   );
