@@ -770,6 +770,7 @@ const StudentDashboard = () => {
           role="student"
           fullName={profile?.full_name}
           avatarUrl={(profile as any)?.avatar_url || (profile as any)?.profile_image_url}
+          coverUrl={(profile as any)?.cover_photo_url}
           subtitle={
             <>
               {getReadinessLabel()} — let's keep building momentum.{" "}
