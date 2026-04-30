@@ -1021,6 +1021,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_notifications: boolean
+          notify_announcements: boolean
+          notify_comments: boolean
+          notify_likes: boolean
+          notify_mentions: boolean
+          notify_messages: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_notifications?: boolean
+          notify_announcements?: boolean
+          notify_comments?: boolean
+          notify_likes?: boolean
+          notify_mentions?: boolean
+          notify_messages?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_notifications?: boolean
+          notify_announcements?: boolean
+          notify_comments?: boolean
+          notify_likes?: boolean
+          notify_mentions?: boolean
+          notify_messages?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
