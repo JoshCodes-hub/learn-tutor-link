@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { NativeSettings } from "@/components/native/NativeSettings";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+const LEVELS = ["100", "200", "300", "400", "500", "600"];
+const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
 
 const DEPARTMENTS = [
   "Agricultural & Resource Economics",
