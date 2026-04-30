@@ -352,6 +352,32 @@ const Auth = () => {
           ) : (
             /* Sign Up Form */
             <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-5">
+              {/* Avatar picker */}
+              <div className="flex flex-col items-center gap-2">
+                <label
+                  htmlFor="signup-avatar"
+                  className="relative h-20 w-20 rounded-full border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary transition-all flex items-center justify-center cursor-pointer overflow-hidden group"
+                  aria-label="Upload profile picture"
+                >
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Profile preview" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors" />
+                  )}
+                  <span className="absolute bottom-0 inset-x-0 bg-primary/85 text-[10px] font-semibold text-primary-foreground py-0.5 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    {avatarPreview ? "Change" : "Upload"}
+                  </span>
+                  <input
+                    id="signup-avatar"
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleAvatarPick}
+                  />
+                </label>
+                <p className="text-[11px] text-muted-foreground">Add a profile photo (optional)</p>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="signup-name" className="text-foreground font-medium">
                   Full Name
