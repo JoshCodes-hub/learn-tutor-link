@@ -343,10 +343,24 @@ const EditProfile = () => {
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={handleCoverUpload}
+              onChange={handleCoverPick}
               disabled={isUploadingCover}
             />
           </div>
+
+          <CoverCropDialog
+            open={coverDialogOpen}
+            onOpenChange={(o) => {
+              setCoverDialogOpen(o);
+              if (!o && coverDraftSrc) {
+                URL.revokeObjectURL(coverDraftSrc);
+                setCoverDraftSrc(null);
+              }
+            }}
+            imageSrc={coverDraftSrc}
+            onCropped={handleCroppedCoverSave}
+            saving={isUploadingCover}
+          />
 
           <div className="p-6 space-y-6">
           {/* Avatar Section */}
