@@ -2,6 +2,40 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/logo.png";
 
+const Typewriter = ({
+  text,
+  className,
+  startDelay = 0,
+  speed = 0.06,
+}: {
+  text: string;
+  className?: string;
+  startDelay?: number;
+  speed?: number;
+}) => {
+  const letters = Array.from(text);
+  return (
+    <p className={className} aria-label={text}>
+      {letters.map((ch, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: startDelay + i * speed, duration: 0.05 }}
+          style={{ whiteSpace: "pre" }}
+        >
+          {ch}
+        </motion.span>
+      ))}
+      <motion.span
+        className="inline-block w-[2px] h-[1em] align-middle bg-[hsl(220_45%_12%)] ml-0.5"
+        animate={{ opacity: [1, 0, 1] }}
+        transition={{ duration: 0.9, repeat: Infinity }}
+      />
+    </p>
+  );
+};
+
 interface SplashScreenProps {
   onComplete: () => void;
 }
