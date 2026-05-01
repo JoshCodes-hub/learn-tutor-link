@@ -164,7 +164,7 @@ export const DashboardHero = ({
             className="absolute inset-0 h-full w-full object-cover opacity-90"
             loading="eager"
             decoding="async"
-            onError={() => setCoverFailed(true)}
+            onError={handleCoverError}
           />
         )}
         {safeCoverUrl && (
