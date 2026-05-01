@@ -90,7 +90,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.85, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             >
-              Read with Ease.
+              Study Smart, Not Hard.
             </motion.p>
           </div>
         </motion.div>
