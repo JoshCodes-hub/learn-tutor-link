@@ -22,6 +22,7 @@ import {
   BookOpen,
   Building2,
   Activity,
+  Megaphone,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import DashboardNav from "@/components/layout/DashboardNav";
@@ -37,6 +38,7 @@ import { AuditLogs } from "@/components/admin/AuditLogs";
 import { HealthDashboard } from "@/components/admin/HealthDashboard";
 import { ChallengeManagement } from "@/components/admin/ChallengeManagement";
 import { AdminInsights } from "@/components/admin/AdminInsights";
+import { AnnouncementsManagement } from "@/components/admin/AnnouncementsManagement";
 import SchoolApplicationsTab from "@/pages/admin/SchoolApplications";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
@@ -415,6 +417,11 @@ const AdminDashboard = () => {
                 <span className="hidden sm:inline">Health</span>
                 <span className="sm:hidden">❤</span>
               </TabsTrigger>
+              <TabsTrigger value="announcements" className="flex items-center gap-2 text-xs md:text-sm">
+                <Megaphone className="w-4 h-4" />
+                <span className="hidden sm:inline">Announce</span>
+                <span className="sm:hidden">📣</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -464,6 +471,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="health">
             <HealthDashboard />
+          </TabsContent>
+
+          <TabsContent value="announcements">
+            <AnnouncementsManagement />
           </TabsContent>
         </Tabs>
       </main>
