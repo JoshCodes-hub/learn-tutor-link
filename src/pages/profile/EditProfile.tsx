@@ -66,7 +66,7 @@ const DEPARTMENTS = [
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   const [fullName, setFullName] = useState("");
   const [department, setDepartment] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -154,6 +154,7 @@ const EditProfile = () => {
         .eq("id", user.id);
 
       setAvatarUrl(publicUrl);
+      await refreshProfile();
       toast.success("Profile picture saved", {
         description: `Stored at tutor-profiles/${path}`,
       });
@@ -208,6 +209,7 @@ const EditProfile = () => {
         .update({ cover_photo_url: publicUrl } as any)
         .eq("id", user.id);
       setCoverUrl(publicUrl);
+      await refreshProfile();
       setCoverDialogOpen(false);
       if (coverDraftSrc) URL.revokeObjectURL(coverDraftSrc);
       setCoverDraftSrc(null);
@@ -262,6 +264,7 @@ const EditProfile = () => {
 
       if (error) throw error;
 
+      await refreshProfile();
       toast.success("Profile updated successfully");
       navigate(-1);
     } catch (error: any) {
