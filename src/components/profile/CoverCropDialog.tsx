@@ -1,13 +1,15 @@
 import { forwardRef, useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Loader2 } from "lucide-react";
 
 const DialogFooterWithRef = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  (props, ref) => <DialogFooter ref={ref} {...props} />,
+  ({ className = "", ...props }, ref) => (
+    <div ref={ref} className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className}`} {...props} />
+  ),
 );
 DialogFooterWithRef.displayName = "DialogFooterWithRef";
 
