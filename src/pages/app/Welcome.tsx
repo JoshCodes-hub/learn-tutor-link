@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import SplashScreen from "@/components/SplashScreen";
-import MobileWelcome from "@/pages/app/MobileWelcome";
+import Ambassadors from "@/pages/app/Ambassadors";
 import { SEO } from "@/components/seo/SEO";
 
 /**
@@ -40,7 +40,7 @@ const Welcome = () => {
       {showSplash ? (
         <SplashScreen onComplete={handleSplashDone} />
       ) : (
-        <MobileWelcome />
+        <Ambassadors />
       )}
     </>
   );
