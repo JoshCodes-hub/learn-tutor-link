@@ -2,6 +2,40 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/logo.png";
 
+const Typewriter = ({
+  text,
+  className,
+  startDelay = 0,
+  speed = 0.06,
+}: {
+  text: string;
+  className?: string;
+  startDelay?: number;
+  speed?: number;
+}) => {
+  const letters = Array.from(text);
+  return (
+    <p className={className} aria-label={text}>
+      {letters.map((ch, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: startDelay + i * speed, duration: 0.05 }}
+          style={{ whiteSpace: "pre" }}
+        >
+          {ch}
+        </motion.span>
+      ))}
+      <motion.span
+        className="inline-block w-[2px] h-[1em] align-middle bg-[hsl(220_45%_12%)] ml-0.5"
+        animate={{ opacity: [1, 0, 1] }}
+        transition={{ duration: 0.9, repeat: Infinity }}
+      />
+    </p>
+  );
+};
+
 interface SplashScreenProps {
   onComplete: () => void;
 }
@@ -48,54 +82,48 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           />
 
           <div className="relative z-10 flex flex-col items-center px-8">
-            {/* Logo — no background plate, direct on gold with soft glow */}
+            {/* Logo — animated entrance with rotation, float, and pulsing halo */}
             <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 160, damping: 16 }}
+              initial={{ scale: 0.4, opacity: 0, rotate: -25 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 140, damping: 14 }}
               className="relative"
             >
+              {/* Pulsing halo behind logo */}
+              <motion.div
+                className="absolute inset-0 -m-6 rounded-full bg-white/40 blur-2xl"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              />
               <motion.img
                 src={logo}
                 alt="OverraPrep AI"
-                className="w-32 h-32 md:w-40 md:h-40 object-contain"
-                style={{ filter: "drop-shadow(0 12px 28px rgba(60,40,0,0.28))" }}
-                animate={{ y: [0, -4, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="relative w-36 h-36 md:w-44 md:h-44 object-contain"
+                style={{ filter: "drop-shadow(0 14px 32px rgba(60,40,0,0.32))" }}
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
               />
-              {/* Subtle shimmer sweep */}
+              {/* Shimmer sweep */}
               <motion.div
-                className="absolute inset-0 pointer-events-none"
+                className="absolute inset-0 pointer-events-none overflow-hidden rounded-full"
                 style={{
                   background:
-                    "linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%)",
+                    "linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%)",
                   mixBlendMode: "overlay",
                 }}
-                initial={{ x: "-100%" }}
+                initial={{ x: "-120%" }}
                 animate={{ x: "120%" }}
-                transition={{ delay: 0.8, duration: 1.4, ease: "easeInOut" }}
+                transition={{ delay: 0.7, duration: 1.4, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.2 }}
               />
             </motion.div>
 
-            {/* Wordmark */}
-            <motion.h1
-              className="mt-7 text-3xl md:text-4xl font-bold tracking-tight text-[hsl(220_45%_12%)]"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-            >
-              OverraPrep
-            </motion.h1>
-
-            {/* Tagline — slides DOWN from above */}
-            <motion.p
-              className="mt-3 text-base md:text-lg font-medium text-[hsl(220_45%_12%)]/80 tracking-wide"
-              initial={{ opacity: 0, y: -18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.85, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            >
-              Study Smart, Not Hard.
-            </motion.p>
+            {/* Tagline — typewriter effect */}
+            <Typewriter
+              text="Study Smart, Not Hard."
+              className="mt-10 text-lg md:text-2xl font-semibold text-[hsl(220_45%_12%)] tracking-wide text-center"
+              startDelay={0.6}
+              speed={0.06}
+            />
           </div>
         </motion.div>
       )}
