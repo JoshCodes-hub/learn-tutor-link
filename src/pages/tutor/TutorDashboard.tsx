@@ -338,7 +338,7 @@ const TutorDashboard = () => {
         <DashboardHero
           role="tutor"
           fullName={profile?.full_name}
-          avatarUrl={profile?.avatar_url}
+          avatarUrl={(profile as any)?.avatar_url || (profile as any)?.profile_image_url}
           coverUrl={(profile as any)?.cover_photo_url}
           institution="Federal University of Technology, Akure (FUTA)"
           meta={
