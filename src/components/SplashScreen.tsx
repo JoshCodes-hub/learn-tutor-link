@@ -26,6 +26,10 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           style={{
             background:
               "linear-gradient(160deg, hsl(45 88% 65%) 0%, hsl(43 80% 55%) 55%, hsl(40 75% 48%) 100%)",
+            paddingTop: "env(safe-area-inset-top)",
+            paddingBottom: "env(safe-area-inset-bottom)",
+            paddingLeft: "env(safe-area-inset-left)",
+            paddingRight: "env(safe-area-inset-right)",
           }}
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
