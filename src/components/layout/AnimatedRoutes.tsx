@@ -13,6 +13,7 @@ import { Navigate } from "react-router-dom";
 // Eager load the native welcome screen for best LCP (new `/`)
 import Welcome from "@/pages/app/Welcome";
 const Index = lazy(() => import("@/pages/Index"));
+const MobileWelcome = lazy(() => import("@/pages/app/MobileWelcome"));
 
 // School module
 const SchoolRegister = lazy(() => import("@/pages/school/Register"));
@@ -111,6 +112,7 @@ export const AnimatedRoutes = () => {
           <Route path="/start/persona" element={<PageTransition><ChoosePersona /></PageTransition>} />
           <Route path="/school/intro" element={<PageTransition><SchoolIntro /></PageTransition>} />
           <Route path="/website" element={<PageTransition><Index /></PageTransition>} />
+          <Route path="/welcome-tour" element={<PageTransition><MobileWelcome /></PageTransition>} />
           <Route
             path="/auth"
             element={

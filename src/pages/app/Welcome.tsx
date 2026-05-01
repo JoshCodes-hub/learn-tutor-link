@@ -40,7 +40,7 @@ const Welcome = () => {
       {showSplash ? (
         <SplashScreen onComplete={handleSplashDone} />
       ) : (
-        <MobileWelcome />
+        <Ambassadors />
       )}
     </>
   );
