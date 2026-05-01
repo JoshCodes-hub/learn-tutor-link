@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BadgeCheck, Camera, Mail, Phone, MapPin, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -80,8 +80,20 @@ export const DashboardHero = ({
 }: DashboardHeroProps) => {
   const pill = ROLE_PILL[role];
   const displayName = fullName || "Welcome";
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const [coverFailed, setCoverFailed] = useState(false);
+
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [avatarUrl]);
+
+  useEffect(() => {
+    setCoverFailed(false);
+  }, [coverUrl]);
 
   const hasContact = !!(contact && (contact.email || contact.phone || contact.location || contact.joined));
+  const safeAvatarUrl = avatarUrl && !avatarFailed ? avatarUrl : undefined;
+  const safeCoverUrl = coverUrl && !coverFailed ? coverUrl : undefined;
 
   return (
     <motion.section
@@ -100,13 +112,18 @@ export const DashboardHero = ({
         {/* Base gold gradient — slightly darker for AA contrast against white text */}
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700" />
         {/* User cover image overlay */}
-        {coverUrl && (
-          <div
-            className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-90"
-            style={{ backgroundImage: `url(${coverUrl})` }}
-            role="img"
-            aria-label={`${displayName}'s cover photo`}
+        {safeCoverUrl && (
+          <img
+            src={safeCoverUrl}
+            alt={`${displayName}'s cover photo`}
+            className="absolute inset-0 h-full w-full object-cover opacity-90"
+            loading="eager"
+            decoding="async"
+            onError={() => setCoverFailed(true)}
           />
+        )}
+        {safeCoverUrl && (
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/45 via-amber-600/35 to-amber-800/45" aria-hidden="true" />
         )}
         {/* Decorative flowing curves */}
         <svg
@@ -165,7 +182,12 @@ export const DashboardHero = ({
           <div className="relative shrink-0">
             <div className="absolute -inset-1 rounded-full bg-white/70 blur-md" aria-hidden />
             <Avatar className="relative h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 ring-4 ring-white shadow-xl">
-              <AvatarImage src={avatarUrl ?? undefined} alt={`${displayName}'s profile photo`} />
+              <AvatarImage
+                key={safeAvatarUrl || "avatar-fallback"}
+                src={safeAvatarUrl}
+                alt={`${displayName}'s profile photo`}
+                onError={() => setAvatarFailed(true)}
+              />
               <AvatarFallback
                 className="text-amber-700 font-bold text-2xl bg-gradient-to-br from-amber-100 to-amber-200"
                 aria-label={`${displayName} initials`}
