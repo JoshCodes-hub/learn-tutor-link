@@ -117,7 +117,28 @@ export const CoverCropDialog = ({
               objectFit="horizontal-cover"
             />
           )}
+
+          {/* Safe-area overlay: centered ~60% width / 70% height region
+              indicating where avatars, name, and key content will sit
+              after cropping to the 1600×400 banner. */}
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+            <div
+              className="relative border-2 border-dashed border-amber-300/90 rounded-md shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]"
+              style={{ width: "60%", height: "70%" }}
+              aria-hidden="true"
+            >
+              <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-medium uppercase tracking-wide">
+                Safe area
+              </span>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-amber-400/80" />
+              </div>
+            </div>
+          </div>
         </div>
+        <p className="text-xs text-muted-foreground -mt-1">
+          Keep faces, logos, and key text inside the dashed <span className="text-amber-600 font-medium">safe area</span> — it stays visible across all screen sizes after the 1600×400 crop.
+        </p>
 
         <div className="space-y-2">
           <Label htmlFor="zoom-slider" className="text-xs text-muted-foreground">
