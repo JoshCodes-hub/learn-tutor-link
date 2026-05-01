@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -66,7 +67,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
-import { DashboardHero } from "@/components/dashboard/DashboardHero";
+import { PlatformAnnouncements } from "@/components/student/PlatformAnnouncements";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
@@ -766,33 +767,62 @@ const StudentDashboard = () => {
       <main className="container mx-auto px-4 py-6 md:py-8 max-w-6xl">
         <DashboardOfflineBanner onReattempt={refreshQuizzes} />
 
-        {/* Cinematic hero with avatar */}
-        <DashboardHero
-          role="student"
-          fullName={profile?.full_name}
-          avatarUrl={(profile as any)?.avatar_url || (profile as any)?.profile_image_url}
-          coverUrl={(profile as any)?.cover_photo_url}
-          institution="Federal University of Technology, Akure (FUTA)"
-          meta={
-            [
-              (profile as any)?.department,
-              (profile as any)?.level ? `Level ${(profile as any).level}` : null,
-            ]
-              .filter(Boolean)
-              .join(" • ") || undefined
-          }
-          contact={{
-            email: user?.email,
-            phone: (profile as any)?.phone,
-            location: (profile as any)?.state_of_origin
-              ? `${(profile as any).state_of_origin}${(profile as any).state_of_origin?.toLowerCase().includes("state") ? "" : ", Nigeria"}`
-              : null,
-            joined: (profile as any)?.created_at
-              ? new Date((profile as any).created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
-              : null,
-          }}
-          className="mb-6"
-        />
+        {/* Premium welcome strip — no profile photo, focus on greeting + path */}
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          aria-label="Welcome"
+          className="mb-5 relative overflow-hidden rounded-3xl border border-amber-200/60 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-[0_18px_50px_-22px_rgba(180,140,40,0.55)]"
+        >
+          <div className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full bg-white/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-8 w-52 h-52 rounded-full bg-amber-300/30 blur-3xl" />
+          <svg
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full opacity-25"
+            viewBox="0 0 800 200"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,150 C200,90 400,180 800,80 L800,200 L0,200 Z" fill="rgba(255,255,255,0.18)" />
+            <path d="M0,170 C250,120 500,200 800,130" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5" fill="none" />
+          </svg>
+
+          <div className="relative px-5 sm:px-7 py-5 sm:py-6 flex items-center justify-between gap-4">
+            <div className="min-w-0" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
+              <p className="text-[10px] sm:text-[11px] font-semibold tracking-[0.22em] uppercase text-amber-100/95">
+                {(() => {
+                  const h = new Date().getHours();
+                  if (h < 12) return "Good morning";
+                  if (h < 17) return "Good afternoon";
+                  return "Good evening";
+                })()}
+              </p>
+              <h1 className="font-display text-2xl sm:text-3xl md:text-[34px] font-bold leading-tight tracking-tight mt-0.5 truncate">
+                {profile?.full_name?.split(" ")[0] || "Student"} 👋
+              </h1>
+              <p className="text-xs sm:text-sm text-white/95 mt-1 truncate">
+                {[
+                  (profile as any)?.department,
+                  (profile as any)?.level ? `Level ${(profile as any).level}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" • ") || "Let's make today count."}
+              </p>
+            </div>
+            <div className="hidden sm:flex flex-col items-end gap-1.5 shrink-0">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-amber-800 text-[11px] font-bold shadow-sm" style={{ textShadow: "none" }}>
+                <Sparkles className="w-3 h-3" />
+                Readiness {readinessScore}%
+              </span>
+              <span className="text-[10px] tracking-wider uppercase text-amber-100/95 font-semibold">
+                Federal University of Technology, Akure
+              </span>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Admin-curated announcements */}
+        <PlatformAnnouncements />
 
         {/* Complete profile nudge */}
         <CompleteProfileCard profile={profile} />
