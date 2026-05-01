@@ -1,14 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { GraduationCap, Presentation, Users, ChevronRight, ArrowLeft } from "lucide-react";
+import { GraduationCap, Presentation, ChevronRight, ArrowLeft } from "lucide-react";
 import { SEO } from "@/components/seo/SEO";
 
-type Intent = "student" | "tutor" | "parent";
+type Intent = "student" | "tutor";
 
 const PERSONAS: { intent: Intent; icon: any; title: string; desc: string; tag?: string }[] = [
   { intent: "student", icon: GraduationCap, title: "I'm a Student", desc: "Practice CBT questions and ace your exams.", tag: "Free" },
   { intent: "tutor", icon: Presentation, title: "I'm a Tutor", desc: "Create quizzes, grow followers, earn tokens." },
-  { intent: "parent", icon: Users, title: "I'm a Parent", desc: "Track your child's results and progress." },
 ];
 
 const ChoosePersona = () => {
