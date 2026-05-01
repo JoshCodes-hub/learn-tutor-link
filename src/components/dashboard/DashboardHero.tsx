@@ -80,20 +80,65 @@ export const DashboardHero = ({
 }: DashboardHeroProps) => {
   const pill = ROLE_PILL[role];
   const displayName = fullName || "Welcome";
-  const [avatarFailed, setAvatarFailed] = useState(false);
-  const [coverFailed, setCoverFailed] = useState(false);
+
+  const MAX_RETRIES = 2;
+  const [avatarRetry, setAvatarRetry] = useState(0);
+  const [avatarStage, setAvatarStage] = useState<"primary" | "secondary" | "failed">("primary");
+  const [coverRetry, setCoverRetry] = useState(0);
+  const [coverStage, setCoverStage] = useState<"primary" | "failed">("primary");
 
   useEffect(() => {
-    setAvatarFailed(false);
+    setAvatarRetry(0);
+    setAvatarStage("primary");
   }, [avatarUrl]);
 
   useEffect(() => {
-    setCoverFailed(false);
+    setCoverRetry(0);
+    setCoverStage("primary");
   }, [coverUrl]);
 
+  // Secondary fallback avatar — deterministic DiceBear illustration based on name
+  const secondaryAvatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+    displayName
+  )}&backgroundColor=fcd34d,fbbf24,f59e0b&fontFamily=Georgia`;
+
+  const withCacheBust = (url: string, n: number) =>
+    n > 0 ? `${url}${url.includes("?") ? "&" : "?"}cb=${n}-${Date.now()}` : url;
+
+  const safeAvatarUrl =
+    avatarStage === "primary" && avatarUrl
+      ? withCacheBust(avatarUrl, avatarRetry)
+      : avatarStage === "secondary"
+      ? secondaryAvatarUrl
+      : undefined;
+
+  const safeCoverUrl =
+    coverStage === "primary" && coverUrl ? withCacheBust(coverUrl, coverRetry) : undefined;
+
+  const handleAvatarError = () => {
+    if (avatarStage === "primary" && avatarRetry < MAX_RETRIES) {
+      console.warn("[DashboardHero] avatar load failed, retrying", avatarRetry + 1, avatarUrl);
+      setAvatarRetry((n) => n + 1);
+    } else if (avatarStage === "primary") {
+      console.warn("[DashboardHero] avatar primary exhausted, switching to secondary");
+      setAvatarStage("secondary");
+    } else {
+      console.warn("[DashboardHero] avatar secondary failed, showing initials");
+      setAvatarStage("failed");
+    }
+  };
+
+  const handleCoverError = () => {
+    if (coverStage === "primary" && coverRetry < MAX_RETRIES) {
+      console.warn("[DashboardHero] cover load failed, retrying", coverRetry + 1, coverUrl);
+      setCoverRetry((n) => n + 1);
+    } else {
+      console.warn("[DashboardHero] cover failed, falling back to gold gradient");
+      setCoverStage("failed");
+    }
+  };
+
   const hasContact = !!(contact && (contact.email || contact.phone || contact.location || contact.joined));
-  const safeAvatarUrl = avatarUrl && !avatarFailed ? avatarUrl : undefined;
-  const safeCoverUrl = coverUrl && !coverFailed ? coverUrl : undefined;
 
   return (
     <motion.section
@@ -119,7 +164,7 @@ export const DashboardHero = ({
             className="absolute inset-0 h-full w-full object-cover opacity-90"
             loading="eager"
             decoding="async"
-            onError={() => setCoverFailed(true)}
+            onError={handleCoverError}
           />
         )}
         {safeCoverUrl && (
@@ -186,7 +231,7 @@ export const DashboardHero = ({
                 key={safeAvatarUrl || "avatar-fallback"}
                 src={safeAvatarUrl}
                 alt={`${displayName}'s profile photo`}
-                onError={() => setAvatarFailed(true)}
+                onError={handleAvatarError}
               />
               <AvatarFallback
                 className="text-amber-700 font-bold text-2xl bg-gradient-to-br from-amber-100 to-amber-200"
