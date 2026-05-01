@@ -231,7 +231,7 @@ export const DashboardHero = ({
                 key={safeAvatarUrl || "avatar-fallback"}
                 src={safeAvatarUrl}
                 alt={`${displayName}'s profile photo`}
-                onError={() => setAvatarFailed(true)}
+                onError={handleAvatarError}
               />
               <AvatarFallback
                 className="text-amber-700 font-bold text-2xl bg-gradient-to-br from-amber-100 to-amber-200"
