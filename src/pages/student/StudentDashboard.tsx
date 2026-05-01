@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
