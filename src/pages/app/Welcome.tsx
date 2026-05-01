@@ -24,6 +24,7 @@ const Welcome = () => {
     if (primaryRole === "admin") navigate("/admin/dashboard", { replace: true });
     else if (primaryRole === "tutor") navigate("/tutor/dashboard", { replace: true });
     else if ((primaryRole as any) === "school_owner") navigate("/school/dashboard", { replace: true });
+    else if ((primaryRole as any) === "parent") navigate("/parent/dashboard", { replace: true });
     else if (primaryRole === "student") navigate("/student/dashboard", { replace: true });
   }, [user, primaryRole, isLoading, navigate]);
 
