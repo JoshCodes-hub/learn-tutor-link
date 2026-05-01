@@ -41,8 +41,13 @@ const Ambassadors = () => {
     <>
       <SEO title="Meet Our Ambassadors" description="Real students, real results. Join the OverraPrep community." url="/" />
       <div
-        className="relative min-h-screen bg-background overflow-hidden flex flex-col"
-        style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="relative min-h-[100dvh] bg-background overflow-hidden flex flex-col"
+        style={{
+          paddingTop: "env(safe-area-inset-top)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingLeft: "env(safe-area-inset-left)",
+          paddingRight: "env(safe-area-inset-right)",
+        }}
       >
         {/* Ambient gold halos */}
         <div className="pointer-events-none absolute inset-0">
@@ -158,7 +163,10 @@ const Ambassadors = () => {
         </section>
 
         {/* CTAs */}
-        <section className="relative z-10 mx-auto w-full max-w-md px-5 pt-5 pb-6 space-y-2.5">
+        <section
+          className="relative z-10 mx-auto w-full max-w-md px-5 pt-5 space-y-2.5"
+          style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+        >
           <Button
             onClick={() => navigate("/start/persona")}
             className="w-full h-12 rounded-full font-semibold text-[15px] bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30"
