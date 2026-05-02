@@ -68,6 +68,7 @@ import {
 import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { PlatformAnnouncements } from "@/components/student/PlatformAnnouncements";
+import { FreshCourses } from "@/components/student/FreshCourses";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
@@ -823,6 +824,9 @@ const StudentDashboard = () => {
 
         {/* Admin-curated announcements */}
         <PlatformAnnouncements />
+
+        {/* Fresh courses (admin + tutor created) — newest 8 */}
+        <FreshCourses />
 
         {/* Complete profile nudge */}
         <CompleteProfileCard profile={profile} />

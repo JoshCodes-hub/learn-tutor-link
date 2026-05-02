@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/logo.png";
+
+// Lazy 3D scene — keeps three.js out of the initial paint
+const Splash3DScene = lazy(() => import("@/components/splash/Splash3DScene"));
 
 const Typewriter = ({
   text,
@@ -44,8 +47,9 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
-    const exitTimer = setTimeout(() => setExiting(true), 3000);
-    const doneTimer = setTimeout(() => onComplete(), 3500);
+    // Slightly longer to let the 3D scene shine before exit
+    const exitTimer = setTimeout(() => setExiting(true), 3600);
+    const doneTimer = setTimeout(() => onComplete(), 4100);
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(doneTimer);
@@ -80,6 +84,19 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
             animate={{ scale: [1.1, 1, 1.1], opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           />
+
+          {/* 3D layer — gold orb + particles behind the logo */}
+          <motion.div
+            className="absolute inset-0 z-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            aria-hidden="true"
+          >
+            <Suspense fallback={null}>
+              <Splash3DScene />
+            </Suspense>
+          </motion.div>
 
           <div className="relative z-10 flex flex-col items-center px-8">
             {/* Logo — animated entrance with rotation, float, and pulsing halo */}
