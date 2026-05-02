@@ -12,7 +12,8 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEO } from "@/components/seo/SEO";
 import { toast } from "sonner";
-import { BookOpen, Plus, Search, Trash2 } from "lucide-react";
+import { BookOpen, Plus, Search, Trash2, Sparkles } from "lucide-react";
+import { CreateCourseDialog } from "@/components/tutor/CreateCourseDialog";
 
 interface Course {
   id: string;
@@ -30,6 +31,7 @@ const TutorCourses = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -90,9 +92,14 @@ const TutorCourses = () => {
       <Navbar />
       <div className="pt-16 md:pt-[72px]"><DashboardNav role="tutor" /></div>
       <main className="container mx-auto px-4 pt-6 pb-16 max-w-5xl">
-        <div className="mb-6">
-          <h1 className="font-display text-3xl font-bold mb-1">Courses I Handle</h1>
-          <p className="text-muted-foreground">Pick the courses you teach. Students can find you under these.</p>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold mb-1">Courses I Handle</h1>
+            <p className="text-muted-foreground">Pick courses you teach — or create a brand new one. Students discover you under these.</p>
+          </div>
+          <Button onClick={() => setCreateOpen(true)} className="bg-amber-500 hover:bg-amber-600 text-white shadow-md">
+            <Sparkles className="w-4 h-4 mr-1.5" /> Create New Course
+          </Button>
         </div>
 
         <Tabs defaultValue="picked">
@@ -150,6 +157,12 @@ const TutorCourses = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        <CreateCourseDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onSuccess={() => { setCreateOpen(false); load(); }}
+        />
       </main>
     </div>
   );
