@@ -75,6 +75,7 @@ import { PullToRefresh } from "@/components/native/PullToRefresh";
 import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineBanner";
 import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import { CompleteProfileCard } from "@/components/student/CompleteProfileCard";
+import { FeatureGrid } from "@/components/student/FeatureGrid";
 
 interface Stats {
   totalAttempts: number;
@@ -861,7 +862,8 @@ const StudentDashboard = () => {
           />
         </div>
 
-        {/* Continue studying — primary academic actions only */}
+        {/* Opay-style feature grid — every tool surfaced, grouped */}
+        <FeatureGrid />
         <QuickActions
           subtitle="Continue where you left off"
           actions={[
