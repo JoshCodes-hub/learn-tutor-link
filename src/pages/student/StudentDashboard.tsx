@@ -862,7 +862,8 @@ const StudentDashboard = () => {
           />
         </div>
 
-        {/* Continue studying — primary academic actions only */}
+        {/* Opay-style feature grid — every tool surfaced, grouped */}
+        <FeatureGrid />
         <QuickActions
           subtitle="Continue where you left off"
           actions={[
