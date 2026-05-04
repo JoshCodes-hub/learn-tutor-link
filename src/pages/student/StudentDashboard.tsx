@@ -718,59 +718,88 @@ const StudentDashboard = () => {
       <PullToRefresh onRefresh={refreshQuizzes}>
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center group">
-              <img 
-                src={logo} 
-                alt="OverraPrep AI FUTA" 
-                className="h-10 w-auto object-contain"
-              />
-            </Link>
+        <header
+          className="sticky top-0 z-50 border-b border-amber-100/60 bg-white/75 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60"
+          role="banner"
+        >
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 sm:gap-6 h-16 md:h-[68px]">
+              {/* Left — Brand */}
+              <Link to="/" className="flex items-center group shrink-0" aria-label="OverraPrep home">
+                <img
+                  src={logo}
+                  alt="OverraPrep AI FUTA"
+                  className="h-9 md:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+                />
+              </Link>
 
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Global Search / Command Palette */}
-              <CommandPaletteTrigger
-                onOpen={() => setPaletteOpen(true)}
-                className="hidden sm:flex min-w-[220px] md:min-w-[300px]"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="sm:hidden"
-                onClick={() => setPaletteOpen(true)}
-                aria-label="Search"
-              >
-                <Search className="w-5 h-5 text-amber-700" />
-              </Button>
-
-              {/* Wallet Balance */}
-              <div className="flex items-center gap-1.5 sm:gap-2 bg-accent/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
-                <Coins className="w-4 h-4 text-accent" />
-                <span className="font-semibold text-foreground text-sm sm:text-base">{wallet?.balance || 0}</span>
-                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">tokens</span>
+              {/* Center — Global Search (desktop) */}
+              <div className="hidden sm:flex justify-center">
+                <CommandPaletteTrigger
+                  onOpen={() => setPaletteOpen(true)}
+                  className="max-w-md"
+                />
               </div>
+              <div className="sm:hidden" />
 
-              <Button variant="ghost" size="sm" onClick={() => navigate("/profile/edit")} className="hidden sm:flex">
-                <User className="w-4 h-4 mr-2" />
-                Profile
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => navigate("/profile/edit")} className="sm:hidden">
-                <User className="w-4 h-4" />
-              </Button>
+              {/* Right — Actions */}
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                {/* Mobile search */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="sm:hidden h-10 w-10 rounded-full hover:bg-amber-50"
+                  onClick={() => setPaletteOpen(true)}
+                  aria-label="Search"
+                >
+                  <Search className="w-5 h-5 text-amber-700" />
+                </Button>
 
-              <Button variant="ghost" size="sm" onClick={() => signOut()} className="hidden sm:flex">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => signOut()} className="sm:hidden">
-                <LogOut className="w-4 h-4" />
-              </Button>
+                {/* Wallet */}
+                <button
+                  type="button"
+                  onClick={() => setShowBuyTokens(true)}
+                  className="flex items-center gap-1.5 sm:gap-2 h-9 sm:h-10 px-3 sm:px-3.5 rounded-full bg-gradient-to-r from-amber-50 to-amber-100/70 border border-amber-200/70 hover:border-amber-300 hover:shadow-[0_4px_14px_-6px_rgba(217,159,0,0.35)] transition-all"
+                  aria-label="Token balance"
+                >
+                  <Coins className="w-4 h-4 text-amber-600" />
+                  <span className="font-semibold text-foreground text-sm tabular-nums">{wallet?.balance || 0}</span>
+                  <span className="text-xs text-muted-foreground hidden md:inline">tokens</span>
+                </button>
+
+                {/* Divider */}
+                <div className="hidden sm:block h-6 w-px bg-amber-100 mx-1" />
+
+                {/* Profile */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/profile/edit")}
+                  className="h-10 w-10 rounded-full hover:bg-amber-50"
+                  aria-label="Edit profile"
+                >
+                  <Avatar className="h-8 w-8 ring-2 ring-amber-100">
+                    <AvatarImage src={profile?.profile_image_url || undefined} alt={profile?.full_name || "Profile"} />
+                    <AvatarFallback className="bg-gradient-to-br from-amber-100 to-amber-200 text-amber-800 text-xs font-semibold">
+                      {profile?.full_name?.charAt(0)?.toUpperCase() || <User className="w-4 h-4" />}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+
+                {/* Sign out */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => signOut()}
+                  className="hidden sm:flex h-10 w-10 rounded-full hover:bg-red-50 hover:text-red-600"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       <DashboardNav role="student" />
       <DashboardBreadcrumb role="student" />
