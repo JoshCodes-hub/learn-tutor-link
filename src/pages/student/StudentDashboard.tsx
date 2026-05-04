@@ -76,6 +76,7 @@ import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineB
 import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import { CompleteProfileCard } from "@/components/student/CompleteProfileCard";
 import { FeatureGrid } from "@/components/student/FeatureGrid";
+import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
 
 interface Stats {
   totalAttempts: number;
