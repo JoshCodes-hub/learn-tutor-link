@@ -779,7 +779,7 @@ const StudentDashboard = () => {
                   aria-label="Edit profile"
                 >
                   <Avatar className="h-8 w-8 ring-2 ring-amber-100">
-                    <AvatarImage src={profile?.profile_image_url || undefined} alt={profile?.full_name || "Profile"} />
+                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "Profile"} />
                     <AvatarFallback className="bg-gradient-to-br from-amber-100 to-amber-200 text-amber-800 text-xs font-semibold">
                       {profile?.full_name?.charAt(0)?.toUpperCase() || <User className="w-4 h-4" />}
                     </AvatarFallback>
