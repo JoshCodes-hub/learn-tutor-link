@@ -147,6 +147,8 @@ const StudentDashboard = () => {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [purchaseRequests, setPurchaseRequests] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  useCommandPaletteHotkey(setPaletteOpen);
 
   // Profile completeness gate for paid quizzes
   const tryStartPaidQuiz = (quiz: Quiz) => {
