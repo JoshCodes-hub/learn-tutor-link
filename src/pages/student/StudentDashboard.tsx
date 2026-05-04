@@ -714,6 +714,7 @@ const StudentDashboard = () => {
         noindex={true}
         url="https://overraprep.com/student/dashboard"
       />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <PullToRefresh onRefresh={refreshQuizzes}>
       <div className="min-h-screen bg-background">
         {/* Header */}
