@@ -728,15 +728,20 @@ const StudentDashboard = () => {
               />
             </Link>
 
-            <div className="flex items-center gap-2 sm:gap-4">
-              {/* Navigation Links */}
-              <Button variant="ghost" size="sm" onClick={() => navigate("/leaderboard")} className="hidden md:flex">
-                <Trophy className="w-4 h-4 mr-2" />
-                Leaderboard
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/community")} className="hidden md:flex">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Community
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Global Search / Command Palette */}
+              <CommandPaletteTrigger
+                onOpen={() => setPaletteOpen(true)}
+                className="hidden sm:flex min-w-[220px] md:min-w-[300px]"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="sm:hidden"
+                onClick={() => setPaletteOpen(true)}
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5 text-amber-700" />
               </Button>
 
               {/* Wallet Balance */}
