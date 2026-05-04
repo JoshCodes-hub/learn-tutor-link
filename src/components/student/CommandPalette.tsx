@@ -139,16 +139,16 @@ export const CommandPaletteTrigger = ({
       onClick={onOpen}
       aria-label="Search features"
       className={
-        "group flex items-center gap-2 h-9 px-3 rounded-full border border-amber-200/70 bg-white/80 hover:bg-white hover:border-amber-300 hover:shadow-sm text-left transition-all " +
+        "group flex items-center gap-2.5 h-10 w-full px-3.5 rounded-xl border border-amber-200/60 bg-white/70 backdrop-blur-sm hover:bg-white hover:border-amber-300/80 hover:shadow-[0_4px_20px_-8px_rgba(217,159,0,0.25)] focus:outline-none focus:ring-2 focus:ring-amber-300/60 text-left transition-all duration-200 " +
         className
       }
     >
-      <Search className="h-4 w-4 text-amber-700 shrink-0" />
-      <span className="text-xs sm:text-sm text-muted-foreground truncate">
-        Search anything…
+      <Search className="h-4 w-4 text-amber-600 shrink-0 group-hover:text-amber-700 transition-colors" />
+      <span className="flex-1 text-sm text-muted-foreground/80 truncate font-medium">
+        Search features, courses, tutors…
       </span>
-      <kbd className="hidden md:inline-flex items-center ml-2 h-5 px-1.5 rounded border border-border bg-muted text-[10px] font-mono text-muted-foreground">
-        {isMac ? "⌘K" : "Ctrl K"}
+      <kbd className="hidden md:inline-flex items-center gap-0.5 ml-2 h-6 px-2 rounded-md border border-amber-200/70 bg-amber-50/60 text-[10px] font-mono font-semibold text-amber-700 shadow-sm">
+        {isMac ? "⌘" : "Ctrl"}<span>K</span>
       </kbd>
     </button>
   );
