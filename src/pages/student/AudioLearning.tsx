@@ -330,18 +330,18 @@ const AudioLearning = () => {
             <Label className="font-semibold">3. Generate audio</Label>
             <Button
               onClick={synthesize}
-              disabled={synthesizing || !text.trim() || overLimit}
+              disabled={synthesizing || !text.trim()}
               className="w-full h-12 text-base font-semibold"
             >
               {synthesizing ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating audio…
+                  {progress ? `Narrating ${progress.done}/${progress.total}…` : "Preparing…"}
                 </>
               ) : (
                 <>
                   <Play className="w-4 h-4 mr-2" />
-                  Generate Audio
+                  Read Document
                 </>
               )}
             </Button>
@@ -362,7 +362,7 @@ const AudioLearning = () => {
                 <a href={audioUrl} download={downloadName} className="block">
                   <Button variant="outline" className="w-full">
                     <Download className="w-4 h-4 mr-2" />
-                    Download MP3
+                    Download Narration
                   </Button>
                 </a>
               </motion.div>
