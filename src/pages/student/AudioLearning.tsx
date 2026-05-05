@@ -196,6 +196,92 @@ const AudioLearning = () => {
     return `${base}.wav`;
   }, [fileName]);
 
+  // Split text into sections by headings or paragraph groups (~1500 chars each).
+  const splitIntoSections = (raw: string): Section[] => {
+    const clean = raw.replace(/\r\n/g, "\n").trim();
+    if (!clean) return [];
+
+    // 1) Try heading-style splits (lines like "1.", "Chapter X", "SECTION", ALL CAPS lines).
+    const headingRe = /\n(?=(?:Chapter\s+\d+|Section\s+\d+|\d+\.\s+[A-Z]|[A-Z][A-Z\s]{4,}\n))/g;
+    let parts = clean.split(headingRe).map((p) => p.trim()).filter(Boolean);
+
+    // 2) If no headings found, group paragraphs into ~1500-char sections.
+    if (parts.length < 2) {
+      const paras = clean.split(/\n{2,}|(?<=\.)\s{2,}/).map((p) => p.trim()).filter(Boolean);
+      parts = [];
+      let buf = "";
+      for (const p of paras) {
+        if ((buf + " " + p).length > 1500 && buf) { parts.push(buf.trim()); buf = p; }
+        else buf = buf ? `${buf}\n\n${p}` : p;
+      }
+      if (buf.trim()) parts.push(buf.trim());
+    }
+
+    return parts.map((body, i) => {
+      const firstLine = body.split("\n")[0].trim();
+      const title = firstLine.length > 0 && firstLine.length <= 80
+        ? firstLine.replace(/[:.\-—]+$/, "")
+        : `Section ${i + 1}`;
+      return { title, text: body };
+    });
+  };
+
+  const generateTranscript = () => {
+    if (!text.trim()) {
+      toast.error("Add some text or upload a document first");
+      return;
+    }
+    const next = splitIntoSections(text);
+    if (!next.length) {
+      toast.error("Could not split text into sections");
+      return;
+    }
+    setSections(next);
+    setPlayingIdx(null);
+    toast.success(`Transcript generated — ${next.length} sections`);
+  };
+
+  const synthSection = async (idx: number) => {
+    const sec = sections[idx];
+    if (!sec) return;
+    setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, loading: true } : s)));
+    try {
+      const chunks = chunkText(sec.text);
+      const blobs: Blob[] = [];
+      for (const c of chunks) {
+        const res = await fetch("https://creating-hitting-holder-panels.trycloudflare.com/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: c }),
+        });
+        if (!res.ok) throw new Error(`Section ${idx + 1} failed (${res.status})`);
+        blobs.push(await res.blob());
+      }
+      const merged = await mergeWavBlobs(blobs);
+      const url = URL.createObjectURL(merged);
+      setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, audioUrl: url, loading: false } : s)));
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message ?? "Failed to narrate section");
+      setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, loading: false } : s)));
+    }
+  };
+
+  const togglePlay = async (idx: number) => {
+    const sec = sections[idx];
+    if (!sec) return;
+    if (!sec.audioUrl) { await synthSection(idx); return; }
+    // Pause others
+    Object.entries(audioRefs.current).forEach(([k, el]) => {
+      if (Number(k) !== idx && el) el.pause();
+    });
+    const el = audioRefs.current[idx];
+    if (!el) return;
+    if (playingIdx === idx && !el.paused) { el.pause(); setPlayingIdx(null); }
+    else { el.play(); setPlayingIdx(idx); }
+  };
+
+
   return (
     <>
       <SEO
