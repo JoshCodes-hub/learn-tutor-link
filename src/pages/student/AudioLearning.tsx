@@ -105,44 +105,84 @@ const AudioLearning = () => {
     }
   };
 
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+
+  // Split text into ~1800-char chunks at sentence/paragraph boundaries.
+  const chunkText = (raw: string, max = 1800): string[] => {
+    const clean = raw.replace(/\s+/g, " ").trim();
+    if (clean.length <= max) return [clean];
+    const sentences = clean.split(/(?<=[.!?])\s+/);
+    const chunks: string[] = [];
+    let buf = "";
+    for (const s of sentences) {
+      if ((buf + " " + s).trim().length > max) {
+        if (buf) chunks.push(buf.trim());
+        if (s.length > max) {
+          for (let i = 0; i < s.length; i += max) chunks.push(s.slice(i, i + max));
+          buf = "";
+        } else buf = s;
+      } else buf = (buf ? buf + " " : "") + s;
+    }
+    if (buf.trim()) chunks.push(buf.trim());
+    return chunks;
+  };
+
+  // Merge multiple WAV blobs into one playable WAV (strip headers from chunks 2+).
+  const mergeWavBlobs = async (blobs: Blob[]): Promise<Blob> => {
+    if (blobs.length === 1) return blobs[0];
+    const buffers = await Promise.all(blobs.map((b) => b.arrayBuffer()));
+    const HEADER = 44;
+    const dataParts = buffers.map((buf, i) => new Uint8Array(buf, i === 0 ? 0 : HEADER));
+    const totalLen = dataParts.reduce((s, p) => s + p.length, 0);
+    const merged = new Uint8Array(totalLen);
+    let offset = 0;
+    for (const p of dataParts) { merged.set(p, offset); offset += p.length; }
+    // Patch RIFF chunk size (offset 4) and data chunk size (offset 40) in header
+    const view = new DataView(merged.buffer);
+    view.setUint32(4, totalLen - 8, true);
+    view.setUint32(40, totalLen - HEADER, true);
+    return new Blob([merged], { type: "audio/wav" });
+  };
+
   const synthesize = async () => {
     if (!text.trim()) {
       toast.error("Add some text or upload a document first");
       return;
     }
-    if (overLimit) {
-      toast.error(`Text is too long. Trim to ${MAX_CHARS} chars.`);
-      return;
-    }
     setSynthesizing(true);
     setAudioUrl(null);
+    setProgress(null);
     try {
-      const { data, error } = await supabase.functions.invoke("text-to-speech", {
-        body: { text, voice_id: voiceId, output_format: "mp3" },
-      });
-      if (error) throw error;
-      if (!data?.audio) throw new Error("No audio returned");
-      // base64 -> blob URL
-      const binary = atob(data.audio);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: data.mime || "audio/mpeg" });
-      const url = URL.createObjectURL(blob);
+      const chunks = chunkText(text);
+      setProgress({ done: 0, total: chunks.length });
+      const blobs: Blob[] = [];
+      for (let i = 0; i < chunks.length; i++) {
+        const res = await fetch("https://creating-hitting-holder-panels.trycloudflare.com/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: chunks[i] }),
+        });
+        if (!res.ok) throw new Error(`Chunk ${i + 1} failed (${res.status})`);
+        blobs.push(await res.blob());
+        setProgress({ done: i + 1, total: chunks.length });
+      }
+      const merged = await mergeWavBlobs(blobs);
+      const url = URL.createObjectURL(merged);
       setAudioUrl(url);
-      toast.success("Audio ready — press play or download");
+      toast.success("Narration ready — press play or download");
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message ?? "Failed to generate audio");
     } finally {
       setSynthesizing(false);
+      setProgress(null);
     }
   };
 
   const downloadName = useMemo(() => {
-    const base = fileName ? fileName.replace(/\.[^.]+$/, "") : "overraprep-audio";
-    const voice = VOICES.find((v) => v.id === voiceId)?.name ?? "voice";
-    return `${base}-${voice}.mp3`;
-  }, [fileName, voiceId]);
+    const base = fileName ? fileName.replace(/\.[^.]+$/, "") : "overraprep-narration";
+    return `${base}.wav`;
+  }, [fileName]);
 
   return (
     <>
