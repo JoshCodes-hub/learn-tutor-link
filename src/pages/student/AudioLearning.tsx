@@ -7,10 +7,12 @@ import {
   FileText,
   Loader2,
   Play,
+  Pause,
   Download,
   Sparkles,
   Headphones,
   Volume2,
+  ListMusic,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
