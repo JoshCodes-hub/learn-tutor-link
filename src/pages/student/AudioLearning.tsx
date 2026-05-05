@@ -41,6 +41,13 @@ const VOICES: Voice[] = [
 
 const MAX_CHARS = 12000;
 
+interface Section {
+  title: string;
+  text: string;
+  audioUrl?: string;
+  loading?: boolean;
+}
+
 const AudioLearning = () => {
   const navigate = useNavigate();
   const [text, setText] = useState("");
@@ -49,6 +56,9 @@ const AudioLearning = () => {
   const [synthesizing, setSynthesizing] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const [sections, setSections] = useState<Section[]>([]);
+  const [playingIdx, setPlayingIdx] = useState<number | null>(null);
+  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const charCount = text.length;
