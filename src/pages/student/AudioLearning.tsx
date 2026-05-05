@@ -7,10 +7,12 @@ import {
   FileText,
   Loader2,
   Play,
+  Pause,
   Download,
   Sparkles,
   Headphones,
   Volume2,
+  ListMusic,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +41,13 @@ const VOICES: Voice[] = [
 
 const MAX_CHARS = 12000;
 
+interface Section {
+  title: string;
+  text: string;
+  audioUrl?: string;
+  loading?: boolean;
+}
+
 const AudioLearning = () => {
   const navigate = useNavigate();
   const [text, setText] = useState("");
@@ -47,6 +56,9 @@ const AudioLearning = () => {
   const [synthesizing, setSynthesizing] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const [sections, setSections] = useState<Section[]>([]);
+  const [playingIdx, setPlayingIdx] = useState<number | null>(null);
+  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const charCount = text.length;
@@ -183,6 +195,92 @@ const AudioLearning = () => {
     const base = fileName ? fileName.replace(/\.[^.]+$/, "") : "overraprep-narration";
     return `${base}.wav`;
   }, [fileName]);
+
+  // Split text into sections by headings or paragraph groups (~1500 chars each).
+  const splitIntoSections = (raw: string): Section[] => {
+    const clean = raw.replace(/\r\n/g, "\n").trim();
+    if (!clean) return [];
+
+    // 1) Try heading-style splits (lines like "1.", "Chapter X", "SECTION", ALL CAPS lines).
+    const headingRe = /\n(?=(?:Chapter\s+\d+|Section\s+\d+|\d+\.\s+[A-Z]|[A-Z][A-Z\s]{4,}\n))/g;
+    let parts = clean.split(headingRe).map((p) => p.trim()).filter(Boolean);
+
+    // 2) If no headings found, group paragraphs into ~1500-char sections.
+    if (parts.length < 2) {
+      const paras = clean.split(/\n{2,}|(?<=\.)\s{2,}/).map((p) => p.trim()).filter(Boolean);
+      parts = [];
+      let buf = "";
+      for (const p of paras) {
+        if ((buf + " " + p).length > 1500 && buf) { parts.push(buf.trim()); buf = p; }
+        else buf = buf ? `${buf}\n\n${p}` : p;
+      }
+      if (buf.trim()) parts.push(buf.trim());
+    }
+
+    return parts.map((body, i) => {
+      const firstLine = body.split("\n")[0].trim();
+      const title = firstLine.length > 0 && firstLine.length <= 80
+        ? firstLine.replace(/[:.\-—]+$/, "")
+        : `Section ${i + 1}`;
+      return { title, text: body };
+    });
+  };
+
+  const generateTranscript = () => {
+    if (!text.trim()) {
+      toast.error("Add some text or upload a document first");
+      return;
+    }
+    const next = splitIntoSections(text);
+    if (!next.length) {
+      toast.error("Could not split text into sections");
+      return;
+    }
+    setSections(next);
+    setPlayingIdx(null);
+    toast.success(`Transcript generated — ${next.length} sections`);
+  };
+
+  const synthSection = async (idx: number) => {
+    const sec = sections[idx];
+    if (!sec) return;
+    setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, loading: true } : s)));
+    try {
+      const chunks = chunkText(sec.text);
+      const blobs: Blob[] = [];
+      for (const c of chunks) {
+        const res = await fetch("https://creating-hitting-holder-panels.trycloudflare.com/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: c }),
+        });
+        if (!res.ok) throw new Error(`Section ${idx + 1} failed (${res.status})`);
+        blobs.push(await res.blob());
+      }
+      const merged = await mergeWavBlobs(blobs);
+      const url = URL.createObjectURL(merged);
+      setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, audioUrl: url, loading: false } : s)));
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message ?? "Failed to narrate section");
+      setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, loading: false } : s)));
+    }
+  };
+
+  const togglePlay = async (idx: number) => {
+    const sec = sections[idx];
+    if (!sec) return;
+    if (!sec.audioUrl) { await synthSection(idx); return; }
+    // Pause others
+    Object.entries(audioRefs.current).forEach(([k, el]) => {
+      if (Number(k) !== idx && el) el.pause();
+    });
+    const el = audioRefs.current[idx];
+    if (!el) return;
+    if (playingIdx === idx && !el.paused) { el.pause(); setPlayingIdx(null); }
+    else { el.play(); setPlayingIdx(idx); }
+  };
+
 
   return (
     <>
@@ -366,6 +464,76 @@ const AudioLearning = () => {
                   </Button>
                 </a>
               </motion.div>
+            )}
+          </Card>
+
+          {/* Section-by-section transcript */}
+          <Card className="p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold flex items-center gap-2">
+                <ListMusic className="w-4 h-4 text-primary" />
+                Section-by-section transcript
+              </Label>
+              <Button size="sm" variant="outline" onClick={generateTranscript} disabled={!text.trim()}>
+                {sections.length ? "Regenerate" : "Generate"}
+              </Button>
+            </div>
+
+            {sections.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Split your document into sections and play each part on its own.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {sections.map((s, i) => {
+                  const isPlaying = playingIdx === i;
+                  return (
+                    <li key={i} className="rounded-xl border border-border bg-card p-3 space-y-2">
+                      <div className="flex items-start gap-3">
+                        <span className="shrink-0 mt-0.5 inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{s.title}</p>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2">
+                            {s.text.slice(0, 140)}…
+                          </p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant={isPlaying ? "default" : "outline"}
+                          onClick={() => togglePlay(i)}
+                          disabled={s.loading}
+                          className="shrink-0"
+                          aria-label={isPlaying ? "Pause" : "Play"}
+                        >
+                          {s.loading ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : isPlaying ? <Pause className="w-4 h-4" />
+                            : <Play className="w-4 h-4" />}
+                        </Button>
+                      </div>
+
+                      {s.audioUrl && (
+                        <div className="flex items-center gap-2">
+                          <audio
+                            ref={(el) => { audioRefs.current[i] = el; }}
+                            src={s.audioUrl}
+                            controls
+                            onEnded={() => setPlayingIdx(null)}
+                            onPause={() => { if (playingIdx === i) setPlayingIdx(null); }}
+                            className="w-full h-9"
+                          />
+                          <a href={s.audioUrl} download={`${fileName.replace(/\.[^.]+$/, "") || "section"}-${i + 1}.wav`}>
+                            <Button size="icon" variant="ghost" aria-label="Download section">
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </a>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </Card>
 
