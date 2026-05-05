@@ -467,6 +467,76 @@ const AudioLearning = () => {
             )}
           </Card>
 
+          {/* Section-by-section transcript */}
+          <Card className="p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold flex items-center gap-2">
+                <ListMusic className="w-4 h-4 text-primary" />
+                Section-by-section transcript
+              </Label>
+              <Button size="sm" variant="outline" onClick={generateTranscript} disabled={!text.trim()}>
+                {sections.length ? "Regenerate" : "Generate"}
+              </Button>
+            </div>
+
+            {sections.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Split your document into sections and play each part on its own.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {sections.map((s, i) => {
+                  const isPlaying = playingIdx === i;
+                  return (
+                    <li key={i} className="rounded-xl border border-border bg-card p-3 space-y-2">
+                      <div className="flex items-start gap-3">
+                        <span className="shrink-0 mt-0.5 inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{s.title}</p>
+                          <p className="text-[11px] text-muted-foreground line-clamp-2">
+                            {s.text.slice(0, 140)}…
+                          </p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant={isPlaying ? "default" : "outline"}
+                          onClick={() => togglePlay(i)}
+                          disabled={s.loading}
+                          className="shrink-0"
+                          aria-label={isPlaying ? "Pause" : "Play"}
+                        >
+                          {s.loading ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : isPlaying ? <Pause className="w-4 h-4" />
+                            : <Play className="w-4 h-4" />}
+                        </Button>
+                      </div>
+
+                      {s.audioUrl && (
+                        <div className="flex items-center gap-2">
+                          <audio
+                            ref={(el) => { audioRefs.current[i] = el; }}
+                            src={s.audioUrl}
+                            controls
+                            onEnded={() => setPlayingIdx(null)}
+                            onPause={() => { if (playingIdx === i) setPlayingIdx(null); }}
+                            className="w-full h-9"
+                          />
+                          <a href={s.audioUrl} download={`${fileName.replace(/\.[^.]+$/, "") || "section"}-${i + 1}.wav`}>
+                            <Button size="icon" variant="ghost" aria-label="Download section">
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </a>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Card>
+
           <p className="text-center text-[11px] text-muted-foreground pb-6">
             Powered by Noiz AI · OverraPrep — Read with Ease.
           </p>
