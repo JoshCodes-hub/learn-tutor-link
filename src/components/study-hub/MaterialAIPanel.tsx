@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones } from "lucide-react";
 import { StudyPackAudioPlayer } from "./StudyPackAudioPlayer";
 
-type Kind = "summary" | "key_points" | "flashcards" | "likely_questions" | "audio";
+type Kind = "summary" | "key_points" | "flashcards" | "likely_questions";
+type Tab = Kind | "audio";
 
 interface Material {
   id: string;
