@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw } from "lucide-react";
+import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones } from "lucide-react";
+import { StudyPackAudioPlayer } from "./StudyPackAudioPlayer";
 
-type Kind = "summary" | "key_points" | "flashcards" | "likely_questions";
+type Kind = "summary" | "key_points" | "flashcards" | "likely_questions" | "audio";
 
 interface Material {
   id: string;
