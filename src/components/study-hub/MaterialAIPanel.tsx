@@ -164,16 +164,17 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as Kind)}>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <TabsList>
+            <TabsList className="flex-wrap h-auto">
               <TabsTrigger value="summary"><FileText className="w-4 h-4 mr-1" /> Summary</TabsTrigger>
               <TabsTrigger value="key_points"><ListChecks className="w-4 h-4 mr-1" /> Key Points</TabsTrigger>
               <TabsTrigger value="flashcards"><Layers className="w-4 h-4 mr-1" /> Flashcards</TabsTrigger>
               <TabsTrigger value="likely_questions"><Sparkles className="w-4 h-4 mr-1" /> Likely Q</TabsTrigger>
+              <TabsTrigger value="audio"><Headphones className="w-4 h-4 mr-1" /> Audio</TabsTrigger>
             </TabsList>
-            {data[tab] && (
-              <Button variant="ghost" size="sm" onClick={() => fetchKind(tab, true)} disabled={!!loadingKind}>
+            {tab !== "audio" && data[tab as Kind] && (
+              <Button variant="ghost" size="sm" onClick={() => fetchKind(tab as Kind, true)} disabled={!!loadingKind}>
                 <RefreshCw className="w-3.5 h-3.5" /> Regenerate
               </Button>
             )}
@@ -183,6 +184,12 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
           <TabsContent value="key_points" className="mt-4">{renderPoints()}</TabsContent>
           <TabsContent value="flashcards" className="mt-4">{renderFlashcards()}</TabsContent>
           <TabsContent value="likely_questions" className="mt-4">{renderLikely()}</TabsContent>
+          <TabsContent value="audio" className="mt-4">
+            <StudyPackAudioPlayer
+              text={(data.summary as { text?: string } | null)?.text}
+              fileName={`${material.title.replace(/[^\w\-]+/g, "_")}.mp3`}
+            />
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
