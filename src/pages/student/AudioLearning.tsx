@@ -169,16 +169,15 @@ const AudioLearning = () => {
       setProgress({ done: 0, total: chunks.length });
       const blobs: Blob[] = [];
       for (let i = 0; i < chunks.length; i++) {
-        const res = await fetch("https://creating-hitting-holder-panels.trycloudflare.com/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: chunks[i] }),
-        });
+        const res = await fetch(
+          `https://urgency-company-bonfire.ngrok-free.dev/tts?text=${encodeURIComponent(chunks[i])}`,
+          { method: "GET", headers: { "ngrok-skip-browser-warning": "true" } },
+        );
         if (!res.ok) throw new Error(`Chunk ${i + 1} failed (${res.status})`);
         blobs.push(await res.blob());
         setProgress({ done: i + 1, total: chunks.length });
       }
-      const merged = await mergeWavBlobs(blobs);
+      const merged = blobs.length === 1 ? blobs[0] : new Blob(blobs, { type: "audio/mpeg" });
       const url = URL.createObjectURL(merged);
       setAudioUrl(url);
       toast.success("Narration ready — press play or download");
