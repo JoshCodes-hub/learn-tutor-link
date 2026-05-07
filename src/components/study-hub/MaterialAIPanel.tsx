@@ -28,7 +28,7 @@ interface Flashcard { question: string; answer: string; topic?: string }
 interface LikelyQuestion { question: string; type: "objective" | "theory"; probability: "high" | "medium" | "low"; reasoning: string }
 
 export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
-  const [tab, setTab] = useState<Kind>("summary");
+  const [tab, setTab] = useState<Tab>("summary");
   const [loadingKind, setLoadingKind] = useState<Kind | null>(null);
   const [data, setData] = useState<Record<Kind, unknown>>({
     summary: null,
