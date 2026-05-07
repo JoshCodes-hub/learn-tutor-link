@@ -248,15 +248,14 @@ const AudioLearning = () => {
       const chunks = chunkText(sec.text);
       const blobs: Blob[] = [];
       for (const c of chunks) {
-        const res = await fetch("https://creating-hitting-holder-panels.trycloudflare.com/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: c }),
-        });
+        const res = await fetch(
+          `https://urgency-company-bonfire.ngrok-free.dev/tts?text=${encodeURIComponent(c)}`,
+          { method: "GET", headers: { "ngrok-skip-browser-warning": "true" } },
+        );
         if (!res.ok) throw new Error(`Section ${idx + 1} failed (${res.status})`);
         blobs.push(await res.blob());
       }
-      const merged = await mergeWavBlobs(blobs);
+      const merged = blobs.length === 1 ? blobs[0] : new Blob(blobs, { type: "audio/mpeg" });
       const url = URL.createObjectURL(merged);
       setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, audioUrl: url, loading: false } : s)));
     } catch (e: any) {
