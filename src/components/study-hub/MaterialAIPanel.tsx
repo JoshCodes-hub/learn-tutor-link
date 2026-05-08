@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones } from "lucide-react";
-import { StudyPackAudioPlayer } from "./StudyPackAudioPlayer";
+import { OverraAudioSuite } from "./OverraAudioSuite";
 
 type Kind = "summary" | "key_points" | "flashcards" | "likely_questions";
 type Tab = Kind | "audio";
@@ -185,7 +185,7 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
           <TabsContent value="flashcards" className="mt-4">{renderFlashcards()}</TabsContent>
           <TabsContent value="likely_questions" className="mt-4">{renderLikely()}</TabsContent>
           <TabsContent value="audio" className="mt-4">
-            <StudyPackAudioPlayer
+            <OverraAudioSuite
               text={(data.summary as { text?: string } | null)?.text}
               fileName={`${material.title.replace(/[^\w\-]+/g, "_")}.mp3`}
             />
