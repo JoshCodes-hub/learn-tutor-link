@@ -8,12 +8,15 @@ import {
   Play, Pause, Rewind, FastForward, Download, Loader2,
   AudioWaveform, Headphones, Music2, Volume2, VolumeX, Sparkles, GraduationCap, Mic2,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const TTS_URL = "https://urgency-company-bonfire.ngrok-free.dev/tts";
 const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const LOFI_SRC = "/audio/lofi-study.mp3"; // drop a royalty-free loop here
 
 type Voice = "standard" | "lecturer";
+
+// Map UI voice → Overra Engine voice param
+const voiceParam = (v: Voice) => (v === "lecturer" ? "lecturer" : "nigerian");
 
 interface Props {
   text: string | undefined | null;
@@ -27,20 +30,58 @@ const fmt = (s: number) => {
   return `${m}:${r.toString().padStart(2, "0")}`;
 };
 
-const buildTtsUrl = (text: string, voice: Voice) => {
-  const url = new URL(TTS_URL);
-  url.searchParams.set("text", text.slice(0, 5000));
-  if (voice === "lecturer") url.searchParams.set("voice", "lecturer");
-  return url.toString();
-};
+// Calls our Overra TTS edge function. Auto-retries while the HF Space is warming up.
+const fetchTts = async (
+  text: string,
+  voice: Voice,
+  onWarming?: () => void,
+): Promise<Blob> => {
+  const payload = {
+    text: text.slice(0, 5000),
+    voice: voiceParam(voice),
+    beat_type: "afro_lofi",
+  };
 
-const fetchTts = async (text: string, voice: Voice) => {
-  const res = await fetch(buildTtsUrl(text, voice), {
-    method: "GET",
-    headers: { "ngrok-skip-browser-warning": "true" },
-  });
-  if (!res.ok) throw new Error(`TTS failed (${res.status})`);
-  return res.blob();
+  const MAX_RETRIES = 6; // ~30s max wait
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const { data, error } = await supabase.functions.invoke("overra-tts", {
+      body: payload,
+    });
+
+    // Edge function returned audio bytes → data is a Blob
+    if (!error && data instanceof Blob && data.type.startsWith("audio/")) {
+      return data;
+    }
+
+    // Try to parse warming-up signal from the response
+    let warming = false;
+    let message = "TTS failed";
+    if (error) {
+      message = error.message || message;
+      const ctx: any = (error as any).context;
+      try {
+        const txt = await ctx?.text?.();
+        if (txt) {
+          const j = JSON.parse(txt);
+          warming = !!j.warming_up;
+          message = j.message || j.error || message;
+        }
+      } catch {}
+      // Heuristic fallback
+      if (/wak|warm|load|503|starting/i.test(message)) warming = true;
+    } else if (data && typeof data === "object" && "warming_up" in (data as any)) {
+      warming = !!(data as any).warming_up;
+      message = (data as any).message || message;
+    }
+
+    if (warming && attempt < MAX_RETRIES) {
+      onWarming?.();
+      await new Promise((r) => setTimeout(r, 5000));
+      continue;
+    }
+    throw new Error(message);
+  }
+  throw new Error("Engine still warming up — please retry");
 };
 
 // Split text into sentences, preserving order
@@ -78,6 +119,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
 
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [warming, setWarming] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -187,8 +229,12 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
   const generate = async () => {
     if (!text?.trim()) return toast.error("No summary text to narrate yet");
     setLoading(true);
+    setWarming(false);
     try {
-      const blob = await fetchTts(text, voice);
+      const blob = await fetchTts(text, voice, () => {
+        setWarming(true);
+        toast.message("Engine waking up… retrying in 5s");
+      });
       const objUrl = URL.createObjectURL(blob);
       setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return objUrl; });
       setVoiceOfCurrent(voice);
@@ -197,6 +243,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
       toast.error(e instanceof Error ? e.message : "Failed to generate audio");
     } finally {
       setLoading(false);
+      setWarming(false);
     }
   };
 
@@ -222,7 +269,9 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
     }
     setSections((s) => ({ ...s, [paraIdx]: { ...s[paraIdx], loading: true } }));
     try {
-      const blob = await fetchTts(paraText, voice);
+      const blob = await fetchTts(paraText, voice, () =>
+        toast.message("Engine waking up… retrying in 5s"),
+      );
       const objUrl = URL.createObjectURL(blob);
       setSections((s) => ({ ...s, [paraIdx]: { url: objUrl, loading: false } }));
     } catch (e) {
@@ -284,8 +333,11 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
             className="w-full font-semibold border-0"
             style={{ background: "linear-gradient(135deg,#C9A96E,#E8C77A)", color: "#0B1426" }}
           >
-            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating…</>
-              : voiceMismatch ? <><AudioWaveform className="w-4 h-4 mr-2" /> Regenerate in {voice === "lecturer" ? "Lecturer" : "Standard"} voice</>
+            {loading ? (
+              warming
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Engine Waking Up… retrying</>
+                : <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating…</>
+            ) : voiceMismatch ? <><AudioWaveform className="w-4 h-4 mr-2" /> Regenerate in {voice === "lecturer" ? "Lecturer" : "Standard"} voice</>
               : <><AudioWaveform className="w-4 h-4 mr-2" /> Generate Premium Narration</>}
           </Button>
         )}
