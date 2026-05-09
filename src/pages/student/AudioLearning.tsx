@@ -41,6 +41,43 @@ const VOICES: Voice[] = [
 
 const MAX_CHARS = 12000;
 
+// Calls the Overra TTS edge function (HF Space proxy). Auto-retries while warming up.
+async function overraTts(text: string, onWarming?: () => void): Promise<Blob> {
+  const payload = { text: text.slice(0, 5000), voice: "nigerian", beat_type: "afro_lofi" };
+  const MAX_RETRIES = 6;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const { data, error } = await supabase.functions.invoke("overra-tts", { body: payload });
+    if (!error && data instanceof Blob && data.type.startsWith("audio/")) return data;
+
+    let warming = false;
+    let message = "TTS failed";
+    if (error) {
+      message = error.message || message;
+      const ctx: any = (error as any).context;
+      try {
+        const txt = await ctx?.text?.();
+        if (txt) {
+          const j = JSON.parse(txt);
+          warming = !!j.warming_up;
+          message = j.message || j.error || message;
+        }
+      } catch {}
+      if (/wak|warm|load|503|starting/i.test(message)) warming = true;
+    } else if (data && typeof data === "object" && "warming_up" in (data as any)) {
+      warming = !!(data as any).warming_up;
+      message = (data as any).message || message;
+    }
+
+    if (warming && attempt < MAX_RETRIES) {
+      onWarming?.();
+      await new Promise((r) => setTimeout(r, 5000));
+      continue;
+    }
+    throw new Error(message);
+  }
+  throw new Error("Engine still warming up — please retry");
+}
+
 interface Section {
   title: string;
   text: string;
@@ -169,12 +206,10 @@ const AudioLearning = () => {
       setProgress({ done: 0, total: chunks.length });
       const blobs: Blob[] = [];
       for (let i = 0; i < chunks.length; i++) {
-        const res = await fetch(
-          `https://urgency-company-bonfire.ngrok-free.dev/tts?text=${encodeURIComponent(chunks[i])}`,
-          { method: "GET", headers: { "ngrok-skip-browser-warning": "true" } },
+        const blob = await overraTts(chunks[i], () =>
+          toast.message("Engine waking up… retrying in 5s"),
         );
-        if (!res.ok) throw new Error(`Chunk ${i + 1} failed (${res.status})`);
-        blobs.push(await res.blob());
+        blobs.push(blob);
         setProgress({ done: i + 1, total: chunks.length });
       }
       const merged = blobs.length === 1 ? blobs[0] : new Blob(blobs, { type: "audio/mpeg" });
@@ -248,12 +283,10 @@ const AudioLearning = () => {
       const chunks = chunkText(sec.text);
       const blobs: Blob[] = [];
       for (const c of chunks) {
-        const res = await fetch(
-          `https://urgency-company-bonfire.ngrok-free.dev/tts?text=${encodeURIComponent(c)}`,
-          { method: "GET", headers: { "ngrok-skip-browser-warning": "true" } },
+        const blob = await overraTts(c, () =>
+          toast.message("Engine waking up… retrying in 5s"),
         );
-        if (!res.ok) throw new Error(`Section ${idx + 1} failed (${res.status})`);
-        blobs.push(await res.blob());
+        blobs.push(blob);
       }
       const merged = blobs.length === 1 ? blobs[0] : new Blob(blobs, { type: "audio/mpeg" });
       const url = URL.createObjectURL(merged);
