@@ -333,8 +333,11 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
             className="w-full font-semibold border-0"
             style={{ background: "linear-gradient(135deg,#C9A96E,#E8C77A)", color: "#0B1426" }}
           >
-            {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating…</>
-              : voiceMismatch ? <><AudioWaveform className="w-4 h-4 mr-2" /> Regenerate in {voice === "lecturer" ? "Lecturer" : "Standard"} voice</>
+            {loading ? (
+              warming
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Engine Waking Up… retrying</>
+                : <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating…</>
+            ) : voiceMismatch ? <><AudioWaveform className="w-4 h-4 mr-2" /> Regenerate in {voice === "lecturer" ? "Lecturer" : "Standard"} voice</>
               : <><AudioWaveform className="w-4 h-4 mr-2" /> Generate Premium Narration</>}
           </Button>
         )}
