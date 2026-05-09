@@ -119,6 +119,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
 
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [warming, setWarming] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -228,8 +229,12 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
   const generate = async () => {
     if (!text?.trim()) return toast.error("No summary text to narrate yet");
     setLoading(true);
+    setWarming(false);
     try {
-      const blob = await fetchTts(text, voice);
+      const blob = await fetchTts(text, voice, () => {
+        setWarming(true);
+        toast.message("Engine waking up… retrying in 5s");
+      });
       const objUrl = URL.createObjectURL(blob);
       setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return objUrl; });
       setVoiceOfCurrent(voice);
@@ -238,6 +243,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
       toast.error(e instanceof Error ? e.message : "Failed to generate audio");
     } finally {
       setLoading(false);
+      setWarming(false);
     }
   };
 
@@ -263,7 +269,9 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
     }
     setSections((s) => ({ ...s, [paraIdx]: { ...s[paraIdx], loading: true } }));
     try {
-      const blob = await fetchTts(paraText, voice);
+      const blob = await fetchTts(paraText, voice, () =>
+        toast.message("Engine waking up… retrying in 5s"),
+      );
       const objUrl = URL.createObjectURL(blob);
       setSections((s) => ({ ...s, [paraIdx]: { url: objUrl, loading: false } }));
     } catch (e) {
