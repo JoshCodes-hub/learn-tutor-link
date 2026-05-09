@@ -1,1 +1,4 @@
 project_id = "gjvhqhproxdhskqtgcsx"
+
+[functions.overra-tts]
+verify_jwt = false
