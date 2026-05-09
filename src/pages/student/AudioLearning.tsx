@@ -283,12 +283,10 @@ const AudioLearning = () => {
       const chunks = chunkText(sec.text);
       const blobs: Blob[] = [];
       for (const c of chunks) {
-        const res = await fetch(
-          `https://urgency-company-bonfire.ngrok-free.dev/tts?text=${encodeURIComponent(c)}`,
-          { method: "GET", headers: { "ngrok-skip-browser-warning": "true" } },
+        const blob = await overraTts(c, () =>
+          toast.message("Engine waking up… retrying in 5s"),
         );
-        if (!res.ok) throw new Error(`Section ${idx + 1} failed (${res.status})`);
-        blobs.push(await res.blob());
+        blobs.push(blob);
       }
       const merged = blobs.length === 1 ? blobs[0] : new Blob(blobs, { type: "audio/mpeg" });
       const url = URL.createObjectURL(merged);
