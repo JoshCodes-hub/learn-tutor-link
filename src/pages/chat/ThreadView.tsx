@@ -25,6 +25,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { saveTextNote } from "@/lib/userResources";
+import { AddBulkToReviewButton } from "@/components/student/AddToReviewButton";
 import { toast } from "sonner";
 import { SEO } from "@/components/seo/SEO";
 import ReactMarkdown from "react-markdown";
