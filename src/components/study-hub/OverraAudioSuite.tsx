@@ -145,8 +145,9 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
   const paragraphs = useMemo(() => groupParagraphs(sentences), [sentences]);
   const totalChars = useMemo(() => sentences.reduce((a, s) => a + s.length, 0) || 1, [sentences]);
 
-  // Active sentence index based on current time
+  // Active sentence index — driven by audio time (mp3) or by browser-speech callback
   const activeIndex = useMemo(() => {
+    if (browserMode) return browserActiveIdx;
     if (!duration || !sentences.length) return -1;
     const ratio = current / duration;
     let acc = 0;
@@ -155,7 +156,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
       if (acc / totalChars >= ratio) return i;
     }
     return sentences.length - 1;
-  }, [current, duration, sentences, totalChars]);
+  }, [current, duration, sentences, totalChars, browserMode, browserActiveIdx]);
 
   // Init wavesurfer
   useEffect(() => {
