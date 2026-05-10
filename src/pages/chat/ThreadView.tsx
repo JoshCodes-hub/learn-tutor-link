@@ -22,6 +22,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { saveTextNote } from "@/lib/userResources";
 import { toast } from "sonner";
@@ -60,10 +61,20 @@ export default function ThreadView() {
   const [savingInvite, setSavingInvite] = useState(false);
 
   // Summarize dialog
+  type SummLength = "short" | "medium" | "long";
+  type SummRef = { n: number; author: string; excerpt: string };
+  type SummKey = { text: string; citations: number[] };
+  type SummCard = { question: string; answer: string; citations: number[] };
   const [summOpen, setSummOpen] = useState(false);
   const [summMode, setSummMode] = useState<"notes" | "flashcards">("notes");
+  const [summLength, setSummLength] = useState<SummLength>("medium");
   const [summBusy, setSummBusy] = useState(false);
-  const [summResult, setSummResult] = useState<{ notes?: string; flashcards?: { question: string; answer: string }[] } | null>(null);
+  const [summResult, setSummResult] = useState<{
+    notes?: string;
+    key_points?: SummKey[];
+    flashcards?: SummCard[];
+    references?: SummRef[];
+  } | null>(null);
 
   // Report dialog
   const [reportTarget, setReportTarget] = useState<ChatMessage | null>(null);
@@ -164,7 +175,7 @@ export default function ThreadView() {
     setSummBusy(true); setSummResult(null);
     try {
       const { data, error } = await supabase.functions.invoke("summarize-thread", {
-        body: { thread_id: threadId, mode: summMode },
+        body: { thread_id: threadId, mode: summMode, length: summLength },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
@@ -173,6 +184,12 @@ export default function ThreadView() {
       toast.error(e.message || "Failed to summarize");
     } finally { setSummBusy(false); }
   };
+
+  const refMap = useMemo(() => {
+    const m = new Map<number, SummRef>();
+    (summResult?.references ?? []).forEach(r => m.set(r.n, r));
+    return m;
+  }, [summResult?.references]);
 
   const saveNotesToLibrary = async () => {
     if (!summResult?.notes || !user?.id) return;
@@ -378,16 +395,36 @@ export default function ThreadView() {
             <DialogDescription>Turn the discussion into study material.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <RadioGroup value={summMode} onValueChange={(v) => setSummMode(v as any)} className="grid grid-cols-2 gap-2">
-              <label className="flex items-center gap-2 border rounded-lg px-3 py-2 cursor-pointer hover:bg-muted">
-                <RadioGroupItem value="notes" id="m-notes" />
-                <span className="text-sm">Study notes</span>
-              </label>
-              <label className="flex items-center gap-2 border rounded-lg px-3 py-2 cursor-pointer hover:bg-muted">
-                <RadioGroupItem value="flashcards" id="m-cards" />
-                <span className="text-sm">Flashcards</span>
-              </label>
-            </RadioGroup>
+            <div>
+              <Label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Format</Label>
+              <RadioGroup value={summMode} onValueChange={(v) => setSummMode(v as any)} className="grid grid-cols-2 gap-2">
+                <label className="flex items-center gap-2 border rounded-lg px-3 py-2 cursor-pointer hover:bg-muted">
+                  <RadioGroupItem value="notes" id="m-notes" />
+                  <span className="text-sm">Study notes</span>
+                </label>
+                <label className="flex items-center gap-2 border rounded-lg px-3 py-2 cursor-pointer hover:bg-muted">
+                  <RadioGroupItem value="flashcards" id="m-cards" />
+                  <span className="text-sm">Flashcards</span>
+                </label>
+              </RadioGroup>
+            </div>
+
+            <div>
+              <Label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Length</Label>
+              <RadioGroup value={summLength} onValueChange={(v) => setSummLength(v as SummLength)} className="grid grid-cols-3 gap-2">
+                {(["short", "medium", "long"] as SummLength[]).map(v => (
+                  <label key={v} className="flex flex-col items-center gap-0.5 border rounded-lg px-2 py-2 cursor-pointer hover:bg-muted">
+                    <RadioGroupItem value={v} id={`len-${v}`} className="sr-only" />
+                    <span className={`text-sm capitalize ${summLength === v ? "font-semibold text-primary" : ""}`}>{v}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {v === "short" ? (summMode === "notes" ? "~200w" : "6 cards") :
+                       v === "medium" ? (summMode === "notes" ? "~450w" : "10 cards") :
+                       (summMode === "notes" ? "~800w" : "15 cards")}
+                    </span>
+                  </label>
+                ))}
+              </RadioGroup>
+            </div>
 
             {!summResult ? (
               <Button onClick={runSummarize} disabled={summBusy} className="w-full">
@@ -399,6 +436,19 @@ export default function ThreadView() {
                 <div className="prose prose-sm dark:prose-invert max-w-none border rounded-lg p-3 bg-muted/20">
                   <ReactMarkdown>{summResult.notes}</ReactMarkdown>
                 </div>
+                {summResult.key_points && summResult.key_points.length > 0 && (
+                  <div className="border rounded-lg p-3 bg-background">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">Key points & sources</p>
+                    <ul className="space-y-2">
+                      {summResult.key_points.map((kp, i) => (
+                        <li key={i} className="text-sm">
+                          <span>{kp.text}</span>
+                          <CitationChips citations={kp.citations} refMap={refMap} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <Button onClick={saveNotesToLibrary} className="flex-1">Save to Library</Button>
                   <Button variant="outline" onClick={() => setSummResult(null)}>Try again</Button>
@@ -406,11 +456,12 @@ export default function ThreadView() {
               </div>
             ) : summResult.flashcards ? (
               <div className="space-y-3">
-                <div className="space-y-2 max-h-96 overflow-y-auto border rounded-lg p-3 bg-muted/20">
+                <div className="space-y-3 max-h-96 overflow-y-auto border rounded-lg p-3 bg-muted/20">
                   {summResult.flashcards.map((c, i) => (
                     <div key={i} className="border-b last:border-0 pb-2">
                       <p className="text-sm font-semibold">Q: {c.question}</p>
                       <p className="text-sm text-muted-foreground">A: {c.answer}</p>
+                      <CitationChips citations={c.citations} refMap={refMap} />
                     </div>
                   ))}
                 </div>
@@ -469,3 +520,44 @@ export default function ThreadView() {
     </div>
   );
 }
+
+function CitationChips({
+  citations,
+  refMap,
+}: {
+  citations?: number[];
+  refMap: Map<number, { n: number; author: string; excerpt: string }>;
+}) {
+  if (!citations || citations.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mt-1.5">
+      {citations.map(n => {
+        const r = refMap.get(n);
+        return (
+          <Popover key={n}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                title={r ? `${r.author}` : `Message #${n}`}
+              >
+                [{n}]
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="top" className="w-72 text-xs">
+              {r ? (
+                <>
+                  <p className="font-semibold mb-1">{r.author} · #{n}</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{r.excerpt}</p>
+                </>
+              ) : (
+                <p className="text-muted-foreground">Source #{n}</p>
+              )}
+            </PopoverContent>
+          </Popover>
+        );
+      })}
+    </div>
+  );
+}
+
