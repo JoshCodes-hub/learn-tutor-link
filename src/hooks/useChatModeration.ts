@@ -48,8 +48,10 @@ export function useUserBlocks() {
 }
 
 export async function reportMessage(message_id: string, reason: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("not authenticated");
   const { error } = await supabase
     .from("chat_message_reports")
-    .insert({ message_id, reason });
+    .insert({ message_id, reason, reporter_id: user.id });
   if (error) throw error;
 }
