@@ -13,7 +13,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Library, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones,
+  Library as LibraryIcon, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
