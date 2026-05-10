@@ -900,8 +900,8 @@ const StudentDashboard = () => {
           />
         </div>
 
-        {/* Opay-style feature grid — every tool surfaced, grouped */}
-        <FeatureGrid />
+        {/* Opay-style quick tray — 6 categories with bottom-sheet sub-features */}
+        <QuickTray />
         <QuickActions
           subtitle="Continue where you left off"
           actions={[
