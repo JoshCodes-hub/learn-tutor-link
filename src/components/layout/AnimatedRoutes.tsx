@@ -406,6 +406,8 @@ export const AnimatedRoutes = () => {
           <Route path="/admin/scorecards" element={<AdminRoute><PageTransition><AdminTutorScorecards /></PageTransition></AdminRoute>} />
           <Route path="/admin/withdrawals" element={<AdminRoute><PageTransition><AdminWithdrawals /></PageTransition></AdminRoute>} />
           <Route path="/admin/cohorts" element={<AdminRoute><PageTransition><AdminCohorts /></PageTransition></AdminRoute>} />
+          <Route path="/admin/campaigns" element={<AdminRoute><PageTransition><AdminCampaigns /></PageTransition></AdminRoute>} />
+          <Route path="/search" element={<PageTransition><SmartSearch /></PageTransition>} />
           <Route
             path="*"
             element={
