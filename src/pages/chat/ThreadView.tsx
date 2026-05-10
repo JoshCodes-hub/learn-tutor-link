@@ -520,3 +520,44 @@ export default function ThreadView() {
     </div>
   );
 }
+
+function CitationChips({
+  citations,
+  refMap,
+}: {
+  citations?: number[];
+  refMap: Map<number, { n: number; author: string; excerpt: string }>;
+}) {
+  if (!citations || citations.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mt-1.5">
+      {citations.map(n => {
+        const r = refMap.get(n);
+        return (
+          <Popover key={n}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                title={r ? `${r.author}` : `Message #${n}`}
+              >
+                [{n}]
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="top" className="w-72 text-xs">
+              {r ? (
+                <>
+                  <p className="font-semibold mb-1">{r.author} · #{n}</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{r.excerpt}</p>
+                </>
+              ) : (
+                <p className="text-muted-foreground">Source #{n}</p>
+              )}
+            </PopoverContent>
+          </Popover>
+        );
+      })}
+    </div>
+  );
+}
+
