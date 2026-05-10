@@ -174,7 +174,7 @@ export default function ThreadView() {
     setSummBusy(true); setSummResult(null);
     try {
       const { data, error } = await supabase.functions.invoke("summarize-thread", {
-        body: { thread_id: threadId, mode: summMode },
+        body: { thread_id: threadId, mode: summMode, length: summLength },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
@@ -183,6 +183,12 @@ export default function ThreadView() {
       toast.error(e.message || "Failed to summarize");
     } finally { setSummBusy(false); }
   };
+
+  const refMap = useMemo(() => {
+    const m = new Map<number, SummRef>();
+    (summResult?.references ?? []).forEach(r => m.set(r.n, r));
+    return m;
+  }, [summResult?.references]);
 
   const saveNotesToLibrary = async () => {
     if (!summResult?.notes || !user?.id) return;
