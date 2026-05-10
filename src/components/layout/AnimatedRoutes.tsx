@@ -95,6 +95,8 @@ const QABoard = lazy(() => import("@/pages/qa/QABoard"));
 const QAQuestion = lazy(() => import("@/pages/qa/QAQuestion"));
 const MyCourses = lazy(() => import("@/pages/student/MyCourses"));
 const TutorCourses = lazy(() => import("@/pages/tutor/TutorCourses"));
+const TutorCurricula = lazy(() => import("@/pages/tutor/TutorCurricula"));
+const TutorCurriculumBuilder = lazy(() => import("@/pages/tutor/TutorCurriculumBuilder"));
 const AdminCourses = lazy(() => import("@/pages/admin/AdminCourses"));
 const CommunityWall = lazy(() => import("@/pages/community/CommunityWall"));
 const CGPACalculator = lazy(() => import("@/pages/student/CGPACalculator"));
