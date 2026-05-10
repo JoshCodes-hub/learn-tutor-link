@@ -3312,6 +3312,130 @@ export type Database = {
           },
         ]
       }
+      tutor_curricula: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_published: boolean
+          slug: string | null
+          title: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          slug?: string | null
+          title: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          slug?: string | null
+          title?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tutor_curriculum_materials: {
+        Row: {
+          content_text: string | null
+          created_at: string
+          external_url: string | null
+          id: string
+          kind: Database["public"]["Enums"]["tutor_material_kind"]
+          meta: Json
+          order_index: number
+          storage_path: string | null
+          title: string
+          topic_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_text?: string | null
+          created_at?: string
+          external_url?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["tutor_material_kind"]
+          meta?: Json
+          order_index?: number
+          storage_path?: string | null
+          title: string
+          topic_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_text?: string | null
+          created_at?: string
+          external_url?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["tutor_material_kind"]
+          meta?: Json
+          order_index?: number
+          storage_path?: string | null
+          title?: string
+          topic_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutor_curriculum_materials_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_curriculum_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tutor_curriculum_topics: {
+        Row: {
+          created_at: string
+          curriculum_id: string
+          id: string
+          order_index: number
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          curriculum_id: string
+          id?: string
+          order_index?: number
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          curriculum_id?: string
+          id?: string
+          order_index?: number
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutor_curriculum_topics_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_curricula"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tutor_earnings: {
         Row: {
           created_at: string
@@ -3714,6 +3838,7 @@ export type Database = {
         | "flashcard"
         | "study_pack"
         | "audio"
+      tutor_material_kind: "pdf" | "note" | "flashcard_set" | "link"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3860,6 +3985,7 @@ export const Constants = {
         "study_pack",
         "audio",
       ],
+      tutor_material_kind: ["pdf", "note", "flashcard_set", "link"],
     },
   },
 } as const
