@@ -65,7 +65,8 @@ export const StudyPackQuickActions = () => {
               transition={{ duration: 0.35, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.96 }}
-              className="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card p-3 sm:p-4 text-center shadow-[0_2px_10px_-6px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_24px_-12px_rgba(0,0,0,0.18)] hover:border-amber-200 transition-all min-h-[112px] sm:min-h-[128px]"
+              aria-label={`${t.title} — ${t.subtitle}`}
+              className="group relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card p-3 sm:p-4 text-center shadow-[0_2px_10px_-6px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_24px_-12px_rgba(0,0,0,0.18)] hover:border-amber-200 transition-all min-h-[112px] sm:min-h-[128px] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
             >
               <div
                 className={cn(

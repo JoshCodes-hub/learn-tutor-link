@@ -21,6 +21,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/seo/SEO";
+import { AudioPlayerCard } from "@/components/audio/AudioPlayerCard";
 import { cn } from "@/lib/utils";
 
 interface Voice {
@@ -479,21 +480,15 @@ const AudioLearning = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="space-y-3 pt-2"
+                className="pt-2"
               >
-                <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="w-4 h-4 text-primary" />
-                    <p className="font-semibold text-sm truncate">{downloadName}</p>
-                  </div>
-                  <audio src={audioUrl} controls className="w-full" />
-                </div>
-                <a href={audioUrl} download={downloadName} className="block">
-                  <Button variant="outline" className="w-full">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Narration
-                  </Button>
-                </a>
+                <AudioPlayerCard
+                  src={audioUrl}
+                  title={downloadName}
+                  transcript={text}
+                  downloadName={downloadName}
+                  resumeKey={`main:${downloadName}`}
+                />
               </motion.div>
             )}
           </Card>

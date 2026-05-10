@@ -109,7 +109,67 @@ export const ContinueLearning = () => {
     };
   }, [user]);
 
-  if (loading || items.length === 0) return null;
+  if (loading) {
+    return (
+      <section aria-label="Continue learning" aria-busy="true" className="mb-6">
+        <div className="flex items-end justify-between mb-3 px-0.5">
+          <div className="h-5 w-40 rounded-md bg-muted animate-pulse" />
+          <div className="h-4 w-12 rounded-md bg-muted animate-pulse" />
+        </div>
+        <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex gap-3 overflow-hidden">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="shrink-0 w-[78%] sm:w-[260px] rounded-2xl border border-border/60 bg-card p-4 animate-pulse"
+                aria-hidden
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-xl bg-muted" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3.5 w-20 rounded bg-muted" />
+                    <div className="h-3 w-32 rounded bg-muted/70" />
+                  </div>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted mb-3" />
+                <div className="flex justify-between">
+                  <div className="h-3 w-24 rounded bg-muted/70" />
+                  <div className="h-6 w-16 rounded-lg bg-muted" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <section aria-label="Continue learning" className="mb-6">
+        <div className="flex items-end justify-between mb-3 px-0.5">
+          <h2 className="font-display text-lg sm:text-xl font-bold tracking-tight text-foreground">
+            Continue Learning
+          </h2>
+        </div>
+        <div className="rounded-3xl border border-dashed border-amber-200 bg-gradient-to-br from-amber-50/50 to-white px-5 py-8 text-center">
+          <div className="mx-auto h-12 w-12 rounded-full bg-amber-100/70 flex items-center justify-center mb-2">
+            <BookOpen className="w-5 h-5 text-amber-600" aria-hidden />
+          </div>
+          <p className="font-display text-[14px] font-bold text-foreground">No active courses yet</p>
+          <p className="text-[12px] text-muted-foreground mt-1 max-w-[34ch] mx-auto">
+            Take a quiz on any course and your progress will start showing up here.
+          </p>
+          <Link
+            to="/student/dashboard#available-quizzes"
+            className="inline-flex mt-3 items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[12px] font-bold hover:bg-amber-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 transition"
+          >
+            Browse quizzes
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section aria-label="Continue learning" className="mb-6">

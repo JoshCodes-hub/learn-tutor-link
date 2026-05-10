@@ -131,6 +131,7 @@ const LiveRoom = lazy(() => import("@/pages/sessions/LiveRoom"));
 const CopilotPage = lazy(() => import("@/pages/student/CopilotPage"));
 const TutorGrowthStudio = lazy(() => import("@/pages/tutor/TutorGrowthStudio"));
 const AffiliateRedirect = lazy(() => import("@/pages/AffiliateRedirect"));
+const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -142,6 +143,7 @@ export const AnimatedRoutes = () => {
         <AcademicPathGate>
          <Routes location={location}>
           <Route path="/" element={<PageTransition><Welcome /></PageTransition>} />
+          <Route path="/notifications" element={<PageTransition><NotificationsPage /></PageTransition>} />
           <Route path="/start" element={<PageTransition><ChooseProduct /></PageTransition>} />
           <Route path="/start/persona" element={<PageTransition><ChoosePersona /></PageTransition>} />
           <Route path="/school/intro" element={<PageTransition><SchoolIntro /></PageTransition>} />
