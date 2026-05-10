@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star } from 'lucide-react';
 import { RatingDialog } from '@/components/tutor/RatingDialog';
 import { FollowTutorButton } from '@/components/tutor/FollowTutorButton';
+import { MessageUserButton } from '@/components/chat/MessageUserButton';
 
 export default function StorefrontPublic() {
   const { slug } = useParams<{ slug: string }>();
@@ -35,8 +36,9 @@ export default function StorefrontPublic() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="whitespace-pre-line">{data.bio}</p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <FollowTutorButton tutorId={data.tutor_id} />
+            <MessageUserButton userId={data.tutor_id} label="Message tutor" />
             <RatingDialog tutorId={data.tutor_id} />
           </div>
         </CardContent>

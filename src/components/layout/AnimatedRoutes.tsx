@@ -125,6 +125,8 @@ const AdminModeration = lazy(() => import("@/pages/admin/AdminModeration"));
 const AdminTutorScorecards = lazy(() => import("@/pages/admin/AdminTutorScorecards"));
 const AdminWithdrawals = lazy(() => import("@/pages/admin/AdminWithdrawals"));
 const AdminCohorts = lazy(() => import("@/pages/admin/AdminCohorts"));
+const AdminCampaigns = lazy(() => import("@/pages/admin/AdminCampaigns"));
+const SmartSearch = lazy(() => import("@/pages/SmartSearch"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -404,6 +406,8 @@ export const AnimatedRoutes = () => {
           <Route path="/admin/scorecards" element={<AdminRoute><PageTransition><AdminTutorScorecards /></PageTransition></AdminRoute>} />
           <Route path="/admin/withdrawals" element={<AdminRoute><PageTransition><AdminWithdrawals /></PageTransition></AdminRoute>} />
           <Route path="/admin/cohorts" element={<AdminRoute><PageTransition><AdminCohorts /></PageTransition></AdminRoute>} />
+          <Route path="/admin/campaigns" element={<AdminRoute><PageTransition><AdminCampaigns /></PageTransition></AdminRoute>} />
+          <Route path="/search" element={<PageTransition><SmartSearch /></PageTransition>} />
           <Route
             path="*"
             element={

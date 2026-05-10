@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { format } from "date-fns";
 import { useBookmarkPlaylist, usePlaylistByAttempt } from "@/hooks/useRemediationPlaylists";
+import { ShareScoreCard } from "@/components/growth/ShareScoreCard";
 
 export default function MockExamResult() {
   const { examId, attemptId } = useParams<{ examId: string; attemptId: string }>();
@@ -99,6 +100,9 @@ export default function MockExamResult() {
           <h2 className="text-3xl font-bold">{attempt.score} / {attempt.total}</h2>
           <p className="text-2xl font-semibold text-primary mt-1">{pct}%</p>
           <p className="text-xs text-muted-foreground mt-2">{attempt.exam?.title}</p>
+          <div className="flex justify-center mt-4">
+            <ShareScoreCard title={attempt.exam?.title ?? "Mock Exam"} score={attempt.score} total={attempt.total} subtitle="OverraPrep CBT" />
+          </div>
         </div>
 
         {/* Proctoring summary */}
