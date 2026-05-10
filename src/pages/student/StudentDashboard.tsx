@@ -69,6 +69,7 @@ import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { PlatformAnnouncements } from "@/components/student/PlatformAnnouncements";
 import { FreshCourses } from "@/components/student/FreshCourses";
+import { CampaignBanner } from "@/components/growth/CampaignBanner";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
