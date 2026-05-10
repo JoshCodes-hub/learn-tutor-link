@@ -233,19 +233,46 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const stopBrowserSpeech = useCallback(() => {
+    browserHandleRef.current?.stop();
+    browserHandleRef.current = null;
+    setBrowserMode(false);
+    setBrowserActiveIdx(-1);
+    setPlaying(false);
+  }, []);
+
   const generate = async () => {
     if (!text?.trim()) return toast.error("No summary text to narrate yet");
+    // Reset any in-flight browser speech
+    stopBrowserSpeech();
     setLoading(true);
     setWarming(false);
     try {
-      const blob = await fetchTts(text, voice, () => {
-        setWarming(true);
-        toast.message("Engine waking up… retrying in 5s");
+      const result = await hybridSpeak(text, {
+        voice,
+        onWarming: () => {
+          setWarming(true);
+          toast.message("Engine waking up… retrying in 5s");
+        },
+        onFallback: (reason) => {
+          toast.message("Switching to browser voice (Overra unavailable)", { description: reason });
+        },
+        onSentence: (idx) => setBrowserActiveIdx(idx),
       });
-      const objUrl = URL.createObjectURL(blob);
-      setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return objUrl; });
-      setVoiceOfCurrent(voice);
-      toast.success("Audio ready");
+
+      if (result.kind === "mp3" && result.url) {
+        setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return result.url!; });
+        setVoiceOfCurrent(voice);
+        setBrowserMode(false);
+        toast.success("Audio ready");
+      } else {
+        // Browser TTS — speech already started inside hybridSpeak
+        browserHandleRef.current = result;
+        setBrowserMode(true);
+        setPlaying(true);
+        setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
+        toast.success("Reading aloud (browser voice)");
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to generate audio");
     } finally {
@@ -254,8 +281,22 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
     }
   };
 
-  const togglePlay = () => wsRef.current?.playPause();
+  // Stop browser speech if component unmounts
+  useEffect(() => () => stopBrowserSpeech(), [stopBrowserSpeech]);
+
+  const togglePlay = () => {
+    if (browserMode) {
+      // Browser mode: pause/resume native synth
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      if (synth.paused) { synth.resume(); setPlaying(true); }
+      else if (synth.speaking) { synth.pause(); setPlaying(false); }
+      return;
+    }
+    wsRef.current?.playPause();
+  };
   const seekBy = (delta: number) => {
+    if (browserMode) return; // not seekable
     const ws = wsRef.current; if (!ws) return;
     const d = ws.getDuration();
     ws.seekTo(Math.max(0, Math.min(1, (ws.getCurrentTime() + delta) / (d || 1))));
