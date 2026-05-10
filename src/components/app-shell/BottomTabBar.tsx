@@ -47,12 +47,21 @@ export const BottomTabBar = () => {
   if (HIDDEN_PREFIXES.some((p) => location.pathname.startsWith(p))) return null;
   if (location.pathname === "/") return null;
 
-  let tabs: Tab[] = STUDENT_TABS;
-  if (primaryRole === "school_owner" || primaryRole === "school_admin") tabs = SCHOOL_TABS;
+  // Force student tabs on student-area routes regardless of role
+  // (so admins/tutors previewing the student dashboard still see the quick footer).
+  const isStudentRoute =
+    location.pathname.startsWith("/student") ||
+    ["/study-packs", "/chat", "/profile/edit", "/notifications", "/library", "/review"].some((p) =>
+      location.pathname.startsWith(p)
+    );
+
+  let tabs: Tab[];
+  if (isStudentRoute) tabs = STUDENT_TABS;
+  else if (primaryRole === "school_owner" || primaryRole === "school_admin") tabs = SCHOOL_TABS;
   else if (primaryRole === "teacher") tabs = TEACHER_TABS;
   else if (primaryRole === "parent") tabs = PARENT_TABS;
   else if (primaryRole === "student") tabs = STUDENT_TABS;
-  else return null; // admin / tutor keep top nav only
+  else return null; // admin / tutor keep top nav only on their own routes
 
   return (
     <nav
