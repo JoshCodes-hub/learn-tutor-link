@@ -27,19 +27,19 @@ export const MobileGreetingHeader = () => {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const { data: s } = await supabase
+      const sRes: any = await (supabase as any)
         .from("study_streaks")
         .select("current_streak")
         .eq("user_id", user.id)
         .maybeSingle();
-      const { count } = await supabase
+      const nRes: any = await (supabase as any)
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("read", false);
       if (cancelled) return;
-      setStreak((s as any)?.current_streak ?? 0);
-      setUnread(count ?? 0);
+      setStreak(sRes?.data?.current_streak ?? 0);
+      setUnread(nRes?.count ?? 0);
     })();
     return () => {
       cancelled = true;
