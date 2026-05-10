@@ -69,11 +69,11 @@ export const BottomTabBar = () => {
                 to={to}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                  "flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors min-h-[56px]",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Icon className={cn("w-5 h-5 transition-transform", active && "scale-110")} />
+                <Icon className={cn("w-6 h-6 transition-transform", active && "scale-110")} />
                 <span className="leading-none">{label}</span>
               </Link>
             </li>
