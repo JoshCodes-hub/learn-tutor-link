@@ -51,28 +51,28 @@ export default function TutorGrowthStudio() {
 
   const addPromo = async () => {
     if (!pCode.trim()) return;
-    const { error } = await supabase.from('promo_codes').insert({
+    const { error } = await (supabase as any).from('promo_codes').insert({
       tutor_id: uid, code: pCode.trim().toUpperCase(), discount_percent: pDisc,
     });
     if (error) toast.error(error.message); else { toast.success('Promo created'); setPCode(''); load(); }
   };
   const addBundle = async () => {
     if (!bTitle.trim()) return;
-    const { error } = await supabase.from('bundle_offers').insert({
+    const { error } = await (supabase as any).from('bundle_offers').insert({
       tutor_id: uid, title: bTitle, quantity: bQty, price_tokens: bPrice,
     });
     if (error) toast.error(error.message); else { toast.success('Bundle created'); setBTitle(''); load(); }
   };
   const addAff = async () => {
     if (!aSlug.trim()) return;
-    const { error } = await supabase.from('affiliate_links').insert({
+    const { error } = await (supabase as any).from('affiliate_links').insert({
       tutor_id: uid, slug: aSlug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-'), destination: aDest,
     });
     if (error) toast.error(error.message); else { toast.success('Link created'); setASlug(''); load(); }
   };
 
   const del = async (table: 'promo_codes' | 'bundle_offers' | 'affiliate_links', id: string) => {
-    const { error } = await supabase.from(table).delete().eq('id', id);
+    const { error } = await (supabase as any).from(table).delete().eq('id', id);
     if (error) toast.error(error.message); else load();
   };
 
