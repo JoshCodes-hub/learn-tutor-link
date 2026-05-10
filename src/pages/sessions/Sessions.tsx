@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
-import { ArrowLeft, Calendar, Clock, Users, Loader2, Coins, X, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Users, Loader2, Coins, X, CheckCircle2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -141,6 +141,17 @@ export default function Sessions() {
                     Open chat
                   </Button>
                 )}
+                {b.status === "confirmed" && b.slot && (() => {
+                  const start = new Date(b.slot.starts_at).getTime();
+                  const end = start + ((b.slot as any).duration_min ?? 60) * 60_000;
+                  const now = Date.now();
+                  const open = now >= start - 10 * 60_000 && now <= end + 30 * 60_000;
+                  return open ? (
+                    <Button size="sm" className="mr-2" onClick={() => nav(`/live/${b.slot_id}`)}>
+                      <Video className="w-3.5 h-3.5 mr-1" /> Join live
+                    </Button>
+                  ) : null;
+                })()}
                 {b.status === "confirmed" && b.slot && new Date(b.slot.starts_at) > new Date() && (
                   <Button size="sm" variant="ghost" onClick={() => handleCancel(b.id, b.tokens_paid)}>
                     <X className="w-3.5 h-3.5 mr-1" /> Cancel

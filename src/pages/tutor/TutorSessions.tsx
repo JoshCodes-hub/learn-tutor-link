@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, Plus, Loader2, Calendar, Trash2, CheckCircle2, Coins } from "lucide-react";
+import { ArrowLeft, Plus, Loader2, Calendar, Trash2, CheckCircle2, Coins, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -131,11 +131,24 @@ export default function TutorSessions() {
                         {s.price_tokens > 0 && <> · Your share: {Math.round(s.payout_share_bps / 100)}%</>}
                       </p>
                     </div>
-                    {s.status === "open" && (
-                      <Button variant="ghost" size="icon" onClick={() => remove(s.id)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {s.status === "open" && (() => {
+                        const start = new Date(s.starts_at).getTime();
+                        const end = start + (s.duration_min ?? 60) * 60_000;
+                        const now = Date.now();
+                        const open = now >= start - 10 * 60_000 && now <= end + 30 * 60_000;
+                        return open ? (
+                          <Button size="sm" onClick={() => nav(`/live/${s.id}`)}>
+                            <Video className="w-3.5 h-3.5 mr-1" /> Start
+                          </Button>
+                        ) : null;
+                      })()}
+                      {s.status === "open" && (
+                        <Button variant="ghost" size="icon" onClick={() => remove(s.id)}>
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -167,10 +180,21 @@ export default function TutorSessions() {
                     {b.payment_status === "refunded" && <span className="text-destructive">· refunded</span>}
                   </p>
                 )}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {b.thread_id && (
                     <Button size="sm" variant="outline" onClick={() => nav(`/chat/${b.thread_id}`)}>Open chat</Button>
                   )}
+                  {b.status === "confirmed" && b.slot && (() => {
+                    const start = new Date(b.slot.starts_at).getTime();
+                    const end = start + ((b.slot as any).duration_min ?? 60) * 60_000;
+                    const now = Date.now();
+                    const open = now >= start - 10 * 60_000 && now <= end + 30 * 60_000;
+                    return open ? (
+                      <Button size="sm" onClick={() => nav(`/live/${b.slot_id}`)}>
+                        <Video className="w-3.5 h-3.5 mr-1" /> Join live
+                      </Button>
+                    ) : null;
+                  })()}
                   {b.status === "confirmed" && b.payment_status !== "released" && (
                     <Button size="sm" onClick={() => markComplete(b.id, b.tokens_to_tutor)} disabled={complete.isPending}>
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" />

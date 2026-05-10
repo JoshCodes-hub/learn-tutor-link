@@ -127,6 +127,7 @@ const AdminWithdrawals = lazy(() => import("@/pages/admin/AdminWithdrawals"));
 const AdminCohorts = lazy(() => import("@/pages/admin/AdminCohorts"));
 const AdminCampaigns = lazy(() => import("@/pages/admin/AdminCampaigns"));
 const SmartSearch = lazy(() => import("@/pages/SmartSearch"));
+const LiveRoom = lazy(() => import("@/pages/sessions/LiveRoom"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -408,6 +409,7 @@ export const AnimatedRoutes = () => {
           <Route path="/admin/cohorts" element={<AdminRoute><PageTransition><AdminCohorts /></PageTransition></AdminRoute>} />
           <Route path="/admin/campaigns" element={<AdminRoute><PageTransition><AdminCampaigns /></PageTransition></AdminRoute>} />
           <Route path="/search" element={<PageTransition><SmartSearch /></PageTransition>} />
+          <Route path="/live/:slotId" element={<PageTransition><LiveRoom /></PageTransition>} />
           <Route
             path="*"
             element={
