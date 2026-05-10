@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones } from "lucide-react";
+import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones, MessageSquare } from "lucide-react";
 import { OverraAudioSuite } from "./OverraAudioSuite";
+import { ChatWithNotesPanel } from "./ChatWithNotesPanel";
 
 type Kind = "summary" | "key_points" | "flashcards" | "likely_questions";
-type Tab = Kind | "audio";
+type Tab = Kind | "audio" | "chat";
 
 interface Material {
   id: string;
