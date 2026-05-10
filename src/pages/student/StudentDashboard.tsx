@@ -75,7 +75,7 @@ import { PullToRefresh } from "@/components/native/PullToRefresh";
 import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineBanner";
 import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import { CompleteProfileCard } from "@/components/student/CompleteProfileCard";
-import { FeatureGrid } from "@/components/student/FeatureGrid";
+import { QuickTray } from "@/components/student/QuickTray";
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
 
 interface Stats {
