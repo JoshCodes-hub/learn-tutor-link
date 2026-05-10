@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { speak as hybridSpeak, type TtsResult } from "@/lib/tts";
+import { SaveToLibraryButton } from "@/components/student/SaveToLibraryButton";
 
 const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const LOFI_SRC = "/audio/lofi-study.mp3"; // drop a royalty-free loop here
@@ -455,14 +456,32 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
           <div className="text-xs tabular-nums" style={{ color: "rgba(232,199,122,0.7)" }}>
             {fmt(current)} / {fmt(duration)}
           </div>
-          <a href={url ?? undefined} download={fileName} className={cn(!url && "pointer-events-none opacity-40")}>
-            <button
-              className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-all hover:scale-105"
-              style={{ background: "rgba(232,199,122,0.1)", border: "1px solid rgba(232,199,122,0.3)", color: "#E8C77A" }}
-            >
-              <Download className="w-3.5 h-3.5" /> Download MP3
-            </button>
-          </a>
+          <div className="flex items-center gap-2">
+            {url && (
+              <SaveToLibraryButton
+                kind="audio"
+                defaultTitle={fileName.replace(/\.mp3$/i, "")}
+                defaultFolder="Audio Narrations"
+                getBlob={async () => {
+                  const r = await fetch(url);
+                  return await r.blob();
+                }}
+                mime="audio/mpeg"
+                ext="mp3"
+                size="sm"
+                variant="ghost"
+                className="h-8 px-3 rounded-full text-xs"
+              />
+            )}
+            <a href={url ?? undefined} download={fileName} className={cn(!url && "pointer-events-none opacity-40")}>
+              <button
+                className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold transition-all hover:scale-105"
+                style={{ background: "rgba(232,199,122,0.1)", border: "1px solid rgba(232,199,122,0.3)", color: "#E8C77A" }}
+              >
+                <Download className="w-3.5 h-3.5" /> Download MP3
+              </button>
+            </a>
+          </div>
         </div>
 
         {/* Vibes mixer */}

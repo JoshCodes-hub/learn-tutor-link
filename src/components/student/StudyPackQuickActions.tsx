@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  ClipboardCheck, Headphones, Layers, Bot, Calculator, FolderOpen,
+  ClipboardCheck, Headphones, Layers, Bot, Library, FolderOpen,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,7 @@ const TILES: Tile[] = [
   { icon: Headphones,     title: "Audio Reader",   subtitle: "Listen to your notes", to: "/audio-learning",    tone: "emerald" },
   { icon: Layers,         title: "Flashcards",     subtitle: "Smart revision",       to: "/flashcards",        tone: "orange" },
   { icon: Bot,            title: "AI Tutor",       subtitle: "Ask anything",         to: "/ai-tutor",          tone: "sky" },
-  { icon: Calculator,     title: "CGPA Calculator",subtitle: "Calculate your CGPA",  to: "/cgpa",              tone: "rose" },
+  { icon: Library,        title: "My Library",     subtitle: "Saved resources",      to: "/library",           tone: "rose" },
   { icon: FolderOpen,     title: "Study Packs",    subtitle: "My generated packs",   to: "/study-packs",       tone: "amber" },
 ];
 

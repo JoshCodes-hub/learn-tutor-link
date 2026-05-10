@@ -3448,6 +3448,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_resources: {
+        Row: {
+          created_at: string
+          folder: string
+          id: string
+          kind: Database["public"]["Enums"]["resource_kind"]
+          meta: Json
+          mime: string | null
+          size_bytes: number | null
+          storage_path: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          folder?: string
+          id?: string
+          kind: Database["public"]["Enums"]["resource_kind"]
+          meta?: Json
+          mime?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          folder?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["resource_kind"]
+          meta?: Json
+          mime?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3665,6 +3707,13 @@ export type Database = {
         | "teacher"
         | "parent"
       application_status: "pending" | "approved" | "rejected"
+      resource_kind:
+        | "pdf"
+        | "image"
+        | "note"
+        | "flashcard"
+        | "study_pack"
+        | "audio"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3803,6 +3852,14 @@ export const Constants = {
         "parent",
       ],
       application_status: ["pending", "approved", "rejected"],
+      resource_kind: [
+        "pdf",
+        "image",
+        "note",
+        "flashcard",
+        "study_pack",
+        "audio",
+      ],
     },
   },
 } as const

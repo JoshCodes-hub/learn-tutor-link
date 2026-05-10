@@ -99,6 +99,7 @@ const AdminCourses = lazy(() => import("@/pages/admin/AdminCourses"));
 const CommunityWall = lazy(() => import("@/pages/community/CommunityWall"));
 const CGPACalculator = lazy(() => import("@/pages/student/CGPACalculator"));
 const StudyPacks = lazy(() => import("@/pages/student/StudyPacks"));
+const Library = lazy(() => import("@/pages/student/Library"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -295,6 +296,7 @@ export const AnimatedRoutes = () => {
           <Route path="/audio-learning" element={<PageTransition><AudioLearning /></PageTransition>} />
           <Route path="/cgpa" element={<PageTransition><CGPACalculator /></PageTransition>} />
           <Route path="/study-packs" element={<PageTransition><StudyPacks /></PageTransition>} />
+          <Route path="/library" element={<PageTransition><Library /></PageTransition>} />
           <Route path="/tutor/question-cards" element={<PageTransition><TutorQuestionCards /></PageTransition>} />
           <Route path="/study-hub" element={<PageTransition><StudyHub /></PageTransition>} />
           <Route path="/study-hub/:courseId" element={<PageTransition><StudyHubCourse /></PageTransition>} />
