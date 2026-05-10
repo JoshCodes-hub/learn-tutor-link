@@ -84,6 +84,8 @@ import { TopScholarsCard } from "@/components/student/TopScholarsCard";
 import { RecentStudyPacksCard } from "@/components/student/RecentStudyPacksCard";
 import { NewStudyPackFAB } from "@/components/student/NewStudyPackFAB";
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
+import { MobileGreetingHeader } from "@/components/student/MobileGreetingHeader";
+import { ContinueLearning } from "@/components/student/ContinueLearning";
 
 interface Stats {
   totalAttempts: number;
