@@ -39,7 +39,7 @@ const signUpSchema = z.object({
   department: z.string().trim().min(2, "Department is required").max(120),
   school: z.string().trim().min(2, "School is required").max(120),
   phone: z.string().trim().min(7, "Enter a valid phone number").max(20),
-  matricNo: z.string().trim().min(2, "Matric number is required").max(40),
+  matricNo: z.string().trim().max(40).optional().or(z.literal("")),
   state: z.string().trim().min(2, "Select state of origin").max(60),
   referralCode: z.string().optional(),
 }).refine((d) => d.password === d.confirmPassword, {
