@@ -941,6 +941,41 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_proctor_events: {
+        Row: {
+          attempt_id: string
+          duration_ms: number
+          id: string
+          kind: string
+          occurred_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id: string
+          duration_ms?: number
+          id?: string
+          kind?: string
+          occurred_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string
+          duration_ms?: number
+          id?: string
+          kind?: string
+          occurred_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_proctor_events_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "mock_exam_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorite_tutors: {
         Row: {
           created_at: string
@@ -2066,6 +2101,59 @@ export type Database = {
         }
         Relationships: []
       }
+      remediation_playlists: {
+        Row: {
+          attempt_id: string | null
+          completed_at: string | null
+          content: string
+          created_at: string
+          exam_id: string | null
+          id: string
+          is_bookmarked: boolean
+          items: Json
+          title: string
+          topic_breakdown: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id?: string | null
+          completed_at?: string | null
+          content?: string
+          created_at?: string
+          exam_id?: string | null
+          id?: string
+          is_bookmarked?: boolean
+          items?: Json
+          title?: string
+          topic_breakdown?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string | null
+          completed_at?: string | null
+          content?: string
+          created_at?: string
+          exam_id?: string | null
+          id?: string
+          is_bookmarked?: boolean
+          items?: Json
+          title?: string
+          topic_breakdown?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remediation_playlists_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "mock_exam_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_card_verifications: {
         Row: {
           average_score: number | null
@@ -2606,28 +2694,43 @@ export type Database = {
       }
       session_bookings: {
         Row: {
+          completed_at: string | null
           created_at: string
           id: string
+          payment_status: string
+          released_at: string | null
           slot_id: string
           status: string
           student_id: string
           thread_id: string | null
+          tokens_paid: number
+          tokens_to_tutor: number
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           id?: string
+          payment_status?: string
+          released_at?: string | null
           slot_id: string
           status?: string
           student_id: string
           thread_id?: string | null
+          tokens_paid?: number
+          tokens_to_tutor?: number
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           id?: string
+          payment_status?: string
+          released_at?: string | null
           slot_id?: string
           status?: string
           student_id?: string
           thread_id?: string | null
+          tokens_paid?: number
+          tokens_to_tutor?: number
         }
         Relationships: [
           {
@@ -3818,6 +3921,7 @@ export type Database = {
           id: string
           platform_share: number
           quiz_id: string | null
+          session_id: string | null
           student_id: string
           tokens_paid: number
           tutor_id: string
@@ -3828,6 +3932,7 @@ export type Database = {
           id?: string
           platform_share: number
           quiz_id?: string | null
+          session_id?: string | null
           student_id: string
           tokens_paid: number
           tutor_id: string
@@ -3838,6 +3943,7 @@ export type Database = {
           id?: string
           platform_share?: number
           quiz_id?: string | null
+          session_id?: string | null
           student_id?: string
           tokens_paid?: number
           tutor_id?: string
@@ -3895,6 +4001,8 @@ export type Database = {
           duration_min: number
           id: string
           meeting_url: string | null
+          payout_share_bps: number
+          price_tokens: number
           starts_at: string
           status: string
           title: string
@@ -3909,6 +4017,8 @@ export type Database = {
           duration_min?: number
           id?: string
           meeting_url?: string | null
+          payout_share_bps?: number
+          price_tokens?: number
           starts_at: string
           status?: string
           title: string
@@ -3923,6 +4033,8 @@ export type Database = {
           duration_min?: number
           id?: string
           meeting_url?: string | null
+          payout_share_bps?: number
+          price_tokens?: number
           starts_at?: string
           status?: string
           title?: string
@@ -4199,6 +4311,11 @@ export type Database = {
     }
     Functions: {
       book_session: { Args: { _slot_id: string }; Returns: string }
+      cancel_session_booking: {
+        Args: { _booking_id: string }
+        Returns: undefined
+      }
+      complete_session: { Args: { _booking_id: string }; Returns: undefined }
       credit_tokens_for_purchase: {
         Args: {
           p_amount_cents: number

@@ -4,6 +4,8 @@ import { AlertTriangle, ArrowLeft, Clock, Loader2, ChevronLeft, ChevronRight } f
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { loadExamQuestions, useSubmitAttempt, MockExam, MockQuestion } from "@/hooks/useMockExams";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
 import { toast } from "sonner";
 
@@ -12,6 +14,7 @@ const OPTIONS = ["A", "B", "C", "D"] as const;
 export default function MockExamTake() {
   const { examId } = useParams<{ examId: string }>();
   const nav = useNavigate();
+  const { user } = useAuth();
   const submit = useSubmitAttempt();
 
   const [exam, setExam] = useState<MockExam | null>(null);
@@ -21,8 +24,13 @@ export default function MockExamTake() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [blurCount, setBlurCount] = useState(0);
+  const [warningOpen, setWarningOpen] = useState(false);
   const [finished, setFinished] = useState(false);
   const startedAt = useRef(Date.now());
+  // Buffer events; flush after submission (we need attempt_id then). Optionally
+  // also live-stream to DB so admin can review even if student abandons.
+  const events = useRef<{ kind: string; occurred_at: string; duration_ms: number }[]>([]);
+  const blurStart = useRef<number | null>(null);
 
   useEffect(() => {
     if (!examId) return;
@@ -55,19 +63,39 @@ export default function MockExamTake() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, finished]);
 
-  // Tab-blur proctoring
+  // Tab-blur proctoring with duration tracking + clearer warnings
   useEffect(() => {
     if (loading || finished) return;
-    const onBlur = () => {
+    const recordBlur = () => {
+      if (blurStart.current) return;
+      blurStart.current = Date.now();
       setBlurCount(c => {
         const next = c + 1;
-        toast.warning(`⚠️ Tab switch detected (${next})`, { duration: 2500 });
+        const sev = next >= 3 ? "destructive" : "warning";
+        setWarningOpen(true);
+        if (sev === "destructive") {
+          toast.error(`⚠️ Tab switch #${next} — repeated incidents may invalidate this attempt.`, { duration: 4000 });
+        } else {
+          toast.warning(`⚠️ Tab switch detected (${next}). Stay on this tab.`, { duration: 3000 });
+        }
         return next;
       });
     };
-    window.addEventListener("blur", onBlur);
-    document.addEventListener("visibilitychange", () => { if (document.hidden) onBlur(); });
-    return () => window.removeEventListener("blur", onBlur);
+    const recordFocus = () => {
+      if (!blurStart.current) return;
+      const dur = Date.now() - blurStart.current;
+      events.current.push({ kind: "blur", occurred_at: new Date(blurStart.current).toISOString(), duration_ms: dur });
+      blurStart.current = null;
+    };
+    const onVis = () => { if (document.hidden) recordBlur(); else recordFocus(); };
+    window.addEventListener("blur", recordBlur);
+    window.addEventListener("focus", recordFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("blur", recordBlur);
+      window.removeEventListener("focus", recordFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [loading, finished]);
 
   const handleSubmit = async () => {
@@ -80,12 +108,25 @@ export default function MockExamTake() {
         correct: q.correct_option,
         topic_id: q.topic_id,
       }));
+      // close any open blur window
+      if (blurStart.current) {
+        events.current.push({ kind: "blur", occurred_at: new Date(blurStart.current).toISOString(), duration_ms: Date.now() - blurStart.current });
+        blurStart.current = null;
+      }
       const res = await submit.mutateAsync({
         examId: exam.id,
         answers: payload,
         durationSeconds: Math.round((Date.now() - startedAt.current) / 1000),
         tabBlurCount: blurCount,
       });
+      // Persist proctor events
+      if (events.current.length > 0 && user?.id) {
+        try {
+          await (supabase as any).from("exam_proctor_events").insert(
+            events.current.map(e => ({ ...e, attempt_id: res.attemptId, user_id: user.id }))
+          );
+        } catch { /* non-blocking */ }
+      }
       toast.success(`Submitted! Score ${res.score}/${res.total}`);
       nav(`/exams/${exam.id}/result/${res.attemptId}`);
     } catch (e: any) {
@@ -103,6 +144,7 @@ export default function MockExamTake() {
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
   const lowTime = secondsLeft < 300;
+  const severeBlur = blurCount >= 3;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -122,11 +164,34 @@ export default function MockExamTake() {
           </div>
         </div>
         {blurCount > 0 && (
-          <div className="bg-amber-50 dark:bg-amber-950/30 border-t border-amber-200 dark:border-amber-900 px-3 py-1.5 text-xs text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5" /> Tab-switches detected: {blurCount} (logged for review)
+          <div className={`border-t px-3 py-1.5 text-xs flex items-center gap-1.5 ${
+            severeBlur
+              ? "bg-destructive/10 border-destructive/30 text-destructive font-semibold"
+              : "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200"
+          }`}>
+            <AlertTriangle className="w-3.5 h-3.5" />
+            {severeBlur
+              ? `Multiple tab-switches (${blurCount}) flagged — this attempt may be reviewed.`
+              : `Tab-switches detected: ${blurCount} (logged for review)`}
           </div>
         )}
       </header>
+
+      {warningOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setWarningOpen(false)}>
+          <div className="bg-card border-2 border-destructive rounded-2xl p-5 max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              <h3 className="font-bold">Stay on this tab</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              You left the exam tab. Each switch is recorded ({blurCount} so far) and may be reviewed by an instructor.
+              Please keep this tab focused until you submit.
+            </p>
+            <Button onClick={() => setWarningOpen(false)} className="w-full">I understand</Button>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-6">
         <div className="rounded-xl border bg-card p-5 mb-4">
