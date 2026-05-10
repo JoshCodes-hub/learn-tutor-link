@@ -125,6 +125,8 @@ const AdminModeration = lazy(() => import("@/pages/admin/AdminModeration"));
 const AdminTutorScorecards = lazy(() => import("@/pages/admin/AdminTutorScorecards"));
 const AdminWithdrawals = lazy(() => import("@/pages/admin/AdminWithdrawals"));
 const AdminCohorts = lazy(() => import("@/pages/admin/AdminCohorts"));
+const AdminCampaigns = lazy(() => import("@/pages/admin/AdminCampaigns"));
+const SmartSearch = lazy(() => import("@/pages/SmartSearch"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
