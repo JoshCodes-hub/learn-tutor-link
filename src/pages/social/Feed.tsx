@@ -18,17 +18,15 @@ export default function Feed() {
         const { data: f } = await supabase.from('tutor_follows').select('tutor_id').eq('follower_id', user.id);
         followedIds = (f ?? []).map((x: any) => x.tutor_id);
       }
-      const query = supabase
+      let q: any = supabase
         .from('quizzes')
         .select('id, title, subject, created_at, created_by, profiles!quizzes_created_by_fkey(full_name, avatar_url, tutor_code)')
         .eq('is_published', true)
         .order('created_at', { ascending: false })
         .limit(30);
-      if (followedIds.length > 0) {
-        query.in('created_by', followedIds);
-      }
-      const { data } = await query;
-      return data ?? [];
+      if (followedIds.length > 0) q = q.in('created_by', followedIds);
+      const { data } = await q;
+      return (data ?? []) as any[];
     },
   });
 
