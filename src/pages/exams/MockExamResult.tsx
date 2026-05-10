@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { format } from "date-fns";
 import { useBookmarkPlaylist, usePlaylistByAttempt } from "@/hooks/useRemediationPlaylists";
+import { ShareScoreCard } from "@/components/growth/ShareScoreCard";
 
 export default function MockExamResult() {
   const { examId, attemptId } = useParams<{ examId: string; attemptId: string }>();
