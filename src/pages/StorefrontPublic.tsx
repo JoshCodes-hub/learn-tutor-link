@@ -36,8 +36,9 @@ export default function StorefrontPublic() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="whitespace-pre-line">{data.bio}</p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <FollowTutorButton tutorId={data.tutor_id} />
+            <MessageUserButton userId={data.tutor_id} label="Message tutor" />
             <RatingDialog tutorId={data.tutor_id} />
           </div>
         </CardContent>
