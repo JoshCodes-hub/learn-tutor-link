@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Sparkles, GraduationCap, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target, Headphones, MessageSquare } from "lucide-react";
+import { Home, BookOpen, Sparkles, GraduationCap, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target, Headphones, MessageSquare, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -8,7 +8,7 @@ interface Tab { to: string; label: string; icon: LucideIcon; }
 const STUDENT_TABS: Tab[] = [
   { to: "/student/dashboard", label: "Home",     icon: Home },
   { to: "/student/readiness", label: "Practice", icon: Target },
-  { to: "/audio-learning",    label: "Audio",    icon: Headphones },
+  { to: "/study-packs",       label: "Study Packs", icon: FolderOpen },
   { to: "/community-wall",    label: "Chat",     icon: MessageSquare },
   { to: "/profile/edit",      label: "Profile",  icon: User },
 ];
