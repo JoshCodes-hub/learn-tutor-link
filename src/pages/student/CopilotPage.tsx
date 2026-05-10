@@ -5,34 +5,40 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, Target, Calendar, TrendingDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+interface Attempt { score: number | null; total_questions: number | null; quiz_id: string }
+interface Quiz { id: string; title: string }
+
 export default function CopilotPage() {
   const [loading, setLoading] = useState(true);
   const [weakTopics, setWeakTopics] = useState<{ topic: string; accuracy: number; n: number }[]>([]);
-  const [examDate, setExamDate] = useState<string>(localStorage.getItem('exam_date') ?? '');
+  const [examDate, setExamDate] = useState<string>(typeof window !== 'undefined' ? localStorage.getItem('exam_date') ?? '' : '');
   const [recentScore, setRecentScore] = useState<number | null>(null);
 
   useEffect(() => { (async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
     const { data: attempts } = await supabase
-      .from('quiz_attempts').select('score_percentage, quiz_id, created_at')
-      .eq('user_id', user.id).order('created_at', { ascending: false }).limit(60);
-    if (attempts && attempts.length) setRecentScore(Math.round(attempts.slice(0, 5).reduce((a, b) => a + (b.score_percentage ?? 0), 0) / Math.min(5, attempts.length)));
+      .from('quiz_attempts').select('score, total_questions, quiz_id, completed_at')
+      .eq('user_id', user.id).order('completed_at', { ascending: false }).limit(60);
+    const list: Attempt[] = (attempts as any[] | null) ?? [];
+    const pct = (a: Attempt) => a.total_questions && a.total_questions > 0 ? Math.round(((a.score ?? 0) / a.total_questions) * 100) : 0;
+    if (list.length) {
+      const last5 = list.slice(0, 5);
+      setRecentScore(Math.round(last5.reduce((s, a) => s + pct(a), 0) / last5.length));
+    }
 
-    // Naive weak topics: group by quiz, surface lowest scores
     const map = new Map<string, { sum: number; n: number; title: string }>();
-    if (attempts?.length) {
-      const quizIds = [...new Set(attempts.map(a => a.quiz_id))];
-      const { data: quizzes } = await supabase.from('quizzes').select('id, title, subject').in('id', quizIds);
-      const titleMap = new Map((quizzes ?? []).map(q => [q.id, q.subject || q.title]));
-      for (const a of attempts) {
+    if (list.length) {
+      const quizIds = [...new Set(list.map(a => a.quiz_id))];
+      const { data: quizzes } = await supabase.from('quizzes').select('id, title').in('id', quizIds);
+      const titleMap = new Map(((quizzes as Quiz[] | null) ?? []).map(q => [q.id, q.title]));
+      for (const a of list) {
         const t = titleMap.get(a.quiz_id) ?? 'Unknown';
         const cur = map.get(t) ?? { sum: 0, n: 0, title: t };
-        cur.sum += a.score_percentage ?? 0; cur.n += 1; map.set(t, cur);
+        cur.sum += pct(a); cur.n += 1; map.set(t, cur);
       }
     }
     const weak = [...map.values()]
-      .filter(v => v.n >= 1)
       .map(v => ({ topic: v.title, accuracy: Math.round(v.sum / v.n), n: v.n }))
       .sort((a, b) => a.accuracy - b.accuracy).slice(0, 5);
     setWeakTopics(weak);
