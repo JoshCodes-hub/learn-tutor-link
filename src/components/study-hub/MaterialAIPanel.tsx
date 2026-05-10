@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones } from "lucide-react";
+import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones, MessageSquare } from "lucide-react";
 import { OverraAudioSuite } from "./OverraAudioSuite";
+import { ChatWithNotesPanel } from "./ChatWithNotesPanel";
 
 type Kind = "summary" | "key_points" | "flashcards" | "likely_questions";
-type Tab = Kind | "audio";
+type Tab = Kind | "audio" | "chat";
 
 interface Material {
   id: string;
@@ -57,7 +58,7 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
   };
 
   useEffect(() => {
-    if (open && tab !== "audio" && !data[tab as Kind] && loadingKind !== tab) {
+    if (open && tab !== "audio" && tab !== "chat" && !data[tab as Kind] && loadingKind !== tab) {
       fetchKind(tab as Kind);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -171,9 +172,10 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
               <TabsTrigger value="key_points"><ListChecks className="w-4 h-4 mr-1" /> Key Points</TabsTrigger>
               <TabsTrigger value="flashcards"><Layers className="w-4 h-4 mr-1" /> Flashcards</TabsTrigger>
               <TabsTrigger value="likely_questions"><Sparkles className="w-4 h-4 mr-1" /> Likely Q</TabsTrigger>
+              <TabsTrigger value="chat"><MessageSquare className="w-4 h-4 mr-1" /> Chat</TabsTrigger>
               <TabsTrigger value="audio"><Headphones className="w-4 h-4 mr-1" /> Audio</TabsTrigger>
             </TabsList>
-            {tab !== "audio" && data[tab as Kind] && (
+            {tab !== "audio" && tab !== "chat" && data[tab as Kind] && (
               <Button variant="ghost" size="sm" onClick={() => fetchKind(tab as Kind, true)} disabled={!!loadingKind}>
                 <RefreshCw className="w-3.5 h-3.5" /> Regenerate
               </Button>
@@ -184,6 +186,13 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
           <TabsContent value="key_points" className="mt-4">{renderPoints()}</TabsContent>
           <TabsContent value="flashcards" className="mt-4">{renderFlashcards()}</TabsContent>
           <TabsContent value="likely_questions" className="mt-4">{renderLikely()}</TabsContent>
+          <TabsContent value="chat" className="mt-4">
+            <ChatWithNotesPanel
+              materialId={material.id}
+              materialTitle={material.title}
+              materialText={(data.summary as { text?: string } | null)?.text}
+            />
+          </TabsContent>
           <TabsContent value="audio" className="mt-4">
             <OverraAudioSuite
               text={(data.summary as { text?: string } | null)?.text}

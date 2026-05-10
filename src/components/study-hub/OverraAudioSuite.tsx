@@ -6,9 +6,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   Play, Pause, Rewind, FastForward, Download, Loader2,
-  AudioWaveform, Headphones, Music2, Volume2, VolumeX, Sparkles, GraduationCap, Mic2,
+  AudioWaveform, Headphones, Music2, Volume2, VolumeX, Sparkles, GraduationCap, Mic2, Radio,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { speak as hybridSpeak, type TtsResult } from "@/lib/tts";
 
 const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const LOFI_SRC = "/audio/lofi-study.mp3"; // drop a royalty-free loop here
@@ -127,6 +128,11 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
   const [voice, setVoice] = useState<Voice>("standard");
   const [voiceOfCurrent, setVoiceOfCurrent] = useState<Voice>("standard");
 
+  // Browser fallback state (when Overra fails)
+  const [browserMode, setBrowserMode] = useState(false);
+  const [browserActiveIdx, setBrowserActiveIdx] = useState(-1);
+  const browserHandleRef = useRef<TtsResult | null>(null);
+
   // Lo-Fi mixer
   const [lofiOn, setLofiOn] = useState(false);
   const [lofiVol, setLofiVol] = useState(25);
@@ -139,8 +145,9 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
   const paragraphs = useMemo(() => groupParagraphs(sentences), [sentences]);
   const totalChars = useMemo(() => sentences.reduce((a, s) => a + s.length, 0) || 1, [sentences]);
 
-  // Active sentence index based on current time
+  // Active sentence index — driven by audio time (mp3) or by browser-speech callback
   const activeIndex = useMemo(() => {
+    if (browserMode) return browserActiveIdx;
     if (!duration || !sentences.length) return -1;
     const ratio = current / duration;
     let acc = 0;
@@ -149,7 +156,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
       if (acc / totalChars >= ratio) return i;
     }
     return sentences.length - 1;
-  }, [current, duration, sentences, totalChars]);
+  }, [current, duration, sentences, totalChars, browserMode, browserActiveIdx]);
 
   // Init wavesurfer
   useEffect(() => {
@@ -226,19 +233,46 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const stopBrowserSpeech = useCallback(() => {
+    browserHandleRef.current?.stop();
+    browserHandleRef.current = null;
+    setBrowserMode(false);
+    setBrowserActiveIdx(-1);
+    setPlaying(false);
+  }, []);
+
   const generate = async () => {
     if (!text?.trim()) return toast.error("No summary text to narrate yet");
+    // Reset any in-flight browser speech
+    stopBrowserSpeech();
     setLoading(true);
     setWarming(false);
     try {
-      const blob = await fetchTts(text, voice, () => {
-        setWarming(true);
-        toast.message("Engine waking up… retrying in 5s");
+      const result = await hybridSpeak(text, {
+        voice,
+        onWarming: () => {
+          setWarming(true);
+          toast.message("Engine waking up… retrying in 5s");
+        },
+        onFallback: (reason) => {
+          toast.message("Switching to browser voice (Overra unavailable)", { description: reason });
+        },
+        onSentence: (idx) => setBrowserActiveIdx(idx),
       });
-      const objUrl = URL.createObjectURL(blob);
-      setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return objUrl; });
-      setVoiceOfCurrent(voice);
-      toast.success("Audio ready");
+
+      if (result.kind === "mp3" && result.url) {
+        setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return result.url!; });
+        setVoiceOfCurrent(voice);
+        setBrowserMode(false);
+        toast.success("Audio ready");
+      } else {
+        // Browser TTS — speech already started inside hybridSpeak
+        browserHandleRef.current = result;
+        setBrowserMode(true);
+        setPlaying(true);
+        setUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
+        toast.success("Reading aloud (browser voice)");
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to generate audio");
     } finally {
@@ -247,8 +281,22 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
     }
   };
 
-  const togglePlay = () => wsRef.current?.playPause();
+  // Stop browser speech if component unmounts
+  useEffect(() => () => stopBrowserSpeech(), [stopBrowserSpeech]);
+
+  const togglePlay = () => {
+    if (browserMode) {
+      // Browser mode: pause/resume native synth
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      if (synth.paused) { synth.resume(); setPlaying(true); }
+      else if (synth.speaking) { synth.pause(); setPlaying(false); }
+      return;
+    }
+    wsRef.current?.playPause();
+  };
   const seekBy = (delta: number) => {
+    if (browserMode) return; // not seekable
     const ws = wsRef.current; if (!ws) return;
     const d = ws.getDuration();
     ws.seekTo(Math.max(0, Math.min(1, (ws.getCurrentTime() + delta) / (d || 1))));
@@ -344,10 +392,15 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
 
         {/* Waveform */}
         <div className="rounded-2xl p-3" style={{ background: "rgba(11,20,38,0.6)", border: "1px solid rgba(232,199,122,0.15)" }}>
-          <div ref={containerRef} className="w-full" />
-          {!url && (
+          <div ref={containerRef} className={cn("w-full", browserMode && "hidden")} />
+          {!url && !browserMode && (
             <div className="h-[72px] grid place-items-center text-xs" style={{ color: "rgba(232,199,122,0.5)" }}>
               <span className="inline-flex items-center gap-2"><Headphones className="w-4 h-4" /> Generate audio to see the waveform</span>
+            </div>
+          )}
+          {browserMode && (
+            <div className="h-[72px] grid place-items-center text-xs" style={{ color: "#E8C77A" }}>
+              <span className="inline-flex items-center gap-2 font-semibold"><Radio className="w-4 h-4 animate-pulse" /> Live browser narration · sentence {Math.max(0, browserActiveIdx) + 1} / {sentences.length}</span>
             </div>
           )}
         </div>
@@ -356,7 +409,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
         <div className="flex items-center justify-center gap-3">
           <button
             onClick={() => seekBy(-10)}
-            disabled={!url}
+            disabled={!url || browserMode}
             className="w-10 h-10 rounded-full grid place-items-center disabled:opacity-40 transition-all hover:scale-105"
             style={{ background: "rgba(232,199,122,0.1)", border: "1px solid rgba(232,199,122,0.25)", color: "#E8C77A" }}
             aria-label="Back 10 seconds"
@@ -365,7 +418,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
           </button>
           <button
             onClick={togglePlay}
-            disabled={!url}
+            disabled={!url && !browserMode}
             className="w-14 h-14 rounded-full grid place-items-center disabled:opacity-40 transition-all hover:scale-105 shadow-lg"
             style={{ background: "linear-gradient(135deg,#C9A96E,#E8C77A)", color: "#0B1426", boxShadow: "0 8px 24px rgba(232,199,122,0.35)" }}
             aria-label={playing ? "Pause" : "Play"}
@@ -374,7 +427,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
           </button>
           <button
             onClick={() => seekBy(10)}
-            disabled={!url}
+            disabled={!url || browserMode}
             className="w-10 h-10 rounded-full grid place-items-center disabled:opacity-40 transition-all hover:scale-105"
             style={{ background: "rgba(232,199,122,0.1)", border: "1px solid rgba(232,199,122,0.25)", color: "#E8C77A" }}
             aria-label="Forward 10 seconds"
