@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, ArrowRight, Loader2, Gift, GraduationCap, Phone, MapPin, BookOpen, IdCard } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2, Gift, GraduationCap, Phone, MapPin, BookOpen, IdCard, Eye, EyeOff, Sparkles, ShieldCheck } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
 import { supabase } from "@/integrations/supabase/client";
+
+// Lazy-loaded WebGL gold orb scene used as a luxe 3D backdrop.
+const Splash3DScene = lazy(() => import("@/components/splash/Splash3DScene"));
 
 const NIGERIAN_STATES = [
   "Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta",
