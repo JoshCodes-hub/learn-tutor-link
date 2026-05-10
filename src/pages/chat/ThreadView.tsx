@@ -180,7 +180,7 @@ export default function ThreadView() {
       await saveTextNote({
         userId: user.id,
         title: `Notes — ${thread?.title ?? "Brainstorm"}`,
-        text: summResult.notes,
+        content: summResult.notes,
       });
       toast.success("Saved to your library");
     } catch (e: any) { toast.error(e.message); }
@@ -422,7 +422,7 @@ export default function ThreadView() {
                         await saveTextNote({
                           userId: user.id,
                           title: `Flashcards — ${thread?.title ?? "Brainstorm"}`,
-                          text: summResult.flashcards.map(c => `Q: ${c.question}\nA: ${c.answer}`).join("\n\n"),
+                          content: summResult.flashcards.map(c => `Q: ${c.question}\nA: ${c.answer}`).join("\n\n"),
                         });
                         toast.success("Saved to your library");
                       } catch (e: any) { toast.error(e.message); }
