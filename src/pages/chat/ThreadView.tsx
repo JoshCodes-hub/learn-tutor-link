@@ -60,10 +60,20 @@ export default function ThreadView() {
   const [savingInvite, setSavingInvite] = useState(false);
 
   // Summarize dialog
+  type SummLength = "short" | "medium" | "long";
+  type SummRef = { n: number; author: string; excerpt: string };
+  type SummKey = { text: string; citations: number[] };
+  type SummCard = { question: string; answer: string; citations: number[] };
   const [summOpen, setSummOpen] = useState(false);
   const [summMode, setSummMode] = useState<"notes" | "flashcards">("notes");
+  const [summLength, setSummLength] = useState<SummLength>("medium");
   const [summBusy, setSummBusy] = useState(false);
-  const [summResult, setSummResult] = useState<{ notes?: string; flashcards?: { question: string; answer: string }[] } | null>(null);
+  const [summResult, setSummResult] = useState<{
+    notes?: string;
+    key_points?: SummKey[];
+    flashcards?: SummCard[];
+    references?: SummRef[];
+  } | null>(null);
 
   // Report dialog
   const [reportTarget, setReportTarget] = useState<ChatMessage | null>(null);
