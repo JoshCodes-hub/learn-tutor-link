@@ -1,6 +1,6 @@
 // Native-feeling helpers (work in browser; degrade gracefully)
 
-export interface ShareData { title?: string; text?: string; url?: string; files?: File[] }
+export interface ShareData { title?: string; text?: string; url?: string; files?: File[]; dialogTitle?: string }
 
 export async function shareContent(data: ShareData): Promise<boolean> {
   try {

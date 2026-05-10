@@ -31,12 +31,13 @@ export default function TutorGrowthStudio() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
     setUid(user.id);
+    const sb = supabase as any;
     const [p, b, a, payouts, bookings] = await Promise.all([
-      supabase.from('promo_codes').select('*').eq('tutor_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('bundle_offers').select('*').eq('tutor_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('affiliate_links').select('*').eq('tutor_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('tutor_payouts').select('amount_tokens').eq('tutor_id', user.id),
-      supabase.from('session_bookings').select('id, student_id, slot_id, tutor_session_slots!inner(tutor_id)').eq('tutor_session_slots.tutor_id', user.id),
+      sb.from('promo_codes').select('*').eq('tutor_id', user.id).order('created_at', { ascending: false }),
+      sb.from('bundle_offers').select('*').eq('tutor_id', user.id).order('created_at', { ascending: false }),
+      sb.from('affiliate_links').select('*').eq('tutor_id', user.id).order('created_at', { ascending: false }),
+      sb.from('tutor_payouts').select('amount_tokens').eq('tutor_id', user.id),
+      sb.from('session_bookings').select('id, student_id, slot_id, tutor_session_slots!inner(tutor_id)').eq('tutor_session_slots.tutor_id', user.id),
     ]);
     setPromos((p.data as any) ?? []);
     setBundles((b.data as any) ?? []);
