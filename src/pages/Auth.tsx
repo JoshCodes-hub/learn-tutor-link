@@ -67,6 +67,8 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [showSignInPwd, setShowSignInPwd] = useState(false);
+  const [showSignUpPwd, setShowSignUpPwd] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
