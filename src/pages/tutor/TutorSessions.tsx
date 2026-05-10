@@ -180,10 +180,21 @@ export default function TutorSessions() {
                     {b.payment_status === "refunded" && <span className="text-destructive">· refunded</span>}
                   </p>
                 )}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {b.thread_id && (
                     <Button size="sm" variant="outline" onClick={() => nav(`/chat/${b.thread_id}`)}>Open chat</Button>
                   )}
+                  {b.status === "confirmed" && b.slot && (() => {
+                    const start = new Date(b.slot.starts_at).getTime();
+                    const end = start + ((b.slot as any).duration_min ?? 60) * 60_000;
+                    const now = Date.now();
+                    const open = now >= start - 10 * 60_000 && now <= end + 30 * 60_000;
+                    return open ? (
+                      <Button size="sm" onClick={() => nav(`/live/${b.slot_id}`)}>
+                        <Video className="w-3.5 h-3.5 mr-1" /> Join live
+                      </Button>
+                    ) : null;
+                  })()}
                   {b.status === "confirmed" && b.payment_status !== "released" && (
                     <Button size="sm" onClick={() => markComplete(b.id, b.tokens_to_tutor)} disabled={complete.isPending}>
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
