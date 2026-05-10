@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
-import { ArrowLeft, Calendar, Clock, Users, Loader2, Coins, X, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Users, Loader2, Coins, X, CheckCircle2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
