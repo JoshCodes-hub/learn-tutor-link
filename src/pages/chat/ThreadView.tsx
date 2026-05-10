@@ -485,6 +485,10 @@ export default function ThreadView() {
                   </Button>
                   <Button variant="outline" onClick={() => setSummResult(null)}>Try again</Button>
                 </div>
+                <AddBulkToReviewButton
+                  cards={summResult.flashcards.map(c => ({ front: c.question, back: c.answer }))}
+                  sourceKind="summary"
+                />
               </div>
             ) : null}
           </div>
