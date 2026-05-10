@@ -132,7 +132,7 @@ export default function TutorCurricula() {
               {create.isPending && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />} Create
             </Button>
           </DialogFooter>
-        </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );
