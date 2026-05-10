@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, ArrowRight, Loader2, Gift, GraduationCap, Phone, MapPin, BookOpen, IdCard } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2, Gift, GraduationCap, Phone, MapPin, BookOpen, IdCard, Eye, EyeOff, Sparkles, ShieldCheck } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
 import { supabase } from "@/integrations/supabase/client";
+
+// Lazy-loaded WebGL gold orb scene used as a luxe 3D backdrop.
+const Splash3DScene = lazy(() => import("@/components/splash/Splash3DScene"));
 
 const NIGERIAN_STATES = [
   "Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta",
@@ -36,7 +39,7 @@ const signUpSchema = z.object({
   department: z.string().trim().min(2, "Department is required").max(120),
   school: z.string().trim().min(2, "School is required").max(120),
   phone: z.string().trim().min(7, "Enter a valid phone number").max(20),
-  matricNo: z.string().trim().min(2, "Matric number is required").max(40),
+  matricNo: z.string().trim().max(40).optional().or(z.literal("")),
   state: z.string().trim().min(2, "Select state of origin").max(60),
   referralCode: z.string().optional(),
 }).refine((d) => d.password === d.confirmPassword, {
@@ -64,6 +67,8 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [showSignInPwd, setShowSignInPwd] = useState(false);
+  const [showSignUpPwd, setShowSignUpPwd] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
@@ -230,23 +235,34 @@ const Auth = () => {
         noindex={true}
         url="https://overraprep.com/auth"
       />
-      <main className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden" role="main">
-        {/* Premium gold ambient glow */}
-        <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-primary/10 blur-3xl" aria-hidden />
+      <main
+        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-[#fffaf0] via-background to-[#fff4d8]"
+        role="main"
+      >
+        {/* Lazy 3D gold orb scene — soft, sits behind everything */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.55] mix-blend-multiply" aria-hidden>
+          <Suspense fallback={null}>
+            <Splash3DScene />
+          </Suspense>
+        </div>
 
-        <article className="w-full max-w-md relative z-10">
+        {/* Premium gold ambient glow accents */}
+        <div className="pointer-events-none absolute -top-40 -left-40 w-[28rem] h-[28rem] rounded-full bg-primary/30 blur-[120px]" aria-hidden />
+        <div className="pointer-events-none absolute -bottom-40 -right-40 w-[28rem] h-[28rem] rounded-full bg-amber-300/30 blur-[120px]" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.15),transparent_60%)]" aria-hidden />
+
+        <article className="w-full max-w-md relative z-10 animate-fade-in">
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-7">
           <a href="/" className="inline-flex items-center group">
             <img
               src={logo}
               alt="OverraPrep AI"
-              className="h-14 w-auto object-contain drop-shadow-[0_4px_20px_hsl(var(--primary)/0.35)]"
+              className="h-16 w-auto object-contain drop-shadow-[0_8px_30px_hsl(var(--primary)/0.45)] transition-transform group-hover:scale-105"
             />
           </a>
-          <p className="mt-3 text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold">
-            Read with Ease
+          <p className="mt-3 text-[11px] uppercase tracking-[0.3em] text-muted-foreground/80 font-bold">
+            Study Smart · Not Hard
           </p>
         </div>
 
@@ -265,26 +281,31 @@ const Auth = () => {
           </div>
         )}
 
-        {/* Auth Card */}
-        <div className="bg-card rounded-3xl border border-primary/15 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.25)] p-8 backdrop-blur-sm">
+        {/* Auth Card — glassmorphic */}
+        <div className="relative">
+          {/* outer gold border glow */}
+          <div className="absolute -inset-[1.5px] rounded-[28px] bg-gradient-to-br from-primary/60 via-amber-300/30 to-primary/60 opacity-70 blur-[2px]" aria-hidden />
+          <div className="relative bg-white/75 supports-[backdrop-filter]:bg-white/55 backdrop-blur-2xl rounded-[26px] border border-white/60 shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.45)] p-7 sm:p-8">
           {/* Tab Switcher */}
-          <div className="flex mb-8 bg-muted rounded-lg p-1">
+          <div className="relative flex mb-7 bg-muted/70 rounded-2xl p-1 border border-border/40">
+            <span
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl bg-gradient-to-br from-primary to-amber-400 shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.6)] transition-all duration-300 ease-out ${
+                isSignUp ? "left-[calc(50%+2px)]" : "left-1"
+              }`}
+              aria-hidden
+            />
             <button
               onClick={() => setIsSignUp(false)}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-all duration-200 ${
-                !isSignUp
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`relative z-10 flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 ${
+                !isSignUp ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Sign In
             </button>
             <button
               onClick={() => setIsSignUp(true)}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-all duration-200 ${
-                isSignUp
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`relative z-10 flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 ${
+                isSignUp ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Sign Up
@@ -321,11 +342,19 @@ const Auth = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="signin-password"
-                    type="password"
+                    type={showSignInPwd ? "text" : "password"}
                     placeholder="••••••••"
-                    className="pl-10 h-12"
+                    className="pl-10 pr-11 h-12"
                     {...signInForm.register("password")}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignInPwd((v) => !v)}
+                    aria-label={showSignInPwd ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showSignInPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
                 {signInForm.formState.errors.password && (
                   <p className="text-sm text-destructive">{signInForm.formState.errors.password.message}</p>
@@ -424,11 +453,19 @@ const Auth = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-10 h-12"
+                    type={showSignUpPwd ? "text" : "password"}
+                    placeholder="At least 6 characters"
+                    className="pl-10 pr-11 h-12"
                     {...signUpForm.register("password")}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignUpPwd((v) => !v)}
+                    aria-label={showSignUpPwd ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showSignUpPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
                 {signUpForm.formState.errors.password && (
                   <p className="text-sm text-destructive">{signUpForm.formState.errors.password.message}</p>
@@ -546,7 +583,9 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="signup-matric" className="text-foreground text-sm font-medium">Matric / Reg no.</Label>
+                    <Label htmlFor="signup-matric" className="text-foreground text-sm font-medium">
+                      Matric / Reg no. <span className="text-muted-foreground font-normal">(optional)</span>
+                    </Label>
                     <Input id="signup-matric" placeholder="CSC/20/1234" className="h-11" {...signUpForm.register("matricNo")} />
                     {signUpForm.formState.errors.matricNo && (
                       <p className="text-xs text-destructive">{signUpForm.formState.errors.matricNo.message}</p>
@@ -623,6 +662,7 @@ const Auth = () => {
               </p>
             </form>
           )}
+          </div>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
