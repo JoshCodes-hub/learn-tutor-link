@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      affiliate_links: {
+        Row: {
+          clicks: number
+          conversions: number
+          created_at: string
+          destination: string
+          id: string
+          slug: string
+          tutor_id: string
+        }
+        Insert: {
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          destination: string
+          id?: string
+          slug: string
+          tutor_id: string
+        }
+        Update: {
+          clicks?: number
+          conversions?: number
+          created_at?: string
+          destination?: string
+          id?: string
+          slug?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -205,6 +235,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bundle_offers: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          price_tokens: number
+          quantity: number
+          title: string
+          tutor_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          price_tokens: number
+          quantity: number
+          title: string
+          tutor_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          price_tokens?: number
+          quantity?: number
+          title?: string
+          tutor_id?: string
+        }
+        Relationships: []
       }
       campaign_dismissals: {
         Row: {
@@ -1405,6 +1468,152 @@ export type Database = {
         }
         Relationships: []
       }
+      live_breakouts: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          id: string
+          name: string
+          room_suffix: string
+          slot_id: string
+          tutor_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          room_suffix: string
+          slot_id: string
+          tutor_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          room_suffix?: string
+          slot_id?: string
+          tutor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_breakouts_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_session_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_recaps: {
+        Row: {
+          action_items: Json
+          created_at: string
+          id: string
+          key_points: Json
+          slot_id: string
+          summary: string
+          tutor_id: string
+        }
+        Insert: {
+          action_items?: Json
+          created_at?: string
+          id?: string
+          key_points?: Json
+          slot_id: string
+          summary: string
+          tutor_id: string
+        }
+        Update: {
+          action_items?: Json
+          created_at?: string
+          id?: string
+          key_points?: Json
+          slot_id?: string
+          summary?: string
+          tutor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_recaps_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: true
+            referencedRelation: "tutor_session_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_recordings: {
+        Row: {
+          created_at: string
+          duration_s: number | null
+          file_url: string
+          id: string
+          size_bytes: number | null
+          slot_id: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_s?: number | null
+          file_url: string
+          id?: string
+          size_bytes?: number | null
+          slot_id: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_s?: number | null
+          file_url?: string
+          id?: string
+          size_bytes?: number | null
+          slot_id?: string
+          tutor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_recordings_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_session_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_tickets: {
+        Row: {
+          created_at: string
+          id: string
+          slot_id: string
+          student_id: string
+          tokens_paid: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          slot_id: string
+          student_id: string
+          tokens_paid?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          slot_id?: string
+          student_id?: string
+          tokens_paid?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_tickets_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_session_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mock_exam_attempts: {
         Row: {
           answers: Json
@@ -1811,6 +2020,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      promo_codes: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          discount_percent: number
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          tutor_id: string
+          uses: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          discount_percent: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          tutor_id: string
+          uses?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          discount_percent?: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          tutor_id?: string
+          uses?: number
+        }
+        Relationships: []
       }
       qa_answers: {
         Row: {
@@ -4406,6 +4651,7 @@ export type Database = {
           price_tokens: number
           starts_at: string
           status: string
+          ticket_price_tokens: number
           title: string
           tutor_id: string
           updated_at: string
@@ -4422,6 +4668,7 @@ export type Database = {
           price_tokens?: number
           starts_at: string
           status?: string
+          ticket_price_tokens?: number
           title: string
           tutor_id: string
           updated_at?: string
@@ -4438,6 +4685,7 @@ export type Database = {
           price_tokens?: number
           starts_at?: string
           status?: string
+          ticket_price_tokens?: number
           title?: string
           tutor_id?: string
           updated_at?: string
