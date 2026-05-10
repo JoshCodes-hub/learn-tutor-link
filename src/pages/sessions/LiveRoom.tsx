@@ -19,6 +19,7 @@ export default function LiveRoom() {
   const nav = useNavigate();
   const [data, setData] = useState<TokenResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showRoster, setShowRoster] = useState(true);
 
   useEffect(() => {
     if (!slotId) return;
