@@ -281,26 +281,31 @@ const Auth = () => {
           </div>
         )}
 
-        {/* Auth Card */}
-        <div className="bg-card rounded-3xl border border-primary/15 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.25)] p-8 backdrop-blur-sm">
+        {/* Auth Card — glassmorphic */}
+        <div className="relative">
+          {/* outer gold border glow */}
+          <div className="absolute -inset-[1.5px] rounded-[28px] bg-gradient-to-br from-primary/60 via-amber-300/30 to-primary/60 opacity-70 blur-[2px]" aria-hidden />
+          <div className="relative bg-white/75 supports-[backdrop-filter]:bg-white/55 backdrop-blur-2xl rounded-[26px] border border-white/60 shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.45)] p-7 sm:p-8">
           {/* Tab Switcher */}
-          <div className="flex mb-8 bg-muted rounded-lg p-1">
+          <div className="relative flex mb-7 bg-muted/70 rounded-2xl p-1 border border-border/40">
+            <span
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl bg-gradient-to-br from-primary to-amber-400 shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.6)] transition-all duration-300 ease-out ${
+                isSignUp ? "left-[calc(50%+2px)]" : "left-1"
+              }`}
+              aria-hidden
+            />
             <button
               onClick={() => setIsSignUp(false)}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-all duration-200 ${
-                !isSignUp
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`relative z-10 flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 ${
+                !isSignUp ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Sign In
             </button>
             <button
               onClick={() => setIsSignUp(true)}
-              className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-all duration-200 ${
-                isSignUp
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`relative z-10 flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors duration-200 ${
+                isSignUp ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               Sign Up
