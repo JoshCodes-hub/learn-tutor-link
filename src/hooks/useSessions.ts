@@ -7,9 +7,20 @@ export type SessionSlot = {
   title: string; description: string | null;
   starts_at: string; duration_min: number; capacity: number;
   meeting_url: string | null; status: string;
+  price_tokens: number; payout_share_bps: number;
   tutor?: { full_name: string | null; avatar_url: string | null; tutor_code: string | null };
   booked_count?: number;
   i_booked?: boolean;
+};
+
+export type SessionBooking = {
+  id: string; slot_id: string; student_id: string; thread_id: string | null;
+  status: string; payment_status: string;
+  tokens_paid: number; tokens_to_tutor: number;
+  completed_at: string | null; released_at: string | null;
+  created_at: string;
+  slot?: SessionSlot;
+  student?: { full_name: string | null; avatar_url: string | null };
 };
 
 export function useUpcomingSessions() {
@@ -78,6 +89,39 @@ export function useTutorSlots() {
   });
 }
 
+export function useTutorBookings() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["session-bookings", "tutor", user?.id],
+    enabled: !!user?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      // first get tutor's slots
+      const { data: slots } = await supabase
+        .from("tutor_session_slots")
+        .select("id, title, starts_at, price_tokens")
+        .eq("tutor_id", user!.id);
+      const ids = (slots ?? []).map((s: any) => s.id);
+      if (ids.length === 0) return [] as SessionBooking[];
+      const { data, error } = await supabase
+        .from("session_bookings")
+        .select("*, slot:tutor_session_slots(*)")
+        .in("slot_id", ids)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      const bookings = (data ?? []) as SessionBooking[];
+      const studentIds = Array.from(new Set(bookings.map(b => b.student_id)));
+      if (studentIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id, full_name, avatar_url").in("id", studentIds);
+        const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+        bookings.forEach(b => { b.student = map.get(b.student_id) as any; });
+      }
+      return bookings;
+    },
+  });
+}
+
 export function useMyBookings() {
   const { user } = useAuth();
   return useQuery({
@@ -91,7 +135,7 @@ export function useMyBookings() {
         .eq("student_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as SessionBooking[];
     },
   });
 }
@@ -107,6 +151,36 @@ export function useBookSession() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["session-slots"] });
       qc.invalidateQueries({ queryKey: ["session-bookings"] });
+      qc.invalidateQueries({ queryKey: ["token-wallet"] });
+    },
+  });
+}
+
+export function useCompleteSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (bookingId: string) => {
+      const { error } = await (supabase as any).rpc("complete_session", { _booking_id: bookingId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["session-bookings"] });
+      qc.invalidateQueries({ queryKey: ["token-wallet"] });
+    },
+  });
+}
+
+export function useCancelBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (bookingId: string) => {
+      const { error } = await (supabase as any).rpc("cancel_session_booking", { _booking_id: bookingId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["session-bookings"] });
+      qc.invalidateQueries({ queryKey: ["session-slots"] });
+      qc.invalidateQueries({ queryKey: ["token-wallet"] });
     },
   });
 }
@@ -126,7 +200,9 @@ export function useCreateSlot() {
         capacity: input.capacity ?? 1,
         meeting_url: input.meeting_url ?? null,
         curriculum_id: input.curriculum_id ?? null,
-      });
+        price_tokens: input.price_tokens ?? 0,
+        payout_share_bps: input.payout_share_bps ?? 7000,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["session-slots"] }),
