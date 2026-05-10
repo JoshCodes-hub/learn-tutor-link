@@ -99,6 +99,7 @@ const AdminCourses = lazy(() => import("@/pages/admin/AdminCourses"));
 const CommunityWall = lazy(() => import("@/pages/community/CommunityWall"));
 const CGPACalculator = lazy(() => import("@/pages/student/CGPACalculator"));
 const StudyPacks = lazy(() => import("@/pages/student/StudyPacks"));
+const Library = lazy(() => import("@/pages/student/Library"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
