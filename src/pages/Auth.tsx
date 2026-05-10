@@ -583,7 +583,9 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="signup-matric" className="text-foreground text-sm font-medium">Matric / Reg no.</Label>
+                    <Label htmlFor="signup-matric" className="text-foreground text-sm font-medium">
+                      Matric / Reg no. <span className="text-muted-foreground font-normal">(optional)</span>
+                    </Label>
                     <Input id="signup-matric" placeholder="CSC/20/1234" className="h-11" {...signUpForm.register("matricNo")} />
                     {signUpForm.formState.errors.matricNo && (
                       <p className="text-xs text-destructive">{signUpForm.formState.errors.matricNo.message}</p>
