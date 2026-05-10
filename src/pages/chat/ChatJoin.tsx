@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 export default function ChatJoin() {
   const { code } = useParams<{ code: string }>();
-  const { user, loading } = useAuth();
+  const { user, isLoading: loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
