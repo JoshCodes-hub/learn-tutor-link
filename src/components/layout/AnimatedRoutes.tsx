@@ -128,6 +128,9 @@ const AdminCohorts = lazy(() => import("@/pages/admin/AdminCohorts"));
 const AdminCampaigns = lazy(() => import("@/pages/admin/AdminCampaigns"));
 const SmartSearch = lazy(() => import("@/pages/SmartSearch"));
 const LiveRoom = lazy(() => import("@/pages/sessions/LiveRoom"));
+const CopilotPage = lazy(() => import("@/pages/student/CopilotPage"));
+const TutorGrowthStudio = lazy(() => import("@/pages/tutor/TutorGrowthStudio"));
+const AffiliateRedirect = lazy(() => import("@/pages/AffiliateRedirect"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -410,6 +413,9 @@ export const AnimatedRoutes = () => {
           <Route path="/admin/campaigns" element={<AdminRoute><PageTransition><AdminCampaigns /></PageTransition></AdminRoute>} />
           <Route path="/search" element={<PageTransition><SmartSearch /></PageTransition>} />
           <Route path="/live/:slotId" element={<PageTransition><LiveRoom /></PageTransition>} />
+          <Route path="/copilot" element={<PageTransition><CopilotPage /></PageTransition>} />
+          <Route path="/tutor/growth" element={<PageTransition><TutorGrowthStudio /></PageTransition>} />
+          <Route path="/r/:slug" element={<AffiliateRedirect />} />
           <Route
             path="*"
             element={
