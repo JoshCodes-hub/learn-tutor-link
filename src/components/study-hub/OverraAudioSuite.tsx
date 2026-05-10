@@ -128,6 +128,11 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
   const [voice, setVoice] = useState<Voice>("standard");
   const [voiceOfCurrent, setVoiceOfCurrent] = useState<Voice>("standard");
 
+  // Browser fallback state (when Overra fails)
+  const [browserMode, setBrowserMode] = useState(false);
+  const [browserActiveIdx, setBrowserActiveIdx] = useState(-1);
+  const browserHandleRef = useRef<TtsResult | null>(null);
+
   // Lo-Fi mixer
   const [lofiOn, setLofiOn] = useState(false);
   const [lofiVol, setLofiVol] = useState(25);
