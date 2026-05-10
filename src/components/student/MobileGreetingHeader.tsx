@@ -27,20 +27,18 @@ export const MobileGreetingHeader = () => {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const [{ data: s }, { count }] = await Promise.all([
-        supabase
-          .from("study_streaks")
-          .select("current_streak")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("notifications")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("read", false),
-      ]);
+      const { data: s } = await supabase
+        .from("study_streaks")
+        .select("current_streak")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const { count } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("read", false);
       if (cancelled) return;
-      setStreak(s?.current_streak ?? 0);
+      setStreak((s as any)?.current_streak ?? 0);
       setUnread(count ?? 0);
     })();
     return () => {
