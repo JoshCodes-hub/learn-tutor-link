@@ -926,9 +926,6 @@ const StudentDashboard = () => {
         {/* Continue Learning — per-course progress bars (mockup) */}
         <ContinueLearning />
 
-        {/* Phase 2: 6-tile direct-nav Quick Actions */}
-        <StudyPackQuickActions />
-
         {/* Phase 2: Daily motivational quote */}
         <MotivationalQuote />
 
@@ -937,6 +934,7 @@ const StudentDashboard = () => {
           <TopScholarsCard />
           <RecentStudyPacksCard />
         </div>
+        <div className="hidden sm:block">
         <QuickActions
           subtitle="Continue where you left off"
           actions={[
