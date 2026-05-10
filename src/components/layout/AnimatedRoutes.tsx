@@ -112,6 +112,7 @@ const Install = lazy(() => import("@/pages/Install"));
 const MockExams = lazy(() => import("@/pages/exams/MockExams"));
 const MockExamTake = lazy(() => import("@/pages/exams/MockExamTake"));
 const MockExamResult = lazy(() => import("@/pages/exams/MockExamResult"));
+const RemediationPlaylists = lazy(() => import("@/pages/student/RemediationPlaylists"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -378,6 +379,7 @@ export const AnimatedRoutes = () => {
           <Route path="/exams" element={<PageTransition><MockExams /></PageTransition>} />
           <Route path="/exams/:examId/take" element={<PageTransition><MockExamTake /></PageTransition>} />
           <Route path="/exams/:examId/result/:attemptId" element={<PageTransition><MockExamResult /></PageTransition>} />
+          <Route path="/remediation" element={<PageTransition><RemediationPlaylists /></PageTransition>} />
           <Route
             path="*"
             element={
