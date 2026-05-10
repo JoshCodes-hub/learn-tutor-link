@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  ClipboardCheck, Headphones, Layers, Bot, Calculator, FolderOpen,
+  ClipboardCheck, Headphones, Layers, Bot, Library, FolderOpen,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
