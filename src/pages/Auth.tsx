@@ -235,23 +235,34 @@ const Auth = () => {
         noindex={true}
         url="https://overraprep.com/auth"
       />
-      <main className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden" role="main">
-        {/* Premium gold ambient glow */}
-        <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-primary/10 blur-3xl" aria-hidden />
+      <main
+        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-[#fffaf0] via-background to-[#fff4d8]"
+        role="main"
+      >
+        {/* Lazy 3D gold orb scene — soft, sits behind everything */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.55] mix-blend-multiply" aria-hidden>
+          <Suspense fallback={null}>
+            <Splash3DScene />
+          </Suspense>
+        </div>
 
-        <article className="w-full max-w-md relative z-10">
+        {/* Premium gold ambient glow accents */}
+        <div className="pointer-events-none absolute -top-40 -left-40 w-[28rem] h-[28rem] rounded-full bg-primary/30 blur-[120px]" aria-hidden />
+        <div className="pointer-events-none absolute -bottom-40 -right-40 w-[28rem] h-[28rem] rounded-full bg-amber-300/30 blur-[120px]" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.15),transparent_60%)]" aria-hidden />
+
+        <article className="w-full max-w-md relative z-10 animate-fade-in">
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-7">
           <a href="/" className="inline-flex items-center group">
             <img
               src={logo}
               alt="OverraPrep AI"
-              className="h-14 w-auto object-contain drop-shadow-[0_4px_20px_hsl(var(--primary)/0.35)]"
+              className="h-16 w-auto object-contain drop-shadow-[0_8px_30px_hsl(var(--primary)/0.45)] transition-transform group-hover:scale-105"
             />
           </a>
-          <p className="mt-3 text-xs uppercase tracking-[0.2em] text-muted-foreground font-semibold">
-            Read with Ease
+          <p className="mt-3 text-[11px] uppercase tracking-[0.3em] text-muted-foreground/80 font-bold">
+            Study Smart · Not Hard
           </p>
         </div>
 
