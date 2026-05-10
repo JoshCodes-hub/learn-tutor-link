@@ -105,6 +105,13 @@ const Library = lazy(() => import("@/pages/student/Library"));
 const ChatInbox = lazy(() => import("@/pages/chat/Inbox"));
 const ChatThread = lazy(() => import("@/pages/chat/ThreadView"));
 const ChatJoin = lazy(() => import("@/pages/chat/ChatJoin"));
+const Review = lazy(() => import("@/pages/student/Review"));
+const Sessions = lazy(() => import("@/pages/sessions/Sessions"));
+const TutorSessions = lazy(() => import("@/pages/tutor/TutorSessions"));
+const Install = lazy(() => import("@/pages/Install"));
+const MockExams = lazy(() => import("@/pages/exams/MockExams"));
+const MockExamTake = lazy(() => import("@/pages/exams/MockExamTake"));
+const MockExamResult = lazy(() => import("@/pages/exams/MockExamResult"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
