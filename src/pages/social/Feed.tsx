@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { MessageUserButton } from '@/components/chat/MessageUserButton';
 
 export default function Feed() {
   const { user } = useAuth();
