@@ -52,6 +52,9 @@ export default function LiveRoom() {
       <header className="flex items-center gap-2 px-3 py-2 border-b shrink-0">
         <Button variant="ghost" size="icon" onClick={() => nav(-1)}><ArrowLeft className="w-5 h-5" /></Button>
         <h1 className="text-sm font-semibold flex-1 truncate">{data.title} {data.isHost && <span className="text-xs text-primary">· Host</span>}</h1>
+        <Button variant={showRoster ? 'secondary' : 'ghost'} size="icon" onClick={() => setShowRoster(s => !s)} title="Participants">
+          <Users className="w-5 h-5" />
+        </Button>
       </header>
       <div className="flex-1 min-h-0">
         <LiveKitRoom
@@ -64,7 +67,12 @@ export default function LiveRoom() {
           style={{ height: '100%' }}
           onDisconnected={() => nav('/sessions')}
         >
-          <VideoConference />
+          <div className="flex h-full w-full">
+            <div className="flex-1 min-w-0">
+              <VideoConference />
+            </div>
+            {showRoster && <ParticipantRoster />}
+          </div>
           <RoomAudioRenderer />
         </LiveKitRoom>
       </div>
