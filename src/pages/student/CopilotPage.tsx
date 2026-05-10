@@ -1,0 +1,103 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, Sparkles, Target, Calendar, TrendingDown } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+export default function CopilotPage() {
+  const [loading, setLoading] = useState(true);
+  const [weakTopics, setWeakTopics] = useState<{ topic: string; accuracy: number; n: number }[]>([]);
+  const [examDate, setExamDate] = useState<string>(localStorage.getItem('exam_date') ?? '');
+  const [recentScore, setRecentScore] = useState<number | null>(null);
+
+  useEffect(() => { (async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLoading(false); return; }
+    const { data: attempts } = await supabase
+      .from('quiz_attempts').select('score_percentage, quiz_id, created_at')
+      .eq('user_id', user.id).order('created_at', { ascending: false }).limit(60);
+    if (attempts && attempts.length) setRecentScore(Math.round(attempts.slice(0, 5).reduce((a, b) => a + (b.score_percentage ?? 0), 0) / Math.min(5, attempts.length)));
+
+    // Naive weak topics: group by quiz, surface lowest scores
+    const map = new Map<string, { sum: number; n: number; title: string }>();
+    if (attempts?.length) {
+      const quizIds = [...new Set(attempts.map(a => a.quiz_id))];
+      const { data: quizzes } = await supabase.from('quizzes').select('id, title, subject').in('id', quizIds);
+      const titleMap = new Map((quizzes ?? []).map(q => [q.id, q.subject || q.title]));
+      for (const a of attempts) {
+        const t = titleMap.get(a.quiz_id) ?? 'Unknown';
+        const cur = map.get(t) ?? { sum: 0, n: 0, title: t };
+        cur.sum += a.score_percentage ?? 0; cur.n += 1; map.set(t, cur);
+      }
+    }
+    const weak = [...map.values()]
+      .filter(v => v.n >= 1)
+      .map(v => ({ topic: v.title, accuracy: Math.round(v.sum / v.n), n: v.n }))
+      .sort((a, b) => a.accuracy - b.accuracy).slice(0, 5);
+    setWeakTopics(weak);
+    setLoading(false);
+  })(); }, []);
+
+  const daysToExam = examDate ? Math.max(0, Math.ceil((new Date(examDate).getTime() - Date.now()) / 86400000)) : null;
+
+  return (
+    <div className="container max-w-3xl py-6 px-4 space-y-4">
+      <header className="flex items-center gap-2">
+        <Sparkles className="w-6 h-6 text-primary" />
+        <h1 className="text-2xl font-bold">AI Copilot</h1>
+      </header>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Calendar className="w-4 h-4" /> Exam day</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          <input type="date" value={examDate} onChange={(e) => { setExamDate(e.target.value); localStorage.setItem('exam_date', e.target.value); }}
+            className="border rounded-md px-3 py-2 text-sm w-full" />
+          {daysToExam !== null && (
+            <p className="text-sm text-muted-foreground">
+              {daysToExam === 0 ? 'Exam is today — breathe and trust your prep.' : `${daysToExam} day${daysToExam === 1 ? '' : 's'} until exam.`}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><TrendingDown className="w-4 h-4" /> Weakest topics</CardTitle></CardHeader>
+        <CardContent>
+          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : weakTopics.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Take a few quizzes to unlock topic insights.</p>
+          ) : (
+            <ul className="space-y-2">
+              {weakTopics.map(t => (
+                <li key={t.topic} className="flex items-center justify-between border-b pb-2 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium">{t.topic}</p>
+                    <p className="text-xs text-muted-foreground">{t.n} attempt{t.n === 1 ? '' : 's'}</p>
+                  </div>
+                  <span className={`text-sm font-semibold ${t.accuracy < 50 ? 'text-destructive' : t.accuracy < 70 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    {t.accuracy}%
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      {recentScore !== null && (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Target className="w-4 h-4" /> Recent average</CardTitle></CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-primary">{recentScore}%</p>
+            <p className="text-xs text-muted-foreground">Last 5 quizzes</p>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex flex-col gap-2">
+        <Button asChild className="w-full"><Link to="/coach">Open Socratic Study Chat →</Link></Button>
+        <Button asChild variant="outline" className="w-full"><Link to="/review">Run an SRS review session</Link></Button>
+      </div>
+    </div>
+  );
+}
