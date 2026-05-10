@@ -36,7 +36,7 @@ export const MobileGreetingHeader = () => {
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("read", false);
+        .eq("is_read", false);
       if (cancelled) return;
       setStreak(sRes?.data?.current_streak ?? 0);
       setUnread(nRes?.count ?? 0);
