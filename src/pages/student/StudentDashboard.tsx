@@ -816,13 +816,16 @@ const StudentDashboard = () => {
       <main className="container mx-auto px-4 py-6 md:py-8 max-w-6xl">
         <DashboardOfflineBanner onReattempt={refreshQuizzes} />
 
+        {/* Mobile-first greeting header — matches product mockup */}
+        <MobileGreetingHeader />
+
         {/* Premium welcome strip — no profile photo, focus on greeting + path */}
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           aria-label="Welcome"
-          className="mb-5 relative overflow-hidden rounded-3xl border border-amber-200/60 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-[0_18px_50px_-22px_rgba(180,140,40,0.55)]"
+          className="hidden sm:block mb-5 relative overflow-hidden rounded-3xl border border-amber-200/60 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white shadow-[0_18px_50px_-22px_rgba(180,140,40,0.55)]"
         >
           <div className="pointer-events-none absolute -top-16 -right-10 w-56 h-56 rounded-full bg-white/20 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -left-8 w-52 h-52 rounded-full bg-amber-300/30 blur-3xl" />
@@ -876,14 +879,16 @@ const StudentDashboard = () => {
         {/* Admin-curated announcements */}
         <PlatformAnnouncements />
 
-        {/* Fresh courses (admin + tutor created) — newest 8 */}
-        <FreshCourses />
+        {/* Fresh courses (admin + tutor created) — desktop only; mobile uses Continue Learning instead */}
+        <div className="hidden sm:block">
+          <FreshCourses />
+        </div>
 
         {/* Complete profile nudge */}
         <CompleteProfileCard profile={profile} />
 
-        {/* Core stats — only 3, focused on study outcomes */}
-        <div className="grid grid-cols-3 gap-3 md:gap-5 mb-8">
+        {/* Core stats — desktop only; mobile mockup focuses on hero + actions */}
+        <div className="hidden sm:grid grid-cols-3 gap-3 md:gap-5 mb-8">
           <PremiumStatCard
             icon={Sparkles}
             label="Readiness"
@@ -914,6 +919,12 @@ const StudentDashboard = () => {
 
         {/* Phase 2: Study Pack AI hero (mockup centerpiece) */}
         <StudyPackHero />
+
+        {/* Phase 2: 6-tile direct-nav Quick Actions */}
+        <StudyPackQuickActions />
+
+        {/* Continue Learning — per-course progress bars (mockup) */}
+        <ContinueLearning />
 
         {/* Phase 2: 6-tile direct-nav Quick Actions */}
         <StudyPackQuickActions />
