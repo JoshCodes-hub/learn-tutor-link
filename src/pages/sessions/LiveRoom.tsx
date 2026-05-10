@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ArrowLeft, AlertCircle, Users, MessageSquare } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertCircle, Users, MessageSquare, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   LiveKitRoom, VideoConference, RoomAudioRenderer, Chat,
 } from '@livekit/components-react';
 import '@livekit/components-styles';
 import ParticipantRoster from '@/components/live/ParticipantRoster';
+import LiveRecorder from '@/components/live/LiveRecorder';
+import ClassRecapPanel from '@/components/live/ClassRecapPanel';
 
 interface TokenResponse {
   token: string; url: string; room: string; identity: string; isHost: boolean; title: string;
 }
 
-type Panel = 'roster' | 'chat' | null;
+type Panel = 'roster' | 'chat' | 'recap' | null;
 
 export default function LiveRoom() {
   const { slotId } = useParams<{ slotId: string }>();
@@ -53,12 +55,18 @@ export default function LiveRoom() {
       <header className="flex items-center gap-2 px-3 py-2 border-b shrink-0">
         <Button variant="ghost" size="icon" onClick={() => nav(-1)}><ArrowLeft className="w-5 h-5" /></Button>
         <h1 className="text-sm font-semibold flex-1 truncate">{data.title} {data.isHost && <span className="text-xs text-primary">· Host</span>}</h1>
+        {data.isHost && <LiveRecorder slotId={slotId} />}
         <Button variant={panel === 'roster' ? 'secondary' : 'ghost'} size="icon" onClick={() => setPanel(panel === 'roster' ? null : 'roster')} title="Participants">
           <Users className="w-5 h-5" />
         </Button>
         <Button variant={panel === 'chat' ? 'secondary' : 'ghost'} size="icon" onClick={() => setPanel(panel === 'chat' ? null : 'chat')} title="Chat">
           <MessageSquare className="w-5 h-5" />
         </Button>
+        {data.isHost && (
+          <Button variant={panel === 'recap' ? 'secondary' : 'ghost'} size="icon" onClick={() => setPanel(panel === 'recap' ? null : 'recap')} title="AI Recap">
+            <Sparkles className="w-5 h-5" />
+          </Button>
+        )}
       </header>
       <div className="flex-1 min-h-0">
         <LiveKitRoom
@@ -91,6 +99,11 @@ export default function LiveRoom() {
           <RoomAudioRenderer />
         </LiveKitRoom>
       </div>
-    </div>
+            {panel === 'recap' && (
+              <aside className="w-80 shrink-0 border-l bg-card flex flex-col h-full overflow-y-auto p-3">
+                <ClassRecapPanel slotId={slotId} />
+              </aside>
+            )}
+          </div>
   );
 }
