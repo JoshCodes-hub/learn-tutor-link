@@ -1,16 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Sparkles, GraduationCap, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target } from "lucide-react";
+import { Home, BookOpen, Sparkles, GraduationCap, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target, Headphones, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Tab { to: string; label: string; icon: LucideIcon; }
 
 const STUDENT_TABS: Tab[] = [
-  { to: "/student/dashboard", label: "Home", icon: Home },
-  { to: "/study-hub", label: "Courses", icon: BookOpen },
-  { to: "/student/readiness", label: "Readiness", icon: Target },
-  { to: "/ai-tutor", label: "AI", icon: Sparkles },
-  { to: "/profile/edit", label: "Profile", icon: User },
+  { to: "/student/dashboard", label: "Home",     icon: Home },
+  { to: "/student/readiness", label: "Practice", icon: Target },
+  { to: "/audio-learning",    label: "Audio",    icon: Headphones },
+  { to: "/community-wall",    label: "Chat",     icon: MessageSquare },
+  { to: "/profile/edit",      label: "Profile",  icon: User },
 ];
 
 const SCHOOL_TABS: Tab[] = [
@@ -69,11 +69,11 @@ export const BottomTabBar = () => {
                 to={to}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                  "flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors min-h-[56px]",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Icon className={cn("w-5 h-5 transition-transform", active && "scale-110")} />
+                <Icon className={cn("w-6 h-6 transition-transform", active && "scale-110")} />
                 <span className="leading-none">{label}</span>
               </Link>
             </li>

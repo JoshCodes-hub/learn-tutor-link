@@ -75,7 +75,7 @@ import { PullToRefresh } from "@/components/native/PullToRefresh";
 import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineBanner";
 import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import { CompleteProfileCard } from "@/components/student/CompleteProfileCard";
-import { FeatureGrid } from "@/components/student/FeatureGrid";
+import { QuickTray } from "@/components/student/QuickTray";
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
 
 interface Stats {
@@ -900,8 +900,8 @@ const StudentDashboard = () => {
           />
         </div>
 
-        {/* Opay-style feature grid — every tool surfaced, grouped */}
-        <FeatureGrid />
+        {/* Opay-style quick tray — 6 categories with bottom-sheet sub-features */}
+        <QuickTray />
         <QuickActions
           subtitle="Continue where you left off"
           actions={[
