@@ -77,7 +77,20 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
     const c = data.summary as { text?: string } | null;
     if (loadingKind === "summary") return <CenterLoader label="Reading and summarizing..." />;
     if (!c?.text) return <Empty />;
-    return <div className="whitespace-pre-wrap text-sm leading-relaxed">{c.text}</div>;
+    return (
+      <div className="space-y-3">
+        <div className="whitespace-pre-wrap text-sm leading-relaxed">{c.text}</div>
+        <div className="flex justify-end">
+          <SaveToLibraryButton
+            kind="study_pack"
+            defaultTitle={`${material.title} — Summary`}
+            defaultFolder="Study Packs"
+            textContent={c.text}
+            meta={{ material_id: material.id, source: "summary" }}
+          />
+        </div>
+      </div>
+    );
   };
 
   const renderPoints = () => {
