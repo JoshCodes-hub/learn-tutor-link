@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { UserPlus, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function FollowTutorButton({ tutorId }: { tutorId: string }) {
+export function FollowTutorButton({ tutorId, variant: _v }: { tutorId: string; variant?: string }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { data: isFollowing } = useQuery({
