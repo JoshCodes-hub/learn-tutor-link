@@ -392,10 +392,15 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
 
         {/* Waveform */}
         <div className="rounded-2xl p-3" style={{ background: "rgba(11,20,38,0.6)", border: "1px solid rgba(232,199,122,0.15)" }}>
-          <div ref={containerRef} className="w-full" />
-          {!url && (
+          <div ref={containerRef} className={cn("w-full", browserMode && "hidden")} />
+          {!url && !browserMode && (
             <div className="h-[72px] grid place-items-center text-xs" style={{ color: "rgba(232,199,122,0.5)" }}>
               <span className="inline-flex items-center gap-2"><Headphones className="w-4 h-4" /> Generate audio to see the waveform</span>
+            </div>
+          )}
+          {browserMode && (
+            <div className="h-[72px] grid place-items-center text-xs" style={{ color: "#E8C77A" }}>
+              <span className="inline-flex items-center gap-2 font-semibold"><Radio className="w-4 h-4 animate-pulse" /> Live browser narration · sentence {Math.max(0, browserActiveIdx) + 1} / {sentences.length}</span>
             </div>
           )}
         </div>
@@ -404,7 +409,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
         <div className="flex items-center justify-center gap-3">
           <button
             onClick={() => seekBy(-10)}
-            disabled={!url}
+            disabled={!url || browserMode}
             className="w-10 h-10 rounded-full grid place-items-center disabled:opacity-40 transition-all hover:scale-105"
             style={{ background: "rgba(232,199,122,0.1)", border: "1px solid rgba(232,199,122,0.25)", color: "#E8C77A" }}
             aria-label="Back 10 seconds"
@@ -413,7 +418,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
           </button>
           <button
             onClick={togglePlay}
-            disabled={!url}
+            disabled={!url && !browserMode}
             className="w-14 h-14 rounded-full grid place-items-center disabled:opacity-40 transition-all hover:scale-105 shadow-lg"
             style={{ background: "linear-gradient(135deg,#C9A96E,#E8C77A)", color: "#0B1426", boxShadow: "0 8px 24px rgba(232,199,122,0.35)" }}
             aria-label={playing ? "Pause" : "Play"}
@@ -422,7 +427,7 @@ export const OverraAudioSuite = ({ text, fileName = "overra-audio.mp3" }: Props)
           </button>
           <button
             onClick={() => seekBy(10)}
-            disabled={!url}
+            disabled={!url || browserMode}
             className="w-10 h-10 rounded-full grid place-items-center disabled:opacity-40 transition-all hover:scale-105"
             style={{ background: "rgba(232,199,122,0.1)", border: "1px solid rgba(232,199,122,0.25)", color: "#E8C77A" }}
             aria-label="Forward 10 seconds"
