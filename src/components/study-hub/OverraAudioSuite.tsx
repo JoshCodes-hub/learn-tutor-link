@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { speak as hybridSpeak, type TtsResult } from "@/lib/tts";
+import { SaveToLibraryButton } from "@/components/student/SaveToLibraryButton";
 
 const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const LOFI_SRC = "/audio/lofi-study.mp3"; // drop a royalty-free loop here
