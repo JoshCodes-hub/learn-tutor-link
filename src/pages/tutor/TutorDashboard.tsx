@@ -527,6 +527,13 @@ const TutorDashboard = () => {
             },
             {
               icon: BookOpen,
+              label: "My Curricula",
+              description: "Build courses with topics + AI flashcards",
+              to: "/tutor/curricula",
+              tone: "gold",
+            },
+            {
+              icon: BookOpen,
               label: "My Courses",
               description: "Pick courses you handle",
               to: "/tutor/courses",
