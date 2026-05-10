@@ -99,7 +99,7 @@ const Library = () => {
           {/* Header */}
           <div className="mb-6">
             <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-              <Library className="w-6 h-6 text-primary" /> My Library
+              <LibraryIcon className="w-6 h-6 text-primary" /> My Library
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Your private collection — saved Study Packs, audio narrations, notes & PDFs.
@@ -183,7 +183,7 @@ const Library = () => {
                 </div>
               ) : filtered.length === 0 ? (
                 <Card className="p-10 text-center">
-                  <Library className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+                  <LibraryIcon className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
                   <p className="font-semibold">Your library is empty</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Tap "Save to Library" inside any Study Pack or audio narration to keep it here.
