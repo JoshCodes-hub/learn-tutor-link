@@ -206,6 +206,41 @@ export type Database = {
           },
         ]
       }
+      chat_message_reports: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reason: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reason: string
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reason?: string
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_message_reports_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           author_id: string | null
@@ -284,6 +319,9 @@ export type Database = {
           created_by: string
           id: string
           invite_code: string | null
+          invite_expires_at: string | null
+          invite_single_use: boolean
+          invite_used_at: string | null
           kind: Database["public"]["Enums"]["chat_thread_kind"]
           title: string | null
           updated_at: string
@@ -295,6 +333,9 @@ export type Database = {
           created_by: string
           id?: string
           invite_code?: string | null
+          invite_expires_at?: string | null
+          invite_single_use?: boolean
+          invite_used_at?: string | null
           kind?: Database["public"]["Enums"]["chat_thread_kind"]
           title?: string | null
           updated_at?: string
@@ -306,6 +347,9 @@ export type Database = {
           created_by?: string
           id?: string
           invite_code?: string | null
+          invite_expires_at?: string | null
+          invite_single_use?: boolean
+          invite_used_at?: string | null
           kind?: Database["public"]["Enums"]["chat_thread_kind"]
           title?: string | null
           updated_at?: string
@@ -3644,6 +3688,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: []
       }
       user_performance_snapshots: {
         Row: {
