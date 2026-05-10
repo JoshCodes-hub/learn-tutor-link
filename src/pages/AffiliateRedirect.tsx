@@ -8,10 +8,10 @@ export default function AffiliateRedirect() {
   const nav = useNavigate();
   useEffect(() => { (async () => {
     if (!slug) return nav('/');
-    const { data } = await supabase.from('affiliate_links').select('id, destination, clicks').eq('slug', slug).maybeSingle();
+    const sb = supabase as any;
+    const { data } = await sb.from('affiliate_links').select('id, destination, clicks').eq('slug', slug).maybeSingle();
     if (!data) return nav('/');
-    // best-effort click increment
-    supabase.from('affiliate_links').update({ clicks: (data.clicks ?? 0) + 1 }).eq('id', data.id).then(() => {});
+    sb.from('affiliate_links').update({ clicks: (data.clicks ?? 0) + 1 }).eq('id', data.id).then(() => {});
     sessionStorage.setItem('aff_ref', data.id);
     nav(data.destination ?? '/', { replace: true });
   })(); }, [slug, nav]);

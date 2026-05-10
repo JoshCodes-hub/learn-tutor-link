@@ -59,7 +59,7 @@ export default function LiveRecorder({ slotId }: { slotId: string }) {
       const { data: signed } = await supabase.storage.from('class-recordings').createSignedUrl(path, 60 * 60 * 24 * 365);
       const url = signed?.signedUrl ?? path;
       const duration_s = Math.round((Date.now() - startRef.current) / 1000);
-      await supabase.from('live_recordings').insert({
+      await (supabase as any).from('live_recordings').insert({
         slot_id: slotId, tutor_id: user.id, file_url: url,
         duration_s, size_bytes: blob.size,
       });
