@@ -150,7 +150,24 @@ export default function TutorCurriculumBuilder() {
                 <h1 className="font-display text-2xl font-bold text-foreground">{curriculum.title}</h1>
                 {curriculum.description && <p className="text-sm text-muted-foreground mt-1">{curriculum.description}</p>}
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline" size="sm"
+                  onClick={async () => {
+                    const { findOrCreateContextThread } = await import("@/hooks/useChatThreads");
+                    try {
+                      const id = await findOrCreateContextThread({
+                        userId: user!.id,
+                        context_kind: "tutor_curriculum",
+                        context_id: curriculum.id,
+                        title: `${curriculum.title} · Discussion`,
+                      });
+                      navigate(`/chat/${id}`);
+                    } catch (e: any) { toast.error(e.message); }
+                  }}
+                >
+                  <Sparkles className="w-4 h-4 mr-1.5" /> Open Discussion
+                </Button>
                 <Badge variant={curriculum.is_published ? "default" : "secondary"}>
                   {curriculum.is_published ? "Published" : "Draft"}
                 </Badge>
