@@ -9,7 +9,7 @@ const STUDENT_TABS: Tab[] = [
   { to: "/student/dashboard", label: "Home",     icon: Home },
   { to: "/student/readiness", label: "Practice", icon: Target },
   { to: "/study-packs",       label: "Study Packs", icon: FolderOpen },
-  { to: "/community-wall",    label: "Chat",     icon: MessageSquare },
+  { to: "/chat",              label: "Chat",     icon: MessageSquare },
   { to: "/profile/edit",      label: "Profile",  icon: User },
 ];
 

@@ -102,6 +102,9 @@ const CommunityWall = lazy(() => import("@/pages/community/CommunityWall"));
 const CGPACalculator = lazy(() => import("@/pages/student/CGPACalculator"));
 const StudyPacks = lazy(() => import("@/pages/student/StudyPacks"));
 const Library = lazy(() => import("@/pages/student/Library"));
+const ChatInbox = lazy(() => import("@/pages/chat/Inbox"));
+const ChatThread = lazy(() => import("@/pages/chat/ThreadView"));
+const ChatJoin = lazy(() => import("@/pages/chat/ChatJoin"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -346,6 +349,9 @@ export const AnimatedRoutes = () => {
           <Route path="/settings/notifications" element={<PageTransition><NotificationSettings /></PageTransition>} />
           <Route path="/lecture-notes" element={<PageTransition><LectureNotes /></PageTransition>} />
           <Route path="/messages" element={<PageTransition><Inbox /></PageTransition>} />
+          <Route path="/chat" element={<PageTransition><ChatInbox /></PageTransition>} />
+          <Route path="/chat/join/:code" element={<PageTransition><ChatJoin /></PageTransition>} />
+          <Route path="/chat/:threadId" element={<PageTransition><ChatThread /></PageTransition>} />
           <Route path="/announcements" element={<PageTransition><Announcements /></PageTransition>} />
           <Route path="/qa" element={<PageTransition><QABoard /></PageTransition>} />
           <Route path="/qa/:id" element={<PageTransition><QAQuestion /></PageTransition>} />
