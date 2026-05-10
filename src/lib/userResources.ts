@@ -61,7 +61,7 @@ export async function saveResource(opts: {
 
   const { data, error } = await supabase
     .from("user_resources")
-    .insert({
+    .insert([{
       user_id: userId,
       kind,
       title,
@@ -69,8 +69,8 @@ export async function saveResource(opts: {
       storage_path: path,
       mime: opts.mime || blob.type || null,
       size_bytes: blob.size,
-      meta: meta || {},
-    })
+      meta: (meta || {}) as never,
+    }])
     .select()
     .single();
   if (error) {
