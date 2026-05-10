@@ -47,6 +47,7 @@ export default function Feed() {
                 <p className="text-sm font-medium">{q.profiles?.full_name ?? 'Tutor'} <span className="text-muted-foreground">{q.profiles?.tutor_code}</span></p>
                 <p className="text-xs text-muted-foreground">{new Date(q.created_at).toLocaleDateString()}</p>
               </div>
+              {q.created_by && <MessageUserButton userId={q.created_by} label="DM" />}
             </div>
           </CardHeader>
           <CardContent>
