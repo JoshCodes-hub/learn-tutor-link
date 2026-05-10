@@ -58,7 +58,7 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
   };
 
   useEffect(() => {
-    if (open && tab !== "audio" && !data[tab as Kind] && loadingKind !== tab) {
+    if (open && tab !== "audio" && tab !== "chat" && !data[tab as Kind] && loadingKind !== tab) {
       fetchKind(tab as Kind);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
