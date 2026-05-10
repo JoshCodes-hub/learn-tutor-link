@@ -1005,6 +1005,7 @@ const StudentDashboard = () => {
             },
           ]}
         />
+        </div>
 
         {/* Study streak — single focused widget */}
         <div className="mb-8">
