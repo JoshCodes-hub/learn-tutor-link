@@ -11,6 +11,7 @@ import AnimatedRoutes from "@/components/layout/AnimatedRoutes";
 import BiometricUnlock from "@/components/native/BiometricUnlock";
 import OfflineBanner from "@/components/native/OfflineBanner";
 import BottomTabBar from "@/components/app-shell/BottomTabBar";
+import NewStudyPackFAB from "@/components/student/NewStudyPackFAB";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { NetworkStatus } from "@/components/system/NetworkStatus";
 import ScrollToTop from "@/components/system/ScrollToTop";
@@ -59,6 +60,7 @@ const App = () => {
                   <AnimatedRoutes />
                 </div>
                 <BottomTabBar />
+                <NewStudyPackFAB />
               </BiometricUnlock>
             </AuthProvider>
           </BrowserRouter>

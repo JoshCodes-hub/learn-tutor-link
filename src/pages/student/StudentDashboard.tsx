@@ -76,6 +76,12 @@ import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineB
 import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import { CompleteProfileCard } from "@/components/student/CompleteProfileCard";
 import { QuickTray } from "@/components/student/QuickTray";
+import { StudyPackHero } from "@/components/student/StudyPackHero";
+import { StudyPackQuickActions } from "@/components/student/StudyPackQuickActions";
+import { MotivationalQuote } from "@/components/student/MotivationalQuote";
+import { TopScholarsCard } from "@/components/student/TopScholarsCard";
+import { RecentStudyPacksCard } from "@/components/student/RecentStudyPacksCard";
+import { NewStudyPackFAB } from "@/components/student/NewStudyPackFAB";
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
 
 interface Stats {
@@ -900,8 +906,20 @@ const StudentDashboard = () => {
           />
         </div>
 
-        {/* Opay-style quick tray — 6 categories with bottom-sheet sub-features */}
-        <QuickTray />
+        {/* Phase 2: Study Pack AI hero (mockup centerpiece) */}
+        <StudyPackHero />
+
+        {/* Phase 2: 6-tile direct-nav Quick Actions */}
+        <StudyPackQuickActions />
+
+        {/* Phase 2: Daily motivational quote */}
+        <MotivationalQuote />
+
+        {/* Phase 2: Top scholars + recent study packs split */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <TopScholarsCard />
+          <RecentStudyPacksCard />
+        </div>
         <QuickActions
           subtitle="Continue where you left off"
           actions={[
