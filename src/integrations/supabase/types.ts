@@ -206,6 +206,77 @@ export type Database = {
           },
         ]
       }
+      campaign_dismissals: {
+        Row: {
+          campaign_id: string
+          dismissed_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          dismissed_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          dismissed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_dismissals_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          audience: string
+          body: string
+          created_at: string
+          created_by: string
+          cta_label: string | null
+          cta_url: string | null
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          starts_at: string
+          title: string
+        }
+        Insert: {
+          audience?: string
+          body: string
+          created_at?: string
+          created_by: string
+          cta_label?: string | null
+          cta_url?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          starts_at?: string
+          title: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          created_at?: string
+          created_by?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          starts_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
       chat_message_reports: {
         Row: {
           created_at: string
@@ -2839,6 +2910,48 @@ export type Database = {
         }
         Relationships: []
       }
+      search_index: {
+        Row: {
+          body: string | null
+          created_at: string
+          embedding: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_public: boolean
+          owner_id: string | null
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          embedding?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_public?: boolean
+          owner_id?: string | null
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          embedding?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_public?: boolean
+          owner_id?: string | null
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       session_bookings: {
         Row: {
           completed_at: string | null
@@ -4791,10 +4904,27 @@ export type Database = {
         }
         Returns: string
       }
+      match_search_index: {
+        Args: {
+          filter_type?: string
+          match_count?: number
+          query_embedding: string
+        }
+        Returns: {
+          body: string
+          entity_id: string
+          entity_type: string
+          id: string
+          similarity: number
+          title: string
+          url: string
+        }[]
+      }
       request_withdrawal: {
         Args: { _payout_email: string; _tokens: number }
         Returns: string
       }
+      start_dm: { Args: { _other_user: string }; Returns: string }
     }
     Enums: {
       academic_path: "secondary" | "jamb" | "university"
