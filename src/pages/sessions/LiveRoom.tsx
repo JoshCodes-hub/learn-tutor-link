@@ -4,9 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  LiveKitRoom, VideoConference, RoomAudioRenderer, ControlBar,
+  LiveKitRoom, VideoConference, RoomAudioRenderer,
 } from '@livekit/components-react';
 import '@livekit/components-styles';
+import ParticipantRoster from '@/components/live/ParticipantRoster';
+import { Users } from 'lucide-react';
 
 interface TokenResponse {
   token: string; url: string; room: string; identity: string; isHost: boolean; title: string;
