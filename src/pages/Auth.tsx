@@ -342,11 +342,19 @@ const Auth = () => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     id="signin-password"
-                    type="password"
+                    type={showSignInPwd ? "text" : "password"}
                     placeholder="••••••••"
-                    className="pl-10 h-12"
+                    className="pl-10 pr-11 h-12"
                     {...signInForm.register("password")}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignInPwd((v) => !v)}
+                    aria-label={showSignInPwd ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showSignInPwd ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
                 {signInForm.formState.errors.password && (
                   <p className="text-sm text-destructive">{signInForm.formState.errors.password.message}</p>
