@@ -113,6 +113,18 @@ const MockExams = lazy(() => import("@/pages/exams/MockExams"));
 const MockExamTake = lazy(() => import("@/pages/exams/MockExamTake"));
 const MockExamResult = lazy(() => import("@/pages/exams/MockExamResult"));
 const RemediationPlaylists = lazy(() => import("@/pages/student/RemediationPlaylists"));
+const TutorPayouts = lazy(() => import("@/pages/tutor/TutorPayouts"));
+const TutorStorefrontEditor = lazy(() => import("@/pages/tutor/TutorStorefrontEditor"));
+const StorefrontPublic = lazy(() => import("@/pages/StorefrontPublic"));
+const Pricing = lazy(() => import("@/pages/Pricing"));
+const StudyCoach = lazy(() => import("@/pages/student/StudyCoach"));
+const SocialFeed = lazy(() => import("@/pages/social/Feed"));
+const WeeklyLeaderboard = lazy(() => import("@/pages/social/WeeklyLeaderboard"));
+const AdminFeatureFlags = lazy(() => import("@/pages/admin/AdminFeatureFlags"));
+const AdminModeration = lazy(() => import("@/pages/admin/AdminModeration"));
+const AdminTutorScorecards = lazy(() => import("@/pages/admin/AdminTutorScorecards"));
+const AdminWithdrawals = lazy(() => import("@/pages/admin/AdminWithdrawals"));
+const AdminCohorts = lazy(() => import("@/pages/admin/AdminCohorts"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -380,6 +392,18 @@ export const AnimatedRoutes = () => {
           <Route path="/exams/:examId/take" element={<PageTransition><MockExamTake /></PageTransition>} />
           <Route path="/exams/:examId/result/:attemptId" element={<PageTransition><MockExamResult /></PageTransition>} />
           <Route path="/remediation" element={<PageTransition><RemediationPlaylists /></PageTransition>} />
+          <Route path="/tutor/payouts" element={<PageTransition><TutorPayouts /></PageTransition>} />
+          <Route path="/tutor/storefront" element={<PageTransition><TutorStorefrontEditor /></PageTransition>} />
+          <Route path="/t/:slug" element={<PageTransition><StorefrontPublic /></PageTransition>} />
+          <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
+          <Route path="/coach" element={<PageTransition><StudyCoach /></PageTransition>} />
+          <Route path="/feed" element={<PageTransition><SocialFeed /></PageTransition>} />
+          <Route path="/champions" element={<PageTransition><WeeklyLeaderboard /></PageTransition>} />
+          <Route path="/admin/flags" element={<AdminRoute><PageTransition><AdminFeatureFlags /></PageTransition></AdminRoute>} />
+          <Route path="/admin/moderation" element={<AdminRoute><PageTransition><AdminModeration /></PageTransition></AdminRoute>} />
+          <Route path="/admin/scorecards" element={<AdminRoute><PageTransition><AdminTutorScorecards /></PageTransition></AdminRoute>} />
+          <Route path="/admin/withdrawals" element={<AdminRoute><PageTransition><AdminWithdrawals /></PageTransition></AdminRoute>} />
+          <Route path="/admin/cohorts" element={<AdminRoute><PageTransition><AdminCohorts /></PageTransition></AdminRoute>} />
           <Route
             path="*"
             element={

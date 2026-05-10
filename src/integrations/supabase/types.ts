@@ -441,6 +441,63 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_plans: {
+        Row: {
+          generated_at: string
+          id: string
+          plan_date: string
+          plan_json: Json
+          user_id: string
+          weak_topics: string[] | null
+        }
+        Insert: {
+          generated_at?: string
+          id?: string
+          plan_date?: string
+          plan_json: Json
+          user_id: string
+          weak_topics?: string[] | null
+        }
+        Update: {
+          generated_at?: string
+          id?: string
+          plan_date?: string
+          plan_json?: Json
+          user_id?: string
+          weak_topics?: string[] | null
+        }
+        Relationships: []
+      }
+      cohort_snapshots: {
+        Row: {
+          active_w1: number
+          active_w2: number
+          active_w4: number
+          cohort_size: number
+          computed_at: string
+          id: string
+          signup_week: string
+        }
+        Insert: {
+          active_w1?: number
+          active_w2?: number
+          active_w4?: number
+          cohort_size?: number
+          computed_at?: string
+          id?: string
+          signup_week: string
+        }
+        Update: {
+          active_w1?: number
+          active_w2?: number
+          active_w4?: number
+          cohort_size?: number
+          computed_at?: string
+          id?: string
+          signup_week?: string
+        }
+        Relationships: []
+      }
       community_announcements: {
         Row: {
           community_id: string
@@ -997,6 +1054,30 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags: {
+        Row: {
+          description: string | null
+          enabled: boolean
+          key: string
+          rollout_percent: number
+          updated_at: string
+        }
+        Insert: {
+          description?: string | null
+          enabled?: boolean
+          key: string
+          rollout_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          description?: string | null
+          enabled?: boolean
+          key?: string
+          rollout_percent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fee_payments: {
         Row: {
           amount_paid: number
@@ -1345,6 +1426,45 @@ export type Database = {
           topic_ids?: string[] | null
           total_questions?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      moderation_queue: {
+        Row: {
+          admin_notes: string | null
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          reason: string | null
+          reported_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
         }
         Relationships: []
       }
@@ -1920,6 +2040,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quiz_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          is_hidden: boolean
+          quiz_id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          quiz_id: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_hidden?: boolean
+          quiz_id?: string
+        }
+        Relationships: []
       }
       quiz_questions: {
         Row: {
@@ -3075,6 +3222,39 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          currency: string
+          features: Json
+          id: string
+          interval: string
+          is_active: boolean
+          name: string
+          paddle_price_id: string | null
+          price_cents: number
+        }
+        Insert: {
+          currency?: string
+          features?: Json
+          id: string
+          interval?: string
+          is_active?: boolean
+          name: string
+          paddle_price_id?: string | null
+          price_cents?: number
+        }
+        Update: {
+          currency?: string
+          features?: Json
+          id?: string
+          interval?: string
+          is_active?: boolean
+          name?: string
+          paddle_price_id?: string | null
+          price_cents?: number
+        }
+        Relationships: []
+      }
       team_challenge_progress: {
         Row: {
           challenge_id: string
@@ -3562,6 +3742,33 @@ export type Database = {
         }
         Relationships: []
       }
+      topic_mastery: {
+        Row: {
+          attempts: number
+          id: string
+          last_seen: string
+          mastery_score: number
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          id?: string
+          last_seen?: string
+          mastery_score?: number
+          topic: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          id?: string
+          last_seen?: string
+          mastery_score?: number
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       topics: {
         Row: {
           course_id: string
@@ -3959,6 +4166,27 @@ export type Database = {
           },
         ]
       }
+      tutor_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          id: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          id?: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       tutor_onboarding: {
         Row: {
           bank_added: boolean
@@ -3989,6 +4217,66 @@ export type Database = {
           quiz_created?: boolean
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      tutor_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          review: string | null
+          student_id: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          review?: string | null
+          student_id: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          review?: string | null
+          student_id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
+      tutor_scorecards: {
+        Row: {
+          avg_rating: number
+          completion_rate: number
+          computed_at: string
+          last_active: string | null
+          total_earnings: number
+          total_quizzes: number
+          total_students: number
+          tutor_id: string
+        }
+        Insert: {
+          avg_rating?: number
+          completion_rate?: number
+          computed_at?: string
+          last_active?: string | null
+          total_earnings?: number
+          total_quizzes?: number
+          total_students?: number
+          tutor_id: string
+        }
+        Update: {
+          avg_rating?: number
+          completion_rate?: number
+          computed_at?: string
+          last_active?: string | null
+          total_earnings?: number
+          total_quizzes?: number
+          total_students?: number
+          tutor_id?: string
         }
         Relationships: []
       }
@@ -4038,6 +4326,39 @@ export type Database = {
           starts_at?: string
           status?: string
           title?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tutor_storefronts: {
+        Row: {
+          banner_url: string | null
+          bio: string | null
+          created_at: string
+          headline: string | null
+          is_published: boolean
+          slug: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          banner_url?: string | null
+          bio?: string | null
+          created_at?: string
+          headline?: string | null
+          is_published?: boolean
+          slug: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string | null
+          bio?: string | null
+          created_at?: string
+          headline?: string | null
+          is_published?: boolean
+          slug?: string
           tutor_id?: string
           updated_at?: string
         }
@@ -4186,6 +4507,83 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          paddle_subscription_id: string | null
+          plan_id: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          paddle_subscription_id?: string | null
+          plan_id: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          paddle_subscription_id?: string | null
+          plan_id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_leaderboards: {
+        Row: {
+          awarded: boolean
+          created_at: string
+          id: string
+          prize_tokens: number
+          rank: number
+          score: number
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          awarded?: boolean
+          created_at?: string
+          id?: string
+          prize_tokens?: number
+          rank: number
+          score?: number
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          awarded?: boolean
+          created_at?: string
+          id?: string
+          prize_tokens?: number
+          rank?: number
+          score?: number
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       withdrawal_requests: {
         Row: {
           account_name: string
@@ -4195,6 +4593,10 @@ export type Database = {
           bank_name: string
           created_at: string
           id: string
+          payout_email: string | null
+          payout_method: string
+          processed_at: string | null
+          processed_by: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
@@ -4209,6 +4611,10 @@ export type Database = {
           bank_name: string
           created_at?: string
           id?: string
+          payout_email?: string | null
+          payout_method?: string
+          processed_at?: string | null
+          processed_by?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -4223,6 +4629,10 @@ export type Database = {
           bank_name?: string
           created_at?: string
           id?: string
+          payout_email?: string | null
+          payout_method?: string
+          processed_at?: string | null
+          processed_by?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
@@ -4379,6 +4789,10 @@ export type Database = {
           p_record_id: string
           p_table_name: string
         }
+        Returns: string
+      }
+      request_withdrawal: {
+        Args: { _payout_email: string; _tokens: number }
         Returns: string
       }
     }
