@@ -18,7 +18,8 @@ export default function Feed() {
         const { data: f } = await supabase.from('tutor_follows').select('tutor_id').eq('follower_id', user.id);
         followedIds = (f ?? []).map((x: any) => x.tutor_id);
       }
-      let q: any = supabase
+      const sb: any = supabase;
+      let q = sb
         .from('quizzes')
         .select('id, title, subject, created_at, created_by, profiles!quizzes_created_by_fkey(full_name, avatar_url, tutor_code)')
         .eq('is_published', true)
