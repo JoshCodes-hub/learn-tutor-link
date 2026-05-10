@@ -1,75 +1,48 @@
-import { MouseEvent } from "react";
-import { Heart, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useFavoriteTutors } from "@/hooks/useFavoriteTutors";
-import { cn } from "@/lib/utils";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { UserPlus, UserCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface FollowTutorButtonProps {
-  tutorId: string;
-  size?: "sm" | "default";
-  variant?: "default" | "compact";
-  className?: string;
-}
+export function FollowTutorButton({ tutorId }: { tutorId: string }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { data: isFollowing } = useQuery({
+    queryKey: ['follow', user?.id, tutorId],
+    enabled: !!user && !!tutorId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tutor_follows')
+        .select('id')
+        .eq('follower_id', user!.id)
+        .eq('tutor_id', tutorId)
+        .maybeSingle();
+      return !!data;
+    },
+  });
 
-/**
- * Inline follow/unfollow button. Designed to live inside tutor cards
- * (which are usually wrapped in a <Link>), so it stops propagation.
- */
-export const FollowTutorButton = ({
-  tutorId,
-  size = "sm",
-  variant = "default",
-  className,
-}: FollowTutorButtonProps) => {
-  const { isFavorite, isLoading, toggleFavorite } = useFavoriteTutors(tutorId);
+  const toggle = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('Sign in to follow');
+      if (isFollowing) {
+        const { error } = await supabase.from('tutor_follows').delete()
+          .eq('follower_id', user.id).eq('tutor_id', tutorId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('tutor_follows')
+          .insert({ follower_id: user.id, tutor_id: tutorId });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['follow', user?.id, tutorId] }),
+    onError: (e: any) => toast.error(e.message ?? 'Failed'),
+  });
 
-  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleFavorite();
-  };
-
-  if (variant === "compact") {
-    return (
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={isLoading}
-        aria-label={isFavorite ? "Unfollow tutor" : "Follow tutor"}
-        className={cn(
-          "w-9 h-9 rounded-full flex items-center justify-center border transition-all",
-          isFavorite
-            ? "bg-primary/10 border-primary text-primary"
-            : "bg-card border-border text-muted-foreground hover:border-primary/40 hover:text-primary",
-          className,
-        )}
-      >
-        {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Heart className={cn("w-4 h-4 transition-transform", isFavorite && "fill-current scale-110")} />
-        )}
-      </button>
-    );
-  }
-
+  if (user?.id === tutorId) return null;
   return (
-    <Button
-      type="button"
-      size={size}
-      variant={isFavorite ? "secondary" : "default"}
-      onClick={handleClick}
-      disabled={isLoading}
-      className={cn("gap-1.5", className)}
-    >
-      {isLoading ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
-      ) : (
-        <Heart className={cn("w-4 h-4", isFavorite && "fill-current")} />
-      )}
-      {isFavorite ? "Following" : "Follow"}
+    <Button size="sm" variant={isFollowing ? 'outline' : 'default'} onClick={() => toggle.mutate()} disabled={toggle.isPending}>
+      {isFollowing ? <><UserCheck className="w-4 h-4 mr-1"/>Following</> : <><UserPlus className="w-4 h-4 mr-1"/>Follow</>}
     </Button>
   );
-};
-
-export default FollowTutorButton;
+}
