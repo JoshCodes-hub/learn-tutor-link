@@ -206,6 +206,112 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          id: string
+          is_ai: boolean
+          meta: Json
+          thread_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_ai?: boolean
+          meta?: Json
+          thread_id: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_ai?: boolean
+          meta?: Json
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_thread_members: {
+        Row: {
+          joined_at: string
+          last_read_at: string
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          last_read_at?: string
+          role?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          last_read_at?: string
+          role?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_thread_members_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_threads: {
+        Row: {
+          context_id: string | null
+          context_kind: Database["public"]["Enums"]["chat_context_kind"] | null
+          created_at: string
+          created_by: string
+          id: string
+          invite_code: string | null
+          kind: Database["public"]["Enums"]["chat_thread_kind"]
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          context_id?: string | null
+          context_kind?: Database["public"]["Enums"]["chat_context_kind"] | null
+          created_at?: string
+          created_by: string
+          id?: string
+          invite_code?: string | null
+          kind?: Database["public"]["Enums"]["chat_thread_kind"]
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          context_id?: string | null
+          context_kind?: Database["public"]["Enums"]["chat_context_kind"] | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          invite_code?: string | null
+          kind?: Database["public"]["Enums"]["chat_thread_kind"]
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       class_subjects: {
         Row: {
           class_id: string
@@ -3804,10 +3910,15 @@ export type Database = {
         Args: { p_note_id: string }
         Returns: undefined
       }
+      is_chat_member: {
+        Args: { _thread_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_school_member: {
         Args: { _role?: string; _school_id: string }
         Returns: boolean
       }
+      join_brainstorm_thread: { Args: { _code: string }; Returns: string }
       log_admin_action: {
         Args: {
           p_action: string
@@ -3831,6 +3942,8 @@ export type Database = {
         | "teacher"
         | "parent"
       application_status: "pending" | "approved" | "rejected"
+      chat_context_kind: "study_pack" | "tutor_curriculum"
+      chat_thread_kind: "dm" | "group" | "brainstorm"
       resource_kind:
         | "pdf"
         | "image"
@@ -3977,6 +4090,8 @@ export const Constants = {
         "parent",
       ],
       application_status: ["pending", "approved", "rejected"],
+      chat_context_kind: ["study_pack", "tutor_curriculum"],
+      chat_thread_kind: ["dm", "group", "brainstorm"],
       resource_kind: [
         "pdf",
         "image",
