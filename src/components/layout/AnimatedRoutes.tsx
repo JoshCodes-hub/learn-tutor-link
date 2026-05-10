@@ -371,6 +371,13 @@ export const AnimatedRoutes = () => {
           <Route path="/tutor/curricula/:id" element={<PageTransition><TutorCurriculumBuilder /></PageTransition>} />
           <Route path="/admin/courses" element={<AdminRoute><PageTransition><AdminCourses /></PageTransition></AdminRoute>} />
           <Route path="/community-wall" element={<PageTransition><CommunityWall /></PageTransition>} />
+          <Route path="/review" element={<PageTransition><Review /></PageTransition>} />
+          <Route path="/sessions" element={<PageTransition><Sessions /></PageTransition>} />
+          <Route path="/tutor/sessions" element={<PageTransition><TutorSessions /></PageTransition>} />
+          <Route path="/install" element={<PageTransition><Install /></PageTransition>} />
+          <Route path="/exams" element={<PageTransition><MockExams /></PageTransition>} />
+          <Route path="/exams/:examId/take" element={<PageTransition><MockExamTake /></PageTransition>} />
+          <Route path="/exams/:examId/result/:attemptId" element={<PageTransition><MockExamResult /></PageTransition>} />
           <Route
             path="*"
             element={
