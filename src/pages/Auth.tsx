@@ -644,6 +644,7 @@ const Auth = () => {
               </p>
             </form>
           )}
+          </div>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
