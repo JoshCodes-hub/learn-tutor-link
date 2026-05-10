@@ -1218,6 +1218,101 @@ export type Database = {
         }
         Relationships: []
       }
+      mock_exam_attempts: {
+        Row: {
+          answers: Json
+          completed_at: string | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          mock_exam_id: string
+          score: number
+          started_at: string
+          tab_blur_count: number
+          topic_breakdown: Json | null
+          total: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          mock_exam_id: string
+          score?: number
+          started_at?: string
+          tab_blur_count?: number
+          topic_breakdown?: Json | null
+          total?: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          mock_exam_id?: string
+          score?: number
+          started_at?: string
+          tab_blur_count?: number
+          topic_breakdown?: Json | null
+          total?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_exam_attempts_mock_exam_id_fkey"
+            columns: ["mock_exam_id"]
+            isOneToOne: false
+            referencedRelation: "mock_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mock_exams: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          duration_min: number
+          id: string
+          is_published: boolean
+          title: string
+          topic_ids: string[] | null
+          total_questions: number
+          updated_at: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          is_published?: boolean
+          title: string
+          topic_ids?: string[] | null
+          total_questions?: number
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          is_published?: boolean
+          title?: string
+          topic_ids?: string[] | null
+          total_questions?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -2509,6 +2604,137 @@ export type Database = {
         }
         Relationships: []
       }
+      session_bookings: {
+        Row: {
+          created_at: string
+          id: string
+          slot_id: string
+          status: string
+          student_id: string
+          thread_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          slot_id: string
+          status?: string
+          student_id: string
+          thread_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          slot_id?: string
+          status?: string
+          student_id?: string
+          thread_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_bookings_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "tutor_session_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_bookings_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      srs_cards: {
+        Row: {
+          back: string
+          created_at: string
+          due_at: string
+          ease_factor: number
+          front: string
+          id: string
+          interval_days: number
+          last_reviewed_at: string | null
+          repetitions: number
+          source_id: string | null
+          source_kind: string
+          tag: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back: string
+          created_at?: string
+          due_at?: string
+          ease_factor?: number
+          front: string
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          repetitions?: number
+          source_id?: string | null
+          source_kind?: string
+          tag?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back?: string
+          created_at?: string
+          due_at?: string
+          ease_factor?: number
+          front?: string
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          repetitions?: number
+          source_id?: string | null
+          source_kind?: string
+          tag?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      srs_reviews: {
+        Row: {
+          card_id: string
+          id: string
+          new_interval_days: number | null
+          prev_interval_days: number | null
+          quality: number
+          reviewed_at: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          id?: string
+          new_interval_days?: number | null
+          prev_interval_days?: number | null
+          quality: number
+          reviewed_at?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          id?: string
+          new_interval_days?: number | null
+          prev_interval_days?: number | null
+          quality?: number
+          reviewed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "srs_reviews_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "srs_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_courses: {
         Row: {
           course_id: string
@@ -3660,6 +3886,51 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_session_slots: {
+        Row: {
+          capacity: number
+          created_at: string
+          curriculum_id: string | null
+          description: string | null
+          duration_min: number
+          id: string
+          meeting_url: string | null
+          starts_at: string
+          status: string
+          title: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          curriculum_id?: string | null
+          description?: string | null
+          duration_min?: number
+          id?: string
+          meeting_url?: string | null
+          starts_at: string
+          status?: string
+          title: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          curriculum_id?: string | null
+          description?: string | null
+          duration_min?: number
+          id?: string
+          meeting_url?: string | null
+          starts_at?: string
+          status?: string
+          title?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -3927,6 +4198,7 @@ export type Database = {
       }
     }
     Functions: {
+      book_session: { Args: { _slot_id: string }; Returns: string }
       credit_tokens_for_purchase: {
         Args: {
           p_amount_cents: number
