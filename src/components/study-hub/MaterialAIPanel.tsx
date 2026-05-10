@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones, MessageSquare } from "lucide-react";
 import { OverraAudioSuite } from "./OverraAudioSuite";
 import { ChatWithNotesPanel } from "./ChatWithNotesPanel";
+import { SaveToLibraryButton } from "@/components/student/SaveToLibraryButton";
 
 type Kind = "summary" | "key_points" | "flashcards" | "likely_questions";
 type Tab = Kind | "audio" | "chat";
