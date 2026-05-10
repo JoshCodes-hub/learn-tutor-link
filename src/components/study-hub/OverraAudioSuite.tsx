@@ -6,9 +6,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   Play, Pause, Rewind, FastForward, Download, Loader2,
-  AudioWaveform, Headphones, Music2, Volume2, VolumeX, Sparkles, GraduationCap, Mic2,
+  AudioWaveform, Headphones, Music2, Volume2, VolumeX, Sparkles, GraduationCap, Mic2, Radio,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { speak as hybridSpeak, type TtsResult } from "@/lib/tts";
 
 const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const LOFI_SRC = "/audio/lofi-study.mp3"; // drop a royalty-free loop here
