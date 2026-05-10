@@ -868,6 +868,9 @@ const StudentDashboard = () => {
           </div>
         </motion.section>
 
+        {/* Growth campaign banner */}
+        <CampaignBanner />
+
         {/* Admin-curated announcements */}
         <PlatformAnnouncements />
 
