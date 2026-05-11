@@ -13,7 +13,6 @@ import { saveResource } from "@/lib/userResources";
 import { kindFromFile } from "@/lib/extractText";
 import { track } from "@/lib/analytics";
 import { runLibraryAI, suggestedActionForMaterial } from "@/lib/libraryAI";
-import { Sparkles as SparklesIcon } from "lucide-react";
 
 type MaterialType = "outline" | "notes" | "past_q" | "slides" | "other";
 
