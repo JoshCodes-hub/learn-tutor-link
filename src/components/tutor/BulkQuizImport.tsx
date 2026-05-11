@@ -826,6 +826,22 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
     setProcessingStatus(null);
   };
 
+  const downloadErrorReport = () => {
+    if (rejectedRows.length === 0) return;
+    const reportRows = rejectedRows.map((r) => ({
+      row_number: r.row,
+      reason: r.reason,
+      missing_fields: r.missing_fields.join(", "),
+      ...r.data,
+    }));
+    const ws = XLSX.utils.json_to_sheet(reportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rejected Rows");
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    XLSX.writeFile(wb, `import_errors_${stamp}.xlsx`);
+    toast.success(`Downloaded ${rejectedRows.length} rejected rows`);
+  };
+
   const validCount = importedQuizzes.filter(isQuizValid).length;
   const invalidCount = importedQuizzes.length - validCount;
   const currentQuiz = importedQuizzes[previewIndex];
