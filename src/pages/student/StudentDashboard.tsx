@@ -87,6 +87,7 @@ import { NewStudyPackFAB } from "@/components/student/NewStudyPackFAB";
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
 import { MobileGreetingHeader } from "@/components/student/MobileGreetingHeader";
 import { ContinueLearning } from "@/components/student/ContinueLearning";
+import { DashboardNotificationCard } from "@/components/student/DashboardNotificationCard";
 
 interface Stats {
   totalAttempts: number;
@@ -819,6 +820,11 @@ const StudentDashboard = () => {
 
         {/* Mobile-first greeting header — matches product mockup */}
         <MobileGreetingHeader />
+
+        {/* Compact notification card — opens full inbox via "See more" */}
+        <div className="mb-4">
+          <DashboardNotificationCard />
+        </div>
 
         {/* Premium welcome strip — no profile photo, focus on greeting + path */}
         <motion.section

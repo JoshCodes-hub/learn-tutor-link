@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Bell, Flame } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bell, Flame, Camera, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadToBucketWithVerification } from "@/lib/storageUpload";
+import { toast } from "@/hooks/use-toast";
 
 /**
  * Mobile-first greeting header that mirrors the product mockup:
@@ -19,9 +21,12 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export const MobileGreetingHeader = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [streak, setStreak] = useState<number>(0);
   const [unread, setUnread] = useState<number>(0);
+  const [uploading, setUploading] = useState(false);
+  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -54,6 +59,43 @@ export const MobileGreetingHeader = () => {
   })();
 
   const firstName = profile?.full_name?.split(" ")[0] || "there";
+  const avatarSrc = localAvatar || profile?.avatar_url || undefined;
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !user) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Image only", description: "Please pick an image file.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Too large", description: "Keep it under 2MB.", variant: "destructive" });
+      return;
+    }
+    const preview = URL.createObjectURL(file);
+    setLocalAvatar(preview);
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/avatar.${ext}`;
+      const { publicUrl } = await uploadToBucketWithVerification({ bucket: "tutor-profiles", path, file });
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl, profile_image_url: publicUrl } as any)
+        .eq("id", user.id);
+      setLocalAvatar(publicUrl);
+      await refreshProfile();
+      toast({ title: "Profile picture updated" });
+    } catch (err: any) {
+      console.error(err);
+      setLocalAvatar(null);
+      toast({ title: "Upload failed", description: err?.message || "Try again.", variant: "destructive" });
+    } finally {
+      URL.revokeObjectURL(preview);
+      setUploading(false);
+    }
+  };
 
   return (
     <motion.header
@@ -64,18 +106,45 @@ export const MobileGreetingHeader = () => {
       aria-label="Welcome"
     >
       <div className="flex items-start gap-3">
-        <Link
-          to="/profile/edit"
-          aria-label="Edit profile"
-          className="shrink-0 rounded-full p-[2px] bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 shadow-[0_4px_12px_-4px_rgba(180,140,40,0.45)]"
-        >
-          <Avatar className="h-12 w-12 ring-2 ring-white">
-            <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || ""} />
-            <AvatarFallback className="bg-gradient-to-br from-amber-100 to-amber-200 text-amber-800 font-bold">
-              {firstName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </Link>
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            aria-label="Change profile picture"
+            className="relative rounded-full p-[2px] bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 shadow-[0_4px_12px_-4px_rgba(180,140,40,0.45)] active:scale-95 transition"
+          >
+            <Avatar className="h-12 w-12 ring-2 ring-white">
+              <AvatarImage src={avatarSrc} alt={profile?.full_name || ""} />
+              <AvatarFallback className="bg-gradient-to-br from-amber-100 to-amber-200 text-amber-800 font-bold">
+                {firstName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full bg-amber-500 ring-2 ring-white flex items-center justify-center shadow-md">
+              {uploading ? (
+                <Loader2 className="h-3 w-3 text-white animate-spin" />
+              ) : (
+                <Camera className="h-3 w-3 text-white" strokeWidth={2.5} />
+              )}
+            </span>
+            <AnimatePresence>
+              {uploading && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center"
+                />
+              )}
+            </AnimatePresence>
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+        </div>
 
         <div className="flex-1 min-w-0">
           <p className="text-[12px] text-muted-foreground leading-tight">{greeting}</p>
