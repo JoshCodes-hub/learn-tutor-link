@@ -1,67 +1,87 @@
 ## Goal
+Phase-by-phase upgrade of the student dashboard, notifications hub, level-aware course access, and persistent profile identity, plus a tutor-side level picker for content creation.
 
-Let students upload their own course outlines and study materials into **My Library**, access them on every login, and generate AI flashcards (and more) from any outline. Backend (private `user-resources` bucket + `user_resources` table + RLS) is already in place — this plan focuses on the missing UI + AI features.
+---
 
-## What we'll add
+## Phase 1 — Notifications Hub `/notifications`
+**Files:** edit `src/pages/NotificationsPage.tsx`, edit `src/components/student/DashboardNotificationCard.tsx`
 
-### 1. Direct upload to My Library (`/library`)
-- New **"Upload"** button on the Library page header → opens a dialog with:
-  - Drag-and-drop zone + file picker (multi-file)
-  - Accepted: PDF, DOCX, TXT, MD, JPG/PNG, MP3/WAV (max 20 MB each)
-  - **Type tag**: Course Outline / Lecture Note / Past Question / Slides / Other
-  - **Course/Folder**: free text with autocomplete from existing folders (e.g. "CSC 201", "MTH 101")
-  - Optional title (defaults to filename)
-- Auto-detects `kind` from MIME (pdf / image / audio / note) and writes `meta.material_type` for the tag.
-- Progress bar per file + toast on completion.
+- Add filter chips: **All / Unread / Mentions / System** (client-side filter on `useNotifications` data).
+- Add per-row "Mark read" button alongside existing "Mark all read".
+- Smooth navigation: card "See more" already routes to `/notifications`; add `framer-motion` page transition + restore scroll position on back.
+- Keep existing realtime subscription.
 
-### 2. Mark items as "Course Outline"
-- New filter chip **"Outlines"** on Library (uses `meta.material_type = "outline"`).
-- Outline cards get a gold accent + a **"Generate Flashcards"** quick action button.
+---
 
-### 3. AI flashcard generation from outline
-- New edge function `generate-flashcards-from-resource` (Lovable AI, `google/gemini-2.5-flash`):
-  - Input: `resource_id`, `count` (10/20/30), `difficulty` (easy/medium/hard)
-  - Server-side: signed-URL fetch the file, extract text (PDF via pdfjs-dist already available client-side — we'll do extraction client-side and POST text to keep edge fn light), send to AI with strict JSON schema (`[{front, back, hint?}]`)
-  - Returns the array; client saves it back to the Library as a new `kind: "flashcard"` resource (JSON file) linked via `meta.source_resource_id`.
-- Generated flashcards open in a **flip-card study viewer** (new `FlashcardStudyDialog`) with: flip, next/prev, "I knew it" / "Review again", and a **Send to /review (SRS)** button that pushes them into the existing SM-2 review system.
+## Phase 2 — Unified "Updates" Tray (Announcements + Notifications together)
+**Files:** new `src/components/student/UpdatesCenter.tsx`, edit `StudentDashboard.tsx` (replace separate `DashboardNotificationCard` + `PlatformAnnouncements` placement with a single tabbed card).
 
-### 4. Bonus features the user asked us to suggest
+- Two tabs: **Notifications** (personal) and **Announcements** (platform).
+- Unread badge sums both. Top-right action: "Open all" → `/notifications`.
 
-| Feature | What it does |
-|---|---|
-| **AI Outline Summarizer** | One-tap: turns an outline into a 1-page study brief saved as a Note. |
-| **Topic → Quiz** | Generate a 10-question quiz from any outline topic; auto-saves attempt to history. |
-| **Course Hub view** | Group library items by course code (folder) with progress: # outlines, # flashcards, last studied. |
-| **Smart Highlights** | After uploading a PDF, AI extracts the top 10 "must-know" bullet points. |
-| **Audio version** | One-tap "Listen to this outline" → uses existing Noiz TTS to create an MP3 saved back to Library. |
-| **Weekly study plan from outline** | AI splits the outline into a 7-day plan; adds tasks to the existing Exam Readiness weekly plan. |
-| **Share with study group** | Send any library item into a `/chat` thread (read-only signed link, 24h). |
+---
 
-### 5. Discoverability
-- Add a **"Library + Upload"** tile to the Dashboard QuickActions grid, replacing or sitting next to the existing entry, so first-login students see it immediately.
-- Empty-state on `/library` gets a big **"Upload your first course outline"** CTA.
+## Phase 3 — Premium Quick Actions
+**Files:** new `src/components/student/PremiumQuickActions.tsx`, mount above the existing tile grid in `StudentDashboard.tsx`.
+
+Cards (with framer-motion `whileHover`/`whileTap`, gold-gradient icon chips):
+- **Resume last quiz** → reads latest `quiz_attempts` where `completed_at IS NULL`, deep-links to `/quiz/:id`.
+- **Start CBT simulation** → `/exams` (mock CBT).
+- **Buy tutor quiz** → `/tutor-marketplace` (or storefront list).
+- **Practice weak topic** → `/student/weak-area-drill`.
+
+Each card shows a one-line dynamic subtitle (e.g. "Biology • 12 left") with skeleton while loading.
+
+---
+
+## Phase 4 — Exam Readiness Widget
+**Files:** new `src/components/student/ExamReadinessWidget.tsx`, mount on dashboard.
+
+- Reuse logic from `ReadinessRing` for the score.
+- Add **Top 3 weak topics** as chips → each chip links to `/student/weak-area-drill?topic=...`.
+- "Full breakdown" link → `/student/mastery-breakdown`.
+
+---
+
+## Phase 5 — Smarter Greeting + Persistent Avatar
+**Files:** edit `src/components/student/MobileGreetingHeader.tsx`, edit `src/hooks/useAuth.tsx` (avatar cache only).
+
+- Greeting already time-based; refine to also show day-name on first visit per session ("Happy Monday, Tunde").
+- **Persistent avatar across sessions/logout:** cache `profile.avatar_url` in `localStorage` (`overra.avatar.<userId>`) on profile load, and hydrate `localAvatar` from cache before network fetch resolves so it appears instantly after re-login. Already saved server-side to `profiles.avatar_url` + `profile_image_url` so it survives logout — fix any case where one of the two is null by always writing both.
+- Add a **logout button** in the header (small ghost icon with confirm) and merge the bell so the right-side cluster is `[Updates bell] [Logout]`. The bell already opens `/notifications`, which now contains both notifications + announcements (Phase 2 makes them one screen).
+
+---
+
+## Phase 6 — Student Level Switcher + Level-Gated Courses
+**DB migration:** none needed — `profiles.academic_metadata.level` and `courses.level` already exist.
+
+**Files:**
+- new `src/components/student/LevelSwitcherDialog.tsx` (dialog with `100L … 500L` + "JAMB" + "Secondary").
+- new `src/hooks/useStudentLevel.ts` (read/write `academic_metadata.level`, invalidate course queries).
+- edit `src/pages/student/MyCourses.tsx`, course browse pages, and `FreshCourses` to filter `WHERE courses.level = currentLevel OR courses.level IS NULL` and show a soft empty state "No courses for 200L yet — switch level".
+- Add a **Level pill** in `MobileGreetingHeader` next to the streak chip; tap opens `LevelSwitcherDialog`.
+- Gate detail routes: if a student opens a course of a different level, show a "Switch to {level} to access" CTA instead of content.
+
+---
+
+## Phase 7 — Tutor Level Picker for Content
+**Files:**
+- edit `src/components/tutor/CreateCourseDialog.tsx`, `CreateQuizDialog.tsx`, `UnifiedQuizCreator.tsx`, `BulkQuizImport.tsx`: add a required **Level** select (100L–500L, JAMB, Secondary, "All levels") that writes to `courses.level` / quiz tags.
+- edit `src/components/tutor/QuizManagement.tsx` to show a Level filter chip row.
+- For resources/materials (`tutor_curricula`, `lecture_notes`): add same level field via small migration only if missing (verify, then add `level TEXT` column; otherwise reuse).
+
+---
 
 ## Technical notes
+- All new UI uses existing semantic tokens (gold/amber + white) and `framer-motion`. No new deps.
+- Notifications data flows through existing `useNotifications` hook — no schema changes.
+- Quick action "Resume last quiz" uses a single Supabase query bounded by `limit(1)` to keep dashboard fast.
+- Level filtering is enforced **client-side first** (fast UX) and re-checked on detail-page mount; we intentionally don't change RLS so admins / cross-level browsing keeps working from other surfaces.
+- Logout reuses `useAuth().signOut()`; no session changes.
 
-- **Files touched**
-  - `src/pages/student/Library.tsx` — header upload button, outline filter, course-hub toggle
-  - `src/components/student/library/UploadResourceDialog.tsx` *(new)*
-  - `src/components/student/library/FlashcardStudyDialog.tsx` *(new)*
-  - `src/components/student/library/OutlineActionsMenu.tsx` *(new)* — Generate flashcards / Summarize / Quiz / Listen / Plan
-  - `src/lib/userResources.ts` — add `material_type` helpers
-  - `src/lib/extractText.ts` *(new)* — pdfjs + mammoth + plain-text extraction (libs already in project)
-  - `supabase/functions/generate-flashcards-from-resource/index.ts` *(new)*
-  - `supabase/functions/summarize-resource/index.ts` *(new)*
-  - `supabase/functions/quiz-from-resource/index.ts` *(new)*
-  - `src/components/student/StudyPackQuickActions.tsx` — add Library tile
-- **No DB migration needed** — `user_resources.meta JSONB` already stores `material_type` and `source_resource_id`. Bucket and RLS already exist.
-- **AI**: Uses Lovable AI Gateway (no extra secrets). Strict JSON tool-calling for flashcards/quiz.
-- **Auth**: All edge functions validate JWT and check resource ownership before returning content.
-- **Mobile-first**: Upload dialog, flashcard viewer and outline menu are designed for 360–420 px Android widths first, then scale up.
+---
 
-## Out of scope (next iteration)
-- OCR for scanned image-only PDFs
-- Real-time collaborative annotation
-- Tutor → student outline assignments (could reuse `tutor_curricula`)
-
-Approve this and I'll implement in one pass, starting with upload + flashcards (the must-haves) and then layering the bonus AI actions.
+## Out of scope
+- Migrating roles or RLS.
+- Backend cron / push notifications.
+- Tutor payouts changes.

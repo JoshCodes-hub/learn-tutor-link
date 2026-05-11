@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Flame, Camera, Loader2 } from "lucide-react";
+import { Bell, Flame, Camera, Loader2, LogOut, GraduationCap } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadToBucketWithVerification } from "@/lib/storageUpload";
 import { toast } from "@/hooks/use-toast";
+import { LevelSwitcherDialog } from "@/components/student/LevelSwitcherDialog";
+import { useStudentLevel } from "@/hooks/useStudentLevel";
 
 /**
  * Mobile-first greeting header that mirrors the product mockup:
@@ -21,12 +23,37 @@ import { toast } from "@/hooks/use-toast";
  */
 export const MobileGreetingHeader = () => {
   const navigate = useNavigate();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, signOut } = useAuth();
+  const { level } = useStudentLevel();
   const [streak, setStreak] = useState<number>(0);
   const [unread, setUnread] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
-  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+  const [localAvatar, setLocalAvatar] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("overra.avatar.last");
+    } catch {
+      return null;
+    }
+  });
+  const [levelOpen, setLevelOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const cached = localStorage.getItem(`overra.avatar.${user.id}`);
+      if (cached) setLocalAvatar(cached);
+    } catch { /* noop */ }
+  }, [user?.id]);
+
+  useEffect(() => {
+    const url = profile?.avatar_url || (profile as any)?.profile_image_url;
+    if (!url || !user) return;
+    try {
+      localStorage.setItem(`overra.avatar.${user.id}`, url);
+      localStorage.setItem("overra.avatar.last", url);
+    } catch { /* noop */ }
+  }, [profile?.avatar_url, user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -85,6 +112,10 @@ export const MobileGreetingHeader = () => {
         .update({ avatar_url: publicUrl, profile_image_url: publicUrl } as any)
         .eq("id", user.id);
       setLocalAvatar(publicUrl);
+      try {
+        localStorage.setItem(`overra.avatar.${user.id}`, publicUrl);
+        localStorage.setItem("overra.avatar.last", publicUrl);
+      } catch { /* noop */ }
       await refreshProfile();
       toast({ title: "Profile picture updated" });
     } catch (err: any) {
@@ -95,6 +126,14 @@ export const MobileGreetingHeader = () => {
       URL.revokeObjectURL(preview);
       setUploading(false);
     }
+  };
+
+  const dayName = new Date().toLocaleDateString(undefined, { weekday: "long" });
+
+  const handleLogout = async () => {
+    if (!confirm("Sign out of OverraPrep?")) return;
+    await signOut();
+    navigate("/auth");
   };
 
   return (
@@ -156,34 +195,53 @@ export const MobileGreetingHeader = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/notifications")}
-          aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}
-          className="relative shrink-0 h-11 w-11 rounded-full bg-white border border-amber-100 shadow-sm flex items-center justify-center hover:bg-amber-50 active:scale-95 transition"
-        >
-          <Bell className="h-5 w-5 text-amber-700" strokeWidth={2} />
-          {unread > 0 && (
-            <span
-              aria-hidden
-              className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white"
-            >
-              {unread > 9 ? "9+" : unread}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => navigate("/notifications")}
+            aria-label={`Updates${unread ? `, ${unread} unread` : ""}`}
+            className="relative h-10 w-10 rounded-full bg-white border border-amber-100 shadow-sm flex items-center justify-center hover:bg-amber-50 active:scale-95 transition"
+          >
+            <Bell className="h-4 w-4 text-amber-700" strokeWidth={2} />
+            {unread > 0 && (
+              <span
+                aria-hidden
+                className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white"
+              >
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Sign out"
+            className="h-10 w-10 rounded-full bg-white border border-amber-100 shadow-sm flex items-center justify-center hover:bg-rose-50 hover:border-rose-200 active:scale-95 transition"
+          >
+            <LogOut className="h-4 w-4 text-rose-600" strokeWidth={2} />
+          </button>
+        </div>
       </div>
 
-      {/* Streak chip */}
-      <div className="mt-3">
+      {/* Streak + Level pills */}
+      <div className="mt-3 flex items-center gap-1.5 flex-wrap">
         <div className="inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full border border-amber-300/70 bg-gradient-to-r from-amber-50 to-amber-100/60 text-amber-800 text-[12px] font-semibold shadow-[0_2px_8px_-4px_rgba(180,140,40,0.35)]">
           <Flame className="h-3.5 w-3.5 text-amber-600" />
           {streak > 0
-            ? <>On a <span className="font-extrabold">{streak}-day</span> study streak!</>
-            : <>Start your study streak today!</>}
-          <Flame className="h-3.5 w-3.5 text-amber-600" />
+            ? <>On a <span className="font-extrabold">{streak}-day</span> streak!</>
+            : <>Start your streak today!</>}
         </div>
+        <button
+          type="button"
+          onClick={() => setLevelOpen(true)}
+          className="inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-full border border-amber-200 bg-white text-amber-800 text-[12px] font-semibold shadow-sm hover:bg-amber-50 active:scale-95 transition"
+        >
+          <GraduationCap className="h-3.5 w-3.5 text-amber-600" />
+          {level ? `${level} Level` : "Set level"}
+        </button>
+        <span className="ml-auto text-[11px] text-muted-foreground hidden">Happy {dayName}</span>
       </div>
+      <LevelSwitcherDialog open={levelOpen} onOpenChange={setLevelOpen} />
     </motion.header>
   );
 };

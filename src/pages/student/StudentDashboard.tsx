@@ -67,7 +67,9 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
-import { PlatformAnnouncements } from "@/components/student/PlatformAnnouncements";
+import { UpdatesCenter } from "@/components/student/UpdatesCenter";
+import { PremiumQuickActions } from "@/components/student/PremiumQuickActions";
+import { ExamReadinessWidget } from "@/components/student/ExamReadinessWidget";
 import { UploadCTABanner } from "@/components/student/UploadCTABanner";
 import { FreshCourses } from "@/components/student/FreshCourses";
 import { CampaignBanner } from "@/components/growth/CampaignBanner";
@@ -87,7 +89,6 @@ import { NewStudyPackFAB } from "@/components/student/NewStudyPackFAB";
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
 import { MobileGreetingHeader } from "@/components/student/MobileGreetingHeader";
 import { ContinueLearning } from "@/components/student/ContinueLearning";
-import { DashboardNotificationCard } from "@/components/student/DashboardNotificationCard";
 
 interface Stats {
   totalAttempts: number;
@@ -821,10 +822,14 @@ const StudentDashboard = () => {
         {/* Mobile-first greeting header — matches product mockup */}
         <MobileGreetingHeader />
 
-        {/* Compact notification card — opens full inbox via "See more" */}
-        <div className="mb-4">
-          <DashboardNotificationCard />
-        </div>
+        {/* Unified Updates Center: notifications + announcements in one card */}
+        <UpdatesCenter />
+
+        {/* Premium quick actions */}
+        <PremiumQuickActions />
+
+        {/* Exam readiness widget */}
+        <ExamReadinessWidget />
 
         {/* Premium welcome strip — no profile photo, focus on greeting + path */}
         <motion.section
@@ -882,9 +887,6 @@ const StudentDashboard = () => {
 
         {/* Growth campaign banner */}
         <CampaignBanner />
-
-        {/* Admin-curated announcements */}
-        <PlatformAnnouncements />
 
         {/* Upload Document shortcut + first-visit / post-login welcome */}
         <UploadCTABanner />
