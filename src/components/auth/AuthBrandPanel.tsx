@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Sparkles, ShieldCheck, GraduationCap, Star, Trophy, Users } from "lucide-react";
 import logo from "@/assets/logo.png";
+import authBg from "@/assets/auth-bg.jpg";
 
 /**
  * Premium brand showcase panel that sits next to the auth form on large
@@ -53,26 +54,16 @@ const AuthBrandPanel = () => {
       className="hidden lg:flex relative overflow-hidden flex-col justify-between p-10 xl:p-14 text-[hsl(35_50%_12%)]"
       aria-label="Why students choose OverraPrep"
     >
-      {/* Layered gold gradient backdrop */}
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background:
-            "linear-gradient(160deg, hsl(45 95% 92%) 0%, hsl(43 88% 78%) 45%, hsl(40 78% 58%) 100%)",
-        }}
+      {/* Static editorial photo backdrop */}
+      <img
+        src={authBg}
+        alt=""
         aria-hidden
+        className="absolute inset-0 -z-10 h-full w-full object-cover"
       />
-      {/* Soft glow accents */}
-      <div className="absolute -top-32 -left-20 w-[28rem] h-[28rem] rounded-full bg-white/40 blur-[120px] -z-10" aria-hidden />
-      <div className="absolute -bottom-32 -right-20 w-[34rem] h-[34rem] rounded-full bg-amber-200/50 blur-[140px] -z-10" aria-hidden />
-      {/* Subtle dotted texture */}
+      {/* Readability scrim */}
       <div
-        className="absolute inset-0 opacity-[0.18] -z-10"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, hsl(35 60% 25% / 0.55) 1px, transparent 0)",
-          backgroundSize: "22px 22px",
-        }}
+        className="absolute inset-0 -z-10 bg-gradient-to-br from-[hsl(35_55%_12%/0.55)] via-[hsl(30_50%_15%/0.45)] to-[hsl(25_60%_10%/0.65)]"
         aria-hidden
       />
 
