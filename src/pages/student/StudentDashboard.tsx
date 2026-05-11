@@ -68,6 +68,7 @@ import {
 import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { PlatformAnnouncements } from "@/components/student/PlatformAnnouncements";
+import { UploadCTABanner } from "@/components/student/UploadCTABanner";
 import { FreshCourses } from "@/components/student/FreshCourses";
 import { CampaignBanner } from "@/components/growth/CampaignBanner";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
