@@ -79,3 +79,18 @@ createRoot(document.getElementById("root")!).render(
     </HelmetProvider>
   </React.StrictMode>
 );
+
+// Tear down the pre-React boot splash once the app has actually rendered.
+// Two RAFs ensure first paint has flushed; the splash fades out via CSS.
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    document.body.classList.add("app-ready");
+    const splash = document.getElementById("boot-splash");
+    const boot = (window as unknown as { __BOOT_FALLBACK__?: { cancel?: () => void } }).__BOOT_FALLBACK__;
+    boot?.cancel?.();
+    if (splash) {
+      splash.classList.add("is-hidden");
+      setTimeout(() => splash.remove(), 600);
+    }
+  });
+});
