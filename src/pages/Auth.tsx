@@ -318,18 +318,18 @@ const Auth = () => {
 
           {!isSignUp ? (
             /* Sign In Form */
-            <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-5">
+            <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4 sm:space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="signin-email" className="text-foreground font-medium">
+                <Label htmlFor="signin-email" className="text-foreground text-xs sm:text-sm font-medium">
                   Email
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   <Input
                     id="signin-email"
                     type="email"
                     placeholder="you@example.com"
-                    className="pl-10 h-12"
+                    className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                     {...signInForm.register("email")}
                   />
                 </div>
@@ -339,16 +339,16 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signin-password" className="text-foreground font-medium">
+                <Label htmlFor="signin-password" className="text-foreground text-xs sm:text-sm font-medium">
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   <Input
                     id="signin-password"
                     type={showSignInPwd ? "text" : "password"}
                     placeholder="••••••••"
-                    className="pl-10 pr-11 h-12"
+                    className="pl-10 pr-11 h-11 sm:h-12 text-sm sm:text-base"
                     {...signInForm.register("password")}
                   />
                   <button
@@ -384,7 +384,7 @@ const Auth = () => {
             </form>
           ) : (
             /* Sign Up Form */
-            <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-5">
+            <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4 sm:space-y-5">
               {/* Step indicator */}
               {(() => {
                 const STEPS = ["Account", "Academic", "Contact", "Bonus"];
@@ -426,7 +426,7 @@ const Auth = () => {
               <div className="flex flex-col items-center gap-2">
                 <label
                   htmlFor="signup-avatar"
-                  className="relative h-20 w-20 rounded-full border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary transition-all flex items-center justify-center cursor-pointer overflow-hidden group"
+                  className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary transition-all flex items-center justify-center cursor-pointer overflow-hidden group"
                   aria-label="Upload profile picture"
                 >
                   {avatarPreview ? (
@@ -449,16 +449,16 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-name" className="text-foreground font-medium">
+                <Label htmlFor="signup-name" className="text-foreground text-xs sm:text-sm font-medium">
                   Full Name
                 </Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   <Input
                     id="signup-name"
                     type="text"
                     placeholder="John Doe"
-                    className="pl-10 h-12"
+                    className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                     {...signUpForm.register("fullName")}
                   />
                 </div>
@@ -468,16 +468,16 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-email" className="text-foreground font-medium">
+                <Label htmlFor="signup-email" className="text-foreground text-xs sm:text-sm font-medium">
                   Email
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   <Input
                     id="signup-email"
                     type="email"
                     placeholder="you@example.com"
-                    className="pl-10 h-12"
+                    className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                     {...signUpForm.register("email")}
                   />
                 </div>
@@ -487,16 +487,16 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-password" className="text-foreground font-medium">
+                <Label htmlFor="signup-password" className="text-foreground text-xs sm:text-sm font-medium">
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   <Input
                     id="signup-password"
                     type={showSignUpPwd ? "text" : "password"}
                     placeholder="At least 6 characters"
-                    className="pl-10 pr-11 h-12"
+                    className="pl-10 pr-11 h-11 sm:h-12 text-sm sm:text-base"
                     {...signUpForm.register("password")}
                   />
                   <button
@@ -514,16 +514,16 @@ const Auth = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="signup-confirm" className="text-foreground font-medium">
+                <Label htmlFor="signup-confirm" className="text-foreground text-xs sm:text-sm font-medium">
                   Confirm Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                   <Input
                     id="signup-confirm"
                     type="password"
                     placeholder="••••••••"
-                    className="pl-10 h-12"
+                    className="pl-10 h-11 sm:h-12 text-sm sm:text-base"
                     {...signUpForm.register("confirmPassword")}
                   />
                 </div>
@@ -537,20 +537,20 @@ const Auth = () => {
                     {signUpStep === 1 && (
                       <>
               {/* Academic details */}
-              <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-4">
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-3 sm:p-4 space-y-3 sm:space-y-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <GraduationCap className="w-3.5 h-3.5 text-primary" />
                   Academic details
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-foreground text-sm font-medium">Academic path</Label>
+                    <Label className="text-foreground text-xs sm:text-sm font-medium">Academic path</Label>
                     <Select
                       value={academicPath}
                       onValueChange={(v) => signUpForm.setValue("academicPath", v as any, { shouldValidate: true })}
                     >
-                      <SelectTrigger className="h-11"><SelectValue placeholder="Select path" /></SelectTrigger>
+                      <SelectTrigger className="h-10 sm:h-11 text-sm"><SelectValue placeholder="Select path" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="university">University</SelectItem>
                         <SelectItem value="jamb">JAMB / UTME</SelectItem>
@@ -563,13 +563,13 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="signup-level" className="text-foreground text-sm font-medium">
+                    <Label htmlFor="signup-level" className="text-foreground text-xs sm:text-sm font-medium">
                       {academicPath === "university" ? "Level (e.g., 100, 200)" : academicPath === "secondary" ? "Class (e.g., SS2)" : "Attempt year"}
                     </Label>
                     <Input
                       id="signup-level"
                       placeholder={academicPath === "university" ? "100" : academicPath === "secondary" ? "SS2" : "2025"}
-                      className="h-11"
+                      className="h-10 sm:h-11 text-sm"
                       {...signUpForm.register("level")}
                     />
                     {signUpForm.formState.errors.level && (
@@ -579,13 +579,13 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="signup-school" className="text-foreground text-sm font-medium">School / Institution</Label>
+                  <Label htmlFor="signup-school" className="text-foreground text-xs sm:text-sm font-medium">School / Institution</Label>
                   <div className="relative">
                     <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="signup-school"
                       placeholder="Federal University of Technology, Akure"
-                      className="pl-9 h-11"
+                      className="pl-9 h-10 sm:h-11 text-sm"
                       {...signUpForm.register("school")}
                     />
                   </div>
@@ -595,11 +595,11 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="signup-department" className="text-foreground text-sm font-medium">Department / Course</Label>
+                  <Label htmlFor="signup-department" className="text-foreground text-xs sm:text-sm font-medium">Department / Course</Label>
                   <Input
                     id="signup-department"
                     placeholder="Computer Science"
-                    className="h-11"
+                    className="h-10 sm:h-11 text-sm"
                     {...signUpForm.register("department")}
                   />
                   {signUpForm.formState.errors.department && (
@@ -613,18 +613,18 @@ const Auth = () => {
                     {signUpStep === 2 && (
                       <>
               {/* Contact details */}
-              <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-4">
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-3 sm:p-4 space-y-3 sm:space-y-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <IdCard className="w-3.5 h-3.5 text-primary" />
                   Contact & ID
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="signup-phone" className="text-foreground text-sm font-medium">Phone</Label>
+                    <Label htmlFor="signup-phone" className="text-foreground text-xs sm:text-sm font-medium">Phone</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input id="signup-phone" placeholder="080..." className="pl-9 h-11" {...signUpForm.register("phone")} />
+                      <Input id="signup-phone" placeholder="080..." className="pl-9 h-10 sm:h-11 text-sm" {...signUpForm.register("phone")} />
                     </div>
                     {signUpForm.formState.errors.phone && (
                       <p className="text-xs text-destructive">{signUpForm.formState.errors.phone.message}</p>
@@ -632,10 +632,10 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="signup-matric" className="text-foreground text-sm font-medium">
+                    <Label htmlFor="signup-matric" className="text-foreground text-xs sm:text-sm font-medium">
                       Matric / Reg no. <span className="text-muted-foreground font-normal">(optional)</span>
                     </Label>
-                    <Input id="signup-matric" placeholder="CSC/20/1234" className="h-11" {...signUpForm.register("matricNo")} />
+                    <Input id="signup-matric" placeholder="CSC/20/1234" className="h-10 sm:h-11 text-sm" {...signUpForm.register("matricNo")} />
                     {signUpForm.formState.errors.matricNo && (
                       <p className="text-xs text-destructive">{signUpForm.formState.errors.matricNo.message}</p>
                     )}
@@ -643,12 +643,12 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-foreground text-sm font-medium">State of origin</Label>
+                  <Label className="text-foreground text-xs sm:text-sm font-medium">State of origin</Label>
                   <Select
                     value={signUpForm.watch("state")}
                     onValueChange={(v) => signUpForm.setValue("state", v, { shouldValidate: true })}
                   >
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger className="h-10 sm:h-11 text-sm">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-muted-foreground" />
                         <SelectValue placeholder="Select your state" />
@@ -671,7 +671,7 @@ const Auth = () => {
                     {signUpStep === 3 && (
                       <>
               {/* Referral Code Section - Highlighted */}
-              <div className="relative p-4 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-xl border border-primary/20">
+              <div className="relative p-3 sm:p-4 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-xl border border-primary/20">
                 <div className="absolute -top-3 left-4 bg-card px-2">
                   <span className="text-xs font-semibold text-primary flex items-center gap-1">
                     <Gift className="w-3 h-3" />
@@ -679,14 +679,14 @@ const Auth = () => {
                   </span>
                 </div>
                 <div className="space-y-2 mt-1">
-                  <Label htmlFor="signup-referral" className="text-foreground font-medium">
+                  <Label htmlFor="signup-referral" className="text-foreground text-xs sm:text-sm font-medium">
                     Got a referral code from a friend?
                   </Label>
                   <Input
                     id="signup-referral"
                     type="text"
                     placeholder="Paste code here (e.g., REF-ABC123)"
-                    className="h-12 font-mono uppercase bg-card border-primary/30 focus:border-primary"
+                    className="h-11 sm:h-12 text-sm sm:text-base font-mono uppercase bg-card border-primary/30 focus:border-primary"
                     {...signUpForm.register("referralCode")}
                   />
                   <p className="text-xs text-muted-foreground">
