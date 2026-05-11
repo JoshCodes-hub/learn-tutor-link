@@ -22,12 +22,12 @@ export const UploadCTABanner = () => {
     if (!user?.id) return;
     const key = STORAGE_KEY_PREFIX + user.id;
     const dismissed = localStorage.getItem(key) === "1";
-    // Show welcome if not dismissed yet, OR if a fresh sign-in flag is set.
-    const freshLogin = sessionStorage.getItem("overra_fresh_login") === "1";
-    if (!dismissed || freshLogin) {
-      setShowWelcome(true);
-      sessionStorage.removeItem("overra_fresh_login");
-    }
+    // Once dismissed, the welcome banner stays dismissed across sessions until
+    // the user *explicitly* asks to see it again (e.g. by clearing the flag).
+    // The compact "Upload Document" CTA always remains available below.
+    // Always clear any stale fresh-login marker so it can never re-trigger.
+    sessionStorage.removeItem("overra_fresh_login");
+    if (!dismissed) setShowWelcome(true);
   }, [user?.id]);
 
   const dismissWelcome = () => {
