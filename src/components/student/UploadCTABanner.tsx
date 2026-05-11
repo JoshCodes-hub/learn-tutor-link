@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Sparkles, X, FileText, Brain, Layers } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { track } from "@/lib/analytics";
 
 const STORAGE_KEY_PREFIX = "overra_upload_welcome_dismissed_";
 
@@ -34,7 +35,10 @@ export const UploadCTABanner = () => {
     setShowWelcome(false);
   };
 
-  const goUpload = () => navigate("/library?upload=1");
+  const goUpload = (variant: "welcome" | "compact") => {
+    void track("upload_cta_clicked", { surface: "dashboard_banner", variant });
+    navigate("/library?upload=1");
+  };
 
   return (
     <section aria-label="Upload your study materials" className="mb-6">
@@ -84,7 +88,7 @@ export const UploadCTABanner = () => {
 
             <div className="flex gap-2">
               <button
-                onClick={goUpload}
+                onClick={() => goUpload("welcome")}
                 className="inline-flex items-center justify-center gap-1.5 px-4 h-10 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm font-bold shadow-md flex-1 sm:flex-none"
               >
                 <Upload className="w-4 h-4" /> Upload Now
@@ -101,7 +105,7 @@ export const UploadCTABanner = () => {
           <motion.button
             key="compact"
             type="button"
-            onClick={goUpload}
+            onClick={() => goUpload("compact")}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             whileHover={{ y: -2 }}
