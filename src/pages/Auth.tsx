@@ -385,6 +385,44 @@ const Auth = () => {
           ) : (
             /* Sign Up Form */
             <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-5">
+              {/* Step indicator */}
+              {(() => {
+                const STEPS = ["Account", "Academic", "Contact", "Bonus"];
+                return (
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    {STEPS.map((label, i) => {
+                      const active = i === signUpStep;
+                      const done = i < signUpStep;
+                      return (
+                        <div key={label} className="flex-1 flex flex-col items-center gap-1">
+                          <div
+                            className={`h-1.5 w-full rounded-full transition-colors ${
+                              done || active ? "bg-gradient-to-r from-primary to-amber-400" : "bg-muted"
+                            }`}
+                          />
+                          <span className={`text-[10px] font-semibold uppercase tracking-wider ${active ? "text-primary" : "text-muted-foreground"}`}>
+                            {label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+
+              <div className="relative overflow-hidden">
+                <AnimatePresence initial={false} mode="wait" custom={stepDir}>
+                  <motion.div
+                    key={signUpStep}
+                    custom={stepDir}
+                    initial={(d: number) => ({ opacity: 0, x: d * 40 })}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={(d: number) => ({ opacity: 0, x: d * -40 })}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    className="space-y-5"
+                  >
+                    {signUpStep === 0 && (
+                      <>
               {/* Avatar picker */}
               <div className="flex flex-col items-center gap-2">
                 <label
@@ -494,7 +532,11 @@ const Auth = () => {
                   <p className="text-sm text-destructive">{signUpForm.formState.errors.confirmPassword.message}</p>
                 )}
               </div>
+                      </>
+                    )}
 
+                    {signUpStep === 1 && (
+                      <>
               {/* Academic details */}
               <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -566,7 +608,11 @@ const Auth = () => {
                   )}
                 </div>
               </div>
+                      </>
+                    )}
 
+                    {signUpStep === 2 && (
+                      <>
               {/* Contact details */}
               <div className="rounded-xl border border-border/60 bg-muted/30 p-4 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -620,7 +666,11 @@ const Auth = () => {
                   )}
                 </div>
               </div>
+                      </>
+                    )}
 
+                    {signUpStep === 3 && (
+                      <>
               {/* Referral Code Section - Highlighted */}
               <div className="relative p-4 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-xl border border-primary/20">
                 <div className="absolute -top-3 left-4 bg-card px-2">
@@ -649,17 +699,56 @@ const Auth = () => {
                   </p>
                 </div>
               </div>
+                      </>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
 
-              <Button variant="hero" size="lg" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    Create Account
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                )}
-              </Button>
+              {/* Step navigation */}
+              {(() => {
+                const STEP_FIELDS: Array<Array<keyof SignUpFormData>> = [
+                  ["fullName", "email", "password", "confirmPassword"],
+                  ["academicPath", "level", "school", "department"],
+                  ["phone", "matricNo", "state"],
+                  ["referralCode"],
+                ];
+                const isLast = signUpStep === 3;
+                const goNext = async () => {
+                  const valid = await signUpForm.trigger(STEP_FIELDS[signUpStep]);
+                  if (!valid) return;
+                  setStepDir(1);
+                  setSignUpStep((s) => Math.min(3, s + 1));
+                };
+                const goBack = () => {
+                  setStepDir(-1);
+                  setSignUpStep((s) => Math.max(0, s - 1));
+                };
+                return (
+                  <div className="flex items-center gap-3">
+                    {signUpStep > 0 && (
+                      <Button type="button" variant="outline" size="lg" onClick={goBack} className="flex-1">
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </Button>
+                    )}
+                    {!isLast ? (
+                      <Button type="button" variant="hero" size="lg" onClick={goNext} className="flex-1">
+                        Continue <ArrowRight className="w-5 h-5" />
+                      </Button>
+                    ) : (
+                      <Button type="submit" variant="hero" size="lg" className="flex-1" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <>
+                            Create Account <ArrowRight className="w-5 h-5" />
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })()}
 
               <p className="text-xs text-center text-muted-foreground">
                 By signing up, you agree to our Terms of Service and Privacy Policy
