@@ -293,6 +293,60 @@ const TutorAnalytics = () => {
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
+
+                {/* Earnings per quiz */}
+                <div className="mt-6">
+                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" /> Earnings per Quiz
+                  </h4>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Tutor share is 80% of tokens spent by students per completed attempt. Platform retains 20%.
+                  </p>
+                  <div className="overflow-x-auto rounded-lg border border-border">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+                        <tr>
+                          <th className="text-left p-2">Quiz</th>
+                          <th className="text-center p-2">Attempts</th>
+                          <th className="text-right p-2">Gross</th>
+                          <th className="text-right p-2">Your share (80%)</th>
+                          <th className="text-right p-2">Platform (20%)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {quizPerformance.map((q) => {
+                          const gross = q.tokensEarned;
+                          const tutor = Math.round(gross * 0.8);
+                          const platform = gross - tutor;
+                          return (
+                            <tr key={q.quizId} className="border-t border-border">
+                              <td className="p-2 font-medium">{q.quizTitle}</td>
+                              <td className="p-2 text-center">{q.totalAttempts}</td>
+                              <td className="p-2 text-right">{gross}</td>
+                              <td className="p-2 text-right text-accent font-semibold">{tutor}</td>
+                              <td className="p-2 text-right text-muted-foreground">{platform}</td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="border-t-2 border-border bg-muted/20 font-semibold">
+                          <td className="p-2">Total</td>
+                          <td className="p-2 text-center">
+                            {quizPerformance.reduce((s, q) => s + q.totalAttempts, 0)}
+                          </td>
+                          <td className="p-2 text-right">
+                            {quizPerformance.reduce((s, q) => s + q.tokensEarned, 0)}
+                          </td>
+                          <td className="p-2 text-right text-accent">
+                            {Math.round(quizPerformance.reduce((s, q) => s + q.tokensEarned * 0.8, 0))}
+                          </td>
+                          <td className="p-2 text-right text-muted-foreground">
+                            {Math.round(quizPerformance.reduce((s, q) => s + q.tokensEarned * 0.2, 0))}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </>
             )}
           </TabsContent>
