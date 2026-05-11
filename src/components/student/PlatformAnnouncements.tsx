@@ -112,8 +112,8 @@ export const PlatformAnnouncements = () => {
   const current = items[idx];
 
   return (
-    <div className="mb-6">
-      <div className="relative overflow-hidden rounded-3xl border border-amber-200/60 bg-white shadow-[0_18px_50px_-22px_rgba(180,140,40,0.45)]">
+    <div className="mb-4 sm:mb-6">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-amber-200/60 bg-white shadow-[0_18px_50px_-22px_rgba(180,140,40,0.45)]">
         <AnimatePresence mode="wait">
           <motion.div
             key={current.id}
@@ -125,7 +125,7 @@ export const PlatformAnnouncements = () => {
           >
             {/* Image header (if any) */}
             {current.image_url ? (
-              <div className="relative h-40 sm:h-48 md:h-56 w-full overflow-hidden bg-gradient-to-br from-amber-500 to-amber-700">
+              <div className="relative h-32 sm:h-48 md:h-56 w-full overflow-hidden bg-gradient-to-br from-amber-500 to-amber-700">
                 <img
                   src={current.image_url}
                   alt={current.title}
@@ -145,12 +145,12 @@ export const PlatformAnnouncements = () => {
                     </span>
                   )}
                 </div>
-                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5 text-white">
+                <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 text-white">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200/95 mb-1">
                     {formatRelative(current.created_at)}
                   </p>
                   <h3
-                    className="font-display text-xl sm:text-2xl font-bold leading-tight"
+                    className="font-display text-base sm:text-2xl font-bold leading-tight line-clamp-2"
                     style={{ textShadow: "0 1px 2px rgba(0,0,0,0.35)" }}
                   >
                     {current.title}
@@ -158,7 +158,7 @@ export const PlatformAnnouncements = () => {
                 </div>
               </div>
             ) : (
-              <div className="relative px-5 sm:px-6 pt-5 pb-2 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white">
+              <div className="relative px-4 sm:px-6 pt-4 sm:pt-5 pb-2 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white">
                 <div className="absolute -top-12 -right-8 w-44 h-44 rounded-full bg-white/20 blur-3xl pointer-events-none" />
                 <div className="relative flex items-center gap-2 mb-2">
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/95 text-amber-800 text-[10px] font-bold tracking-wider uppercase">
@@ -176,7 +176,7 @@ export const PlatformAnnouncements = () => {
                   </span>
                 </div>
                 <h3
-                  className="font-display text-xl sm:text-2xl font-bold leading-tight"
+                  className="font-display text-base sm:text-2xl font-bold leading-tight"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.25)" }}
                 >
                   {current.title}
@@ -185,8 +185,8 @@ export const PlatformAnnouncements = () => {
             )}
 
             {/* Body */}
-            <div className="px-5 sm:px-6 py-4 bg-gradient-to-b from-white to-amber-50/40">
-              <p className="text-sm sm:text-[15px] text-foreground/85 leading-relaxed line-clamp-3">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-b from-white to-amber-50/40">
+              <p className="text-[13px] sm:text-[15px] text-foreground/85 leading-relaxed line-clamp-3">
                 {current.body}
               </p>
               {current.link_url && (
