@@ -284,7 +284,7 @@ const UploadAnalytics = () => {
                       {ctaSurfaces.map(([key, count]) => (
                         <li key={key}>
                           <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="font-medium capitalize truncate">{key.replaceAll("_", " ")}</span>
+                            <span className="font-medium capitalize truncate">{key.split("_").join(" ")}</span>
                             <span className="text-muted-foreground tabular-nums">{count}</span>
                           </div>
                           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
