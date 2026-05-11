@@ -131,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (!error) {
+      try { sessionStorage.setItem("overra_fresh_login", "1"); } catch { /* noop */ }
       const { track } = await import("@/lib/analytics");
       void track("signin", {});
     }

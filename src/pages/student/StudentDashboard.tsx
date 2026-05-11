@@ -68,6 +68,7 @@ import {
 import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
 import { PlatformAnnouncements } from "@/components/student/PlatformAnnouncements";
+import { UploadCTABanner } from "@/components/student/UploadCTABanner";
 import { FreshCourses } from "@/components/student/FreshCourses";
 import { CampaignBanner } from "@/components/growth/CampaignBanner";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
@@ -878,6 +879,9 @@ const StudentDashboard = () => {
 
         {/* Admin-curated announcements */}
         <PlatformAnnouncements />
+
+        {/* Upload Document shortcut + first-visit / post-login welcome */}
+        <UploadCTABanner />
 
         {/* Fresh courses (admin + tutor created) — desktop only; mobile uses Continue Learning instead */}
         <div className="hidden sm:block">

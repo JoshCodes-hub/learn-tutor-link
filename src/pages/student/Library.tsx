@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useUserResources } from "@/hooks/useUserResources";
 import { getResourceSignedUrl, KIND_META, type ResourceKind, type UserResource } from "@/lib/userResources";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +32,7 @@ const PreviewIcon = ({ kind }: { kind: ResourceKind }) => {
 
 const Library = () => {
   const { primaryRole } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as
     "admin" | "tutor" | "student";
 
@@ -40,6 +42,16 @@ const Library = () => {
   const [activeKinds, setActiveKinds] = useState<Set<ResourceKind>>(new Set());
   const [outlinesOnly, setOutlinesOnly] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("upload") === "1") {
+      setUploadOpen(true);
+      // Clean the URL so refresh / back doesn't reopen forever
+      const next = new URLSearchParams(searchParams);
+      next.delete("upload");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [studyCards, setStudyCards] = useState<Flashcard[] | null>(null);
   const [studyTitle, setStudyTitle] = useState("");
   const [previewing, setPreviewing] = useState<UserResource | null>(null);

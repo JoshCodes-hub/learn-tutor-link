@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Sparkles, GraduationCap, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target, Headphones, MessageSquare, FolderOpen } from "lucide-react";
+import { Home, BookOpen, Sparkles, GraduationCap, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target, Headphones, MessageSquare, FolderOpen, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -8,7 +8,7 @@ interface Tab { to: string; label: string; icon: LucideIcon; }
 const STUDENT_TABS: Tab[] = [
   { to: "/student/dashboard", label: "Home",     icon: Home },
   { to: "/student/readiness", label: "Practice", icon: Target },
-  { to: "/study-packs",       label: "Study Packs", icon: FolderOpen },
+  { to: "/library?upload=1",  label: "Upload",   icon: Upload },
   { to: "/chat",              label: "Chat",     icon: MessageSquare },
   { to: "/profile/edit",      label: "Profile",  icon: User },
 ];
@@ -71,7 +71,8 @@ export const BottomTabBar = () => {
     >
       <ul className="grid grid-cols-5">
         {tabs.map(({ to, label, icon: Icon }) => {
-          const active = location.pathname === to || location.pathname.startsWith(to + "/");
+          const path = to.split("?")[0];
+          const active = location.pathname === path || location.pathname.startsWith(path + "/");
           return (
             <li key={to}>
               <Link
