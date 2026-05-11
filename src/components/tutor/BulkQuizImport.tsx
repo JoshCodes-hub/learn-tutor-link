@@ -828,6 +828,13 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                 </div>
               </div>
 
+              {/* Default Student Level for all imported quizzes */}
+              <LevelSelect
+                value={defaultLevel}
+                onChange={setDefaultLevel}
+                label="Target Student Level (applied to all imported quizzes)"
+              />
+
               {/* Upload Area */}
                 <div className="space-y-2">
                 <Label>Upload File (CSV, Excel, or Word)</Label>
