@@ -619,7 +619,6 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   };
 
   const deleteQuiz = (index: number) => {
-    // helper noop
     const updated = importedQuizzes.filter((_, i) => i !== index);
     setImportedQuizzes(updated);
     if (previewIndex >= updated.length && updated.length > 0) {
