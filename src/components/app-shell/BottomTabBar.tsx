@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, BookOpen, Sparkles, GraduationCap, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target, Headphones, MessageSquare, FolderOpen, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { track } from "@/lib/analytics";
 
 interface Tab { to: string; label: string; icon: LucideIcon; }
 
@@ -78,6 +79,11 @@ export const BottomTabBar = () => {
               <Link
                 to={to}
                 aria-current={active ? "page" : undefined}
+                onClick={() => {
+                  if (label === "Upload") {
+                    void track("upload_cta_clicked", { surface: "bottom_nav", variant: "tab" });
+                  }
+                }}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors min-h-[56px]",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
