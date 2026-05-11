@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Flame, Camera, Loader2 } from "lucide-react";
+import { Bell, Flame, Camera, Loader2, LogOut, GraduationCap } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadToBucketWithVerification } from "@/lib/storageUpload";
 import { toast } from "@/hooks/use-toast";
+import { LevelSwitcherDialog } from "@/components/student/LevelSwitcherDialog";
+import { useStudentLevel } from "@/hooks/useStudentLevel";
 
 /**
  * Mobile-first greeting header that mirrors the product mockup:
