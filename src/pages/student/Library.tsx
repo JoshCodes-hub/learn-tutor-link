@@ -13,10 +13,13 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Library as LibraryIcon, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones,
+  Library as LibraryIcon, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones, Upload, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import UploadResourceDialog from "@/components/student/library/UploadResourceDialog";
+import OutlineActionsMenu from "@/components/student/library/OutlineActionsMenu";
+import FlashcardStudyDialog, { type Flashcard } from "@/components/student/library/FlashcardStudyDialog";
 
 const ALL_KINDS: ResourceKind[] = ["pdf", "image", "note", "flashcard", "study_pack", "audio"];
 
@@ -35,6 +38,10 @@ const Library = () => {
   const [search, setSearch] = useState("");
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [activeKinds, setActiveKinds] = useState<Set<ResourceKind>>(new Set());
+  const [outlinesOnly, setOutlinesOnly] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [studyCards, setStudyCards] = useState<Flashcard[] | null>(null);
+  const [studyTitle, setStudyTitle] = useState("");
   const [previewing, setPreviewing] = useState<UserResource | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -50,10 +57,11 @@ const Library = () => {
     return resources.filter((r) => {
       if (activeFolder && r.folder !== activeFolder) return false;
       if (activeKinds.size && !activeKinds.has(r.kind)) return false;
+      if (outlinesOnly && (r.meta as any)?.material_type !== "outline") return false;
       if (q && !r.title.toLowerCase().includes(q) && !r.folder.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [resources, search, activeFolder, activeKinds]);
+  }, [resources, search, activeFolder, activeKinds, outlinesOnly]);
 
   const toggleKind = (k: ResourceKind) => {
     setActiveKinds((prev) => {
@@ -71,6 +79,17 @@ const Library = () => {
     setPreviewUrl(url);
     setPreviewLoading(false);
     if (!url) toast.error("Could not open file");
+    // If this is a saved flashcard JSON, parse and open the study dialog
+    if (r.kind === "flashcard" && url) {
+      try {
+        const json = await (await fetch(url)).json();
+        if (Array.isArray(json?.cards) && json.cards.length) {
+          setStudyTitle(r.title);
+          setStudyCards(json.cards);
+          setPreviewing(null);
+        }
+      } catch { /* fall through to default preview */ }
+    }
   };
 
   const closePreview = () => {
@@ -97,13 +116,21 @@ const Library = () => {
 
         <main className="container mx-auto px-4 py-6 max-w-6xl">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-              <LibraryIcon className="w-6 h-6 text-primary" /> My Library
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Your private collection — saved Study Packs, audio narrations, notes & PDFs.
-            </p>
+          <div className="mb-5 flex items-start justify-between gap-3">
+            <div>
+              <h1 className="font-display text-2xl font-bold flex items-center gap-2">
+                <LibraryIcon className="w-6 h-6 text-primary" /> My Library
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Upload course outlines & materials. Generate flashcards, summaries & quizzes with AI.
+              </p>
+            </div>
+            <Button
+              onClick={() => setUploadOpen(true)}
+              className="shrink-0 gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md"
+            >
+              <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Upload</span>
+            </Button>
           </div>
 
           {/* Search + kind chips */}
@@ -118,6 +145,16 @@ const Library = () => {
               />
             </div>
             <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setOutlinesOnly((v) => !v)}
+                className={`text-xs px-3 h-7 rounded-full border transition-colors font-semibold ${
+                  outlinesOnly
+                    ? "bg-amber-500 text-white border-amber-500"
+                    : "bg-background text-foreground border-border hover:bg-muted"
+                }`}
+              >
+                📑 Outlines
+              </button>
               {ALL_KINDS.map((k) => {
                 const on = activeKinds.has(k);
                 return (
@@ -134,9 +171,9 @@ const Library = () => {
                   </button>
                 );
               })}
-              {activeKinds.size > 0 && (
+              {(activeKinds.size > 0 || outlinesOnly) && (
                 <button
-                  onClick={() => setActiveKinds(new Set())}
+                  onClick={() => { setActiveKinds(new Set()); setOutlinesOnly(false); }}
                   className="text-xs px-3 h-7 rounded-full text-muted-foreground hover:text-foreground"
                 >
                   Clear
@@ -186,31 +223,49 @@ const Library = () => {
                   <LibraryIcon className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
                   <p className="font-semibold">Your library is empty</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Tap "Save to Library" inside any Study Pack or audio narration to keep it here.
+                    Upload your course outlines, lecture notes or past questions to get started.
                   </p>
+                  <Button
+                    onClick={() => setUploadOpen(true)}
+                    className="mt-4 gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
+                  >
+                    <Upload className="w-4 h-4" /> Upload your first outline
+                  </Button>
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {filtered.map((r) => (
+                  {filtered.map((r) => {
+                    const isOutline = (r.meta as any)?.material_type === "outline";
+                    return (
                     <Card
                       key={r.id}
-                      className="p-4 hover:shadow-md hover:border-primary/40 transition-all cursor-pointer group"
+                      className={`p-4 hover:shadow-md transition-all cursor-pointer group relative ${
+                        isOutline ? "border-amber-300 bg-gradient-to-br from-amber-50/40 to-background" : "hover:border-primary/40"
+                      }`}
                       onClick={() => openPreview(r)}
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 grid place-items-center text-primary shrink-0">
                           <PreviewIcon kind={r.kind} />
                         </div>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDelete(r); }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-destructive/10 text-destructive"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          {(r.kind === "pdf" || r.kind === "note" || isOutline) && (
+                            <OutlineActionsMenu resource={r} />
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(r); }}
+                            className="opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-destructive/10 text-destructive"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <p className="font-semibold text-sm leading-tight line-clamp-2 mb-1">{r.title}</p>
                       <div className="flex items-center gap-1.5 flex-wrap">
+                        {isOutline && (
+                          <Badge className="text-[10px] bg-amber-500 hover:bg-amber-500 text-white">📑 Outline</Badge>
+                        )}
                         <Badge variant="secondary" className="text-[10px] capitalize">
                           {KIND_META[r.kind].emoji} {r.kind.replace("_", " ")}
                         </Badge>
@@ -222,13 +277,27 @@ const Library = () => {
                         {format(new Date(r.created_at), "MMM d, yyyy")}
                       </p>
                     </Card>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>
           </div>
         </main>
       </div>
+
+      <UploadResourceDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        existingFolders={folders}
+      />
+
+      <FlashcardStudyDialog
+        open={!!studyCards}
+        onOpenChange={(o) => { if (!o) setStudyCards(null); }}
+        cards={studyCards || []}
+        title={studyTitle}
+      />
 
       {/* Preview dialog */}
       <Dialog open={!!previewing} onOpenChange={(o) => !o && closePreview()}>
