@@ -12,6 +12,7 @@ import {
   X,
   ExternalLink,
   Sparkles,
+  Send,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,6 +41,7 @@ interface Announcement {
   is_published: boolean;
   is_pinned: boolean;
   created_at: string;
+  notified_at?: string | null;
 }
 
 const AUDIENCES = [
