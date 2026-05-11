@@ -63,6 +63,56 @@ const formatBytes = (n: number): string => {
 type Stage = "queued" | "uploading" | "processing" | "ai" | "ready" | "failed";
 type FileStatus = { stage: Stage; error?: string };
 
+const STAGES: { key: Exclude<Stage, "failed">; label: string; icon: typeof Clock }[] = [
+  { key: "queued",     label: "Queued",     icon: Clock },
+  { key: "uploading",  label: "Uploading",  icon: CloudUpload },
+  { key: "processing", label: "Processing", icon: Cog },
+  { key: "ai",         label: "AI",         icon: Sparkles },
+  { key: "ready",      label: "Ready",      icon: CheckCircle2 },
+];
+
+const FileStageRow = ({ status }: { status: FileStatus }) => {
+  if (status.stage === "failed") {
+    return (
+      <p className="mt-1.5 text-[11px] text-destructive flex items-center gap-1">
+        <AlertTriangle className="w-3 h-3 shrink-0" />
+        <span className="truncate">{status.error || "Failed"}</span>
+      </p>
+    );
+  }
+  const currentIdx = STAGES.findIndex((s) => s.key === status.stage);
+  return (
+    <div className="mt-1.5 flex items-center gap-1">
+      {STAGES.map((s, i) => {
+        const done = i < currentIdx;
+        const active = i === currentIdx;
+        const Icon = s.icon;
+        return (
+          <div key={s.key} className="flex items-center gap-1 flex-1 min-w-0">
+            <div
+              className={`h-5 w-5 shrink-0 rounded-full grid place-items-center transition-colors ${
+                done ? "bg-emerald-500 text-white"
+                : active ? "bg-amber-500 text-white"
+                : "bg-muted text-muted-foreground"
+              }`}
+              aria-label={s.label}
+            >
+              {active && s.key !== "ready" ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Icon className="w-3 h-3" />
+              )}
+            </div>
+            {i < STAGES.length - 1 && (
+              <div className={`h-0.5 flex-1 rounded-full ${done ? "bg-emerald-500" : "bg-muted"}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
