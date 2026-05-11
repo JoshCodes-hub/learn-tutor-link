@@ -1,69 +1,84 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, AlertTriangle, ArrowRight, TrendingUp } from "lucide-react";
+import { Sparkles, AlertTriangle, ArrowRight, TrendingUp, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Snapshot {
-  readiness_score: number;
-  weak_topics: any;
-}
+import { formatLevelLabel } from "@/components/shared/LevelSelect";
 
 /**
  * Compact, premium Exam Readiness widget for the dashboard.
- * Shows the student's readiness score plus their top 3 weak topics
- * with quick links to drill each one.
+ * Score and weak areas are computed from attempts on quizzes/courses
+ * matching the student's current level (or any level if not set).
+ * Weak-area chips deep-link into the level-aware drill.
  */
 export const ExamReadinessWidget = () => {
-  const { user } = useAuth();
-  const [snap, setSnap] = useState<Snapshot | null>(null);
+  const { user, profile } = useAuth();
+  const studentLevel = ((profile as any)?.level as string | null | undefined) ?? null;
+  const [score, setScore] = useState<number>(0);
+  const [weak, setWeak] = useState<{ name: string; courseId: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const { data: existing } = await supabase
-        .from("user_performance_snapshots")
-        .select("readiness_score, weak_topics")
-        .eq("user_id", user.id)
-        .order("snapshot_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (cancelled) return;
-      if (existing) {
-        setSnap(existing as Snapshot);
-        setLoading(false);
-        return;
-      }
+      setLoading(true);
+      // Pull recent attempts with quiz/course/level info so we can filter by level
       const { data: attempts } = await supabase
         .from("quiz_attempts")
-        .select("score")
+        .select(
+          "score, completed_at, quiz:quizzes!inner(level, course:courses(id, name, level))"
+        )
         .eq("user_id", user.id)
         .not("completed_at", "is", null)
         .order("completed_at", { ascending: false })
-        .limit(20);
-      const avg = attempts && attempts.length
-        ? Math.round(attempts.reduce((s, a) => s + (a.score || 0), 0) / attempts.length)
+        .limit(60);
+      if (cancelled) return;
+      const matched = (attempts ?? []).filter((a: any) => {
+        if (!studentLevel) return true;
+        const qLvl = a.quiz?.level ?? null;
+        const cLvl = a.quiz?.course?.level ?? null;
+        // Match if quiz/course is level-agnostic OR explicitly tagged for student's level
+        return (
+          (qLvl === null || qLvl === studentLevel) &&
+          (cLvl === null || cLvl === studentLevel)
+        );
+      });
+      const avg = matched.length
+        ? Math.round(matched.reduce((s: number, a: any) => s + (a.score || 0), 0) / matched.length)
         : 0;
+      // Group by course name, compute average score, lowest 3 = weakest
+      const byCourse = new Map<string, { sum: number; n: number; id: string | null }>();
+      matched.forEach((a: any) => {
+        const name = a.quiz?.course?.name as string | undefined;
+        if (!name) return;
+        const cur = byCourse.get(name) ?? { sum: 0, n: 0, id: a.quiz?.course?.id ?? null };
+        cur.sum += a.score || 0;
+        cur.n += 1;
+        cur.id = a.quiz?.course?.id ?? cur.id;
+        byCourse.set(name, cur);
+      });
+      const weakList = Array.from(byCourse.entries())
+        .map(([name, v]) => ({ name, avg: v.sum / v.n, courseId: v.id }))
+        .filter((x) => x.avg < 70)
+        .sort((a, b) => a.avg - b.avg)
+        .slice(0, 3)
+        .map((x) => ({ name: x.name, courseId: x.courseId }));
       if (!cancelled) {
-        setSnap({ readiness_score: avg, weak_topics: [] });
+        setScore(avg);
+        setWeak(weakList);
         setLoading(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, studentLevel]);
 
   if (loading) {
     return <div className="h-28 mb-5 rounded-2xl bg-amber-50/60 animate-pulse border border-amber-100" />;
   }
-  if (!snap) return null;
-
-  const score = snap.readiness_score;
-  const weak: string[] = Array.isArray(snap.weak_topics) ? snap.weak_topics.slice(0, 3) : [];
   const ringColor =
     score >= 75 ? "stroke-emerald-500" : score >= 50 ? "stroke-amber-500" : "stroke-rose-500";
   const ringBg = "stroke-amber-100";
@@ -72,6 +87,8 @@ export const ExamReadinessWidget = () => {
 
   const label =
     score >= 75 ? "On track for success" : score >= 50 ? "Building momentum" : "Needs more practice";
+
+  const lvlQs = studentLevel ? `?level=${encodeURIComponent(studentLevel)}` : "";
 
   return (
     <motion.section
@@ -105,9 +122,12 @@ export const ExamReadinessWidget = () => {
           </div>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
             <h3 className="font-display text-[14px] font-bold text-foreground">Exam readiness</h3>
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9.5px] font-semibold">
+              <GraduationCap className="w-2.5 h-2.5" /> {formatLevelLabel(studentLevel)}
+            </span>
           </div>
           <p className="text-[11.5px] text-muted-foreground flex items-center gap-1 mt-0.5">
             <TrendingUp className="w-3 h-3" /> {label}
@@ -119,10 +139,10 @@ export const ExamReadinessWidget = () => {
                 {weak.map((t, i) => (
                   <Link
                     key={i}
-                    to={`/student/weak-area-drill?topic=${encodeURIComponent(t)}`}
+                    to={`/student/weak-area-drill/${encodeURIComponent(t.courseId || t.name)}${lvlQs}`}
                     className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10.5px] font-semibold hover:bg-amber-200 transition"
                   >
-                    {t} <ArrowRight className="w-2.5 h-2.5" />
+                    {t.name} <ArrowRight className="w-2.5 h-2.5" />
                   </Link>
                 ))}
               </div>
@@ -132,16 +152,16 @@ export const ExamReadinessWidget = () => {
       </div>
       <div className="relative mt-3 flex items-center justify-between">
         <Link
-          to="/student/mastery-breakdown"
+          to={`/student/mastery-breakdown${lvlQs}`}
           className="text-[11.5px] font-semibold text-amber-700 hover:text-amber-800 inline-flex items-center gap-1"
         >
           Full breakdown <ArrowRight className="w-3 h-3" />
         </Link>
         <Link
-          to="/student/weak-area-drill"
+          to={`/my-courses${lvlQs}`}
           className="text-[11.5px] font-semibold text-amber-700 hover:text-amber-800 inline-flex items-center gap-1"
         >
-          Drill weak topics <ArrowRight className="w-3 h-3" />
+          Practice {formatLevelLabel(studentLevel)} <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
     </motion.section>
