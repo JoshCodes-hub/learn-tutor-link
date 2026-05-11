@@ -4,20 +4,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, X, Loader2, FileText, Image as ImageIcon, Headphones, File as FileIcon } from "lucide-react";
+import { Upload, X, Loader2, FileText, Image as ImageIcon, Headphones, File as FileIcon, Info, Sparkles, Layers, Brain, BookOpen } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { saveResource } from "@/lib/userResources";
 import { kindFromFile } from "@/lib/extractText";
 
-const MATERIAL_TYPES = [
-  { value: "outline",  label: "📑 Course Outline" },
-  { value: "notes",    label: "📝 Lecture Notes" },
-  { value: "past_q",   label: "📚 Past Questions" },
-  { value: "slides",   label: "🎞️ Slides" },
-  { value: "other",    label: "📁 Other" },
-] as const;
+type MaterialType = "outline" | "notes" | "past_q" | "slides" | "other";
+
+const MATERIAL_TYPES: {
+  value: MaterialType; label: string; hint: string; suggestion: string; icon: typeof Layers;
+}[] = [
+  {
+    value: "outline",
+    label: "📑 Course Outline",
+    hint: "The syllabus or topic list for a course (best for AI study aids).",
+    suggestion: "We'll suggest generating Flashcards from each topic.",
+    icon: Layers,
+  },
+  {
+    value: "notes",
+    label: "📝 Lecture Notes",
+    hint: "Class notes, handouts, or your own written summaries.",
+    suggestion: "We'll suggest generating a Summary you can revise from.",
+    icon: BookOpen,
+  },
+  {
+    value: "past_q",
+    label: "📚 Past Questions",
+    hint: "Previous exam papers or test questions.",
+    suggestion: "We'll suggest generating a Practice Quiz to test yourself.",
+    icon: Brain,
+  },
+  { value: "slides", label: "🎞️ Slides", hint: "Lecture slide decks (PDF / PPT exported as PDF).", suggestion: "Great for Flashcards or a quick Summary.", icon: Layers },
+  { value: "other",  label: "📁 Other",  hint: "Anything else you want kept in your library.", suggestion: "Saved for safekeeping — AI tools still work on text files.", icon: FileIcon },
+];
 
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 
@@ -40,7 +63,8 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [files, setFiles] = useState<File[]>([]);
-  const [materialType, setMaterialType] = useState<string>("outline");
+  const [materialType, setMaterialType] = useState<MaterialType>("outline");
+  const activeType = MATERIAL_TYPES.find((m) => m.value === materialType)!;
   const [folder, setFolder] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
@@ -117,8 +141,12 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
           <DialogTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5 text-primary" /> Upload to My Library
           </DialogTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Save your study materials and turn them into AI flashcards, summaries & quizzes.
+          </p>
         </DialogHeader>
 
+        <TooltipProvider delayDuration={150}>
         {/* Drop zone */}
         <div
           onDragOver={(e) => e.preventDefault()}
@@ -128,7 +156,10 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
         >
           <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
           <p className="text-sm font-medium">Tap to choose files or drag & drop</p>
-          <p className="text-xs text-muted-foreground mt-1">PDF, DOCX, TXT, MD, images, audio · max 20 MB each</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            <span className="font-semibold text-foreground/80">Supported:</span> PDF · DOCX · TXT · MD · images (JPG/PNG) · audio (MP3/WAV)
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">Max 20 MB per file · multiple files supported</p>
           <input
             ref={inputRef}
             type="file"
@@ -163,18 +194,48 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
         {/* Material type + folder */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label className="text-xs">Material type</Label>
-            <Select value={materialType} onValueChange={setMaterialType} disabled={uploading}>
+            <Label className="text-xs flex items-center gap-1">
+              Material type
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" aria-label="What is this?" className="text-muted-foreground hover:text-foreground">
+                    <Info className="w-3 h-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[240px] text-xs">
+                  Pick <b>Course Outline</b> for syllabi (gets a gold accent + AI flashcards shortcut),
+                  <b> Lecture Notes</b> for handouts, or <b>Past Questions</b> for previous exam papers.
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Select value={materialType} onValueChange={(v) => setMaterialType(v as MaterialType)} disabled={uploading}>
               <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {MATERIAL_TYPES.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  <SelectItem key={m.value} value={m.value}>
+                    <div className="flex flex-col">
+                      <span>{m.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{m.hint}</span>
+                    </div>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Course / Folder</Label>
+            <Label className="text-xs flex items-center gap-1">
+              Course / Folder
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" aria-label="Folder help" className="text-muted-foreground hover:text-foreground">
+                    <Info className="w-3 h-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[220px] text-xs">
+                  Group items by course code (e.g. <b>CSC 201</b>) so they show up together in your sidebar.
+                </TooltipContent>
+              </Tooltip>
+            </Label>
             <Input
               value={folder}
               onChange={(e) => setFolder(e.target.value)}
@@ -188,6 +249,23 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
             </datalist>
           </div>
         </div>
+
+        {/* Smart suggestion based on selected material type */}
+        <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 flex items-start gap-2.5">
+          <div className="h-7 w-7 shrink-0 rounded-lg bg-amber-100 grid place-items-center">
+            <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+          </div>
+          <div className="text-xs leading-relaxed">
+            <p className="font-semibold text-amber-900">
+              Recommended after upload
+            </p>
+            <p className="text-amber-900/80 mt-0.5">{activeType.suggestion}</p>
+            <p className="text-[11px] text-amber-900/70 mt-1">
+              Tip: tap the <b>✨ AI</b> button on any card in your Library to generate flashcards, summaries or quizzes.
+            </p>
+          </div>
+        </div>
+        </TooltipProvider>
 
         {progress && (
           <p className="text-xs text-muted-foreground text-center">
