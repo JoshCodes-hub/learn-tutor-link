@@ -446,6 +446,37 @@ export const AnnouncementsManagement = () => {
                       </div>
                       <div className="flex flex-col gap-1 shrink-0">
                         <button
+                          onClick={async () => {
+                            if (!a.is_published) {
+                              toast.error("Publish this announcement before notifying students.");
+                              return;
+                            }
+                            const t = toast.loading("Sending email blast…");
+                            const { data, error } = await supabase.functions.invoke(
+                              "notify-announcement",
+                              { body: { announcementId: a.id } }
+                            );
+                            toast.dismiss(t);
+                            if (error || (data as any)?.error) {
+                              toast.error((error as any)?.message || (data as any)?.error || "Failed to notify");
+                            } else {
+                              const r = data as { sent: number; failed: number; total: number };
+                              toast.success(`Notified ${r.sent}/${r.total} students${r.failed ? ` (${r.failed} failed)` : ""}`);
+                              load();
+                            }
+                          }}
+                          aria-label={a.notified_at ? "Re-send email blast" : "Notify students by email"}
+                          title={a.notified_at ? `Notified ${new Date(a.notified_at).toLocaleString()}` : "Notify students by email"}
+                          className={cn(
+                            "p-1.5 rounded-lg transition",
+                            a.notified_at
+                              ? "bg-emerald-500/15 text-emerald-700"
+                              : "text-amber-700 hover:bg-amber-500/15"
+                          )}
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                        </button>
+                        <button
                           onClick={() => togglePin(a)}
                           aria-label={a.is_pinned ? "Unpin" : "Pin"}
                           className={cn(
