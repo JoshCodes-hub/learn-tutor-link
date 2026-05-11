@@ -65,6 +65,13 @@ interface ImportedQuiz {
   questions: ImportedQuestion[];
 }
 
+interface RejectedRow {
+  row: number;
+  reason: string;
+  missing_fields: string[];
+  data: Record<string, any>;
+}
+
 interface BulkQuizImportProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -89,6 +96,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   const { user } = useAuth();
   const [importedQuizzes, setImportedQuizzes] = useState<ImportedQuiz[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
+  const [rejectedRows, setRejectedRows] = useState<RejectedRow[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [viewMode, setViewMode] = useState<"upload" | "preview">("upload");
@@ -187,6 +195,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   const processFile = async (file: File) => {
     setIsProcessing(true);
     setErrors([]);
+    setRejectedRows([]);
     setImportedQuizzes([]);
     setProcessingStatus({ stage: "reading", progress: 0, message: "Reading file..." });
 
@@ -230,6 +239,11 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
       // Group rows by quiz title - each row is one question for a quiz
       const quizMap = new Map<string, { quizData: any; questions: any[] }>();
       const parseErrors: string[] = [];
+      const rejected: RejectedRow[] = [];
+      const pushReject = (rowNum: number, row: any, missing: string[], reason: string) => {
+        parseErrors.push(`Row ${rowNum}: ${reason}`);
+        rejected.push({ row: rowNum, reason, missing_fields: missing, data: row });
+      };
 
       for (let index = 0; index < jsonData.length; index++) {
         const row = jsonData[index] as any;
@@ -268,23 +282,36 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
 
         // Validate required fields
         if (!title) {
-          parseErrors.push(`Row ${rowNum}: Missing quiz title`);
+          pushReject(rowNum, row, ["quiz_title"], "Missing quiz title");
           continue;
         }
         if (!courseCode) {
-          parseErrors.push(`Row ${rowNum}: Missing course code`);
+          pushReject(rowNum, row, ["course_code"], "Missing course code");
           continue;
         }
         if (!questionText) {
-          parseErrors.push(`Row ${rowNum}: Missing question text`);
+          pushReject(rowNum, row, ["question_text"], "Missing question text");
           continue;
         }
-        if (!optionA || !optionB || !optionC || !optionD) {
-          parseErrors.push(`Row ${rowNum}: Missing one or more options`);
+        const missingOpts: string[] = [];
+        if (!optionA) missingOpts.push("option_a");
+        if (!optionB) missingOpts.push("option_b");
+        if (!optionC) missingOpts.push("option_c");
+        if (!optionD) missingOpts.push("option_d");
+        if (missingOpts.length) {
+          pushReject(rowNum, row, missingOpts, `Missing options: ${missingOpts.join(", ")}`);
           continue;
         }
         if (!["A", "B", "C", "D"].includes(correctOption)) {
-          parseErrors.push(`Row ${rowNum}: Invalid correct option "${correctOption}" - must be A, B, C, or D`);
+          pushReject(rowNum, row, ["correct_option"], `Invalid correct option "${correctOption}" - must be A, B, C, or D`);
+          continue;
+        }
+        if (durationMinutes <= 0 || isNaN(durationMinutes)) {
+          pushReject(rowNum, row, ["duration_minutes"], "Duration must be a positive number");
+          continue;
+        }
+        if (!["easy", "medium", "hard"].includes(difficulty)) {
+          pushReject(rowNum, row, ["difficulty"], `Invalid difficulty "${difficulty}" - must be easy, medium, or hard`);
           continue;
         }
 
@@ -340,6 +367,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
 
       setImportedQuizzes(quizzes);
       setErrors(parseErrors);
+      setRejectedRows(rejected);
 
       if (quizzes.length > 0) {
         toast.success(`Successfully parsed ${quizzes.length} quizzes`);
@@ -792,9 +820,26 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   const resetState = () => {
     setImportedQuizzes([]);
     setErrors([]);
+    setRejectedRows([]);
     setViewMode("upload");
     setPreviewIndex(0);
     setProcessingStatus(null);
+  };
+
+  const downloadErrorReport = () => {
+    if (rejectedRows.length === 0) return;
+    const reportRows = rejectedRows.map((r) => ({
+      row_number: r.row,
+      reason: r.reason,
+      missing_fields: r.missing_fields.join(", "),
+      ...r.data,
+    }));
+    const ws = XLSX.utils.json_to_sheet(reportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Rejected Rows");
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    XLSX.writeFile(wb, `import_errors_${stamp}.xlsx`);
+    toast.success(`Downloaded ${rejectedRows.length} rejected rows`);
   };
 
   const validCount = importedQuizzes.filter(isQuizValid).length;
@@ -890,8 +935,18 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-destructive mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-destructive mb-1">Errors found:</p>
+                    <div className="text-sm flex-1">
+                      <div className="flex items-center justify-between mb-1 gap-2">
+                        <p className="font-medium text-destructive">
+                          {rejectedRows.length || errors.length} row{(rejectedRows.length || errors.length) !== 1 ? "s" : ""} rejected
+                        </p>
+                        {rejectedRows.length > 0 && (
+                          <Button variant="outline" size="sm" onClick={downloadErrorReport}>
+                            <Download className="w-3 h-3 mr-1" />
+                            Error report
+                          </Button>
+                        )}
+                      </div>
                       <ScrollArea className="max-h-32">
                         <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
                           {errors.slice(0, 10).map((error, i) => (
@@ -931,6 +986,9 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                       {invalidCount} invalid
                     </Badge>
                   )}
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/30">
+                    Level: {defaultLevel}
+                  </Badge>
                 </div>
                 <Button 
                   variant="ghost" 
@@ -939,6 +997,37 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                 >
                   Upload Different File
                 </Button>
+              </div>
+
+              {/* Pre-confirm grouped summary */}
+              <div className="p-3 rounded-lg border bg-muted/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Review before upload</p>
+                  {rejectedRows.length > 0 && (
+                    <Button variant="outline" size="sm" onClick={downloadErrorReport}>
+                      <Download className="w-3 h-3 mr-1" />
+                      Error report ({rejectedRows.length})
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {importedQuizzes.length} quiz{importedQuizzes.length !== 1 ? "zes" : ""} grouped from {importedQuizzes.reduce((s, q) => s + q.questions.length, 0)} question{importedQuizzes.reduce((s, q) => s + q.questions.length, 0) !== 1 ? "s" : ""}, all targeted to <span className="font-medium text-foreground">{defaultLevel}</span>.
+                </p>
+                <ScrollArea className="max-h-28">
+                  <ul className="text-xs space-y-1">
+                    {importedQuizzes.map((q, i) => (
+                      <li key={i} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          <span className="text-muted-foreground">{q.course_code}</span> · {q.title}
+                        </span>
+                        <span className="shrink-0 flex items-center gap-1">
+                          <Badge variant="outline" className="text-[10px] px-1 py-0">{q.questions.length} Q</Badge>
+                          <Badge variant="outline" className="text-[10px] px-1 py-0 bg-amber-500/10 text-amber-700 border-amber-500/30">{defaultLevel}</Badge>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </ScrollArea>
               </div>
 
               {/* Quiz Navigator */}
