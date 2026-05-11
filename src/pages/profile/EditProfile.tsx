@@ -27,8 +27,8 @@ import {
 } from "@/components/ui/select";
 import { uploadToBucketWithVerification } from "@/lib/storageUpload";
 import { CoverCropDialog } from "@/components/profile/CoverCropDialog";
+import { useStudentLevel, LEVEL_OPTIONS } from "@/hooks/useStudentLevel";
 
-const LEVELS = ["100", "200", "300", "400", "500", "600"];
 const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
 
 const DEPARTMENTS = [
@@ -67,6 +67,7 @@ const DEPARTMENTS = [
 const EditProfile = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
+  const { setLevel: persistLevel } = useStudentLevel();
   const [fullName, setFullName] = useState("");
   const [department, setDepartment] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -434,9 +435,16 @@ const EditProfile = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Level</Label>
-                <Select value={level} onValueChange={setLevel}>
+                <Select
+                  value={level}
+                  onValueChange={async (v) => {
+                    setLevel(v);
+                    // Persist + invalidate queries immediately so dashboards / courses refresh
+                    await persistLevel(v);
+                  }}
+                >
                   <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
-                  <SelectContent>{LEVELS.map(l => <SelectItem key={l} value={l}>{l} Level</SelectItem>)}</SelectContent>
+                  <SelectContent>{LEVEL_OPTIONS.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">

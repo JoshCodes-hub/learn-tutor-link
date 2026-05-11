@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppScreen } from "@/components/app-shell/AppScreen";
@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, Brain, CheckCircle2, Loader2, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Brain, CheckCircle2, Loader2, Sparkles, X, GraduationCap } from "lucide-react";
+import { formatLevelLabel } from "@/components/shared/LevelSelect";
 
 interface WrongQuestion {
   id: string;
@@ -26,7 +27,10 @@ interface WrongQuestion {
 export default function WeakAreaDrill() {
   const { courseId = "" } = useParams();
   const decoded = decodeURIComponent(courseId);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const [search] = useSearchParams();
+  const levelParam = search.get("level");
+  const studentLevel = levelParam || ((profile as any)?.level as string | undefined) || null;
   const navigate = useNavigate();
   const [rows, setRows] = useState<WrongQuestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,12 +57,19 @@ export default function WeakAreaDrill() {
         .from("quiz_answers")
         .select(`
           selected_option, is_correct, attempt_id,
-          questions!inner(id, question_text, option_a, option_b, option_c, option_d, correct_option, explanation, course_id, courses:course_id(name))
+          questions!inner(id, question_text, option_a, option_b, option_c, option_d, correct_option, explanation, course_id, courses:course_id(name, level))
         `)
         .in("attempt_id", ids)
         .eq("is_correct", false);
 
-      const matched = (ans || []).filter((r: any) => r.questions?.course_id === decoded || r.questions?.courses?.name === decoded);
+      const matched = (ans || []).filter((r: any) => {
+        const q = r.questions;
+        if (!q) return false;
+        const matchesCourse = q.course_id === decoded || q.courses?.name === decoded;
+        if (!matchesCourse) return false;
+        if (studentLevel && q.courses?.level && q.courses.level !== studentLevel) return false;
+        return true;
+      });
       const unique = new Map<string, WrongQuestion>();
       matched.forEach((r: any) => {
         const q = r.questions;
@@ -83,7 +94,7 @@ export default function WeakAreaDrill() {
       setRows(Array.from(unique.values()));
       setLoading(false);
     })();
-  }, [user, decoded, courseName]);
+  }, [user, decoded, courseName, studentLevel]);
 
   const askAI = async (q: WrongQuestion) => {
     setAiLoading((m) => ({ ...m, [q.id]: true }));
@@ -127,8 +138,17 @@ export default function WeakAreaDrill() {
   };
 
   return (
-    <AppScreen back title="Weak Area Drill" subtitle={courseName || decoded}>
+    <AppScreen
+      back
+      title="Weak Area Drill"
+      subtitle={`${courseName || decoded}${studentLevel ? ` · ${formatLevelLabel(studentLevel)}` : ""}`}
+    >
       <div className="max-w-3xl mx-auto space-y-4 pb-8">
+        {studentLevel && (
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-semibold w-fit">
+            <GraduationCap className="w-3 h-3" /> Filtered to {formatLevelLabel(studentLevel)}
+          </div>
+        )}
         <Card className="p-4 bg-rose-500/5 border-rose-500/20">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-rose-500" />

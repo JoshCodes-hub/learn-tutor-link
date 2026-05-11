@@ -37,10 +37,12 @@ interface Quiz {
   is_active: boolean;
   is_simulation: boolean;
   tutor_id: string | null;
+  level: string | null;
   course: {
     id: string;
     code: string;
     name: string;
+    level?: string | null;
   };
 }
 
@@ -59,7 +61,8 @@ interface Rating {
 const QuizPreview = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
+  const studentLevel = ((profile as any)?.level as string | null | undefined) ?? null;
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [tutor, setTutor] = useState<TutorProfile | null>(null);
   const [rating, setRating] = useState<Rating | null>(null);
@@ -79,7 +82,7 @@ const QuizPreview = () => {
           .from("quizzes")
           .select(`
             *,
-            course:courses(id, code, name)
+            course:courses(id, code, name, level)
           `)
           .eq("id", quizId)
           .single();
@@ -158,6 +161,14 @@ const QuizPreview = () => {
       return;
     }
 
+    const reqLvl = quiz.level || quiz.course?.level || null;
+    const locked = !!studentLevel && !!reqLvl && reqLvl !== studentLevel;
+    if (locked) {
+      const requiredLevel = reqLvl;
+      toast.error(`This quiz is for ${requiredLevel} students. Switch your level in your profile to start.`);
+      return;
+    }
+
     if (quiz.is_premium && !hasPurchased) {
       setShowPurchaseDialog(true);
       return;
@@ -230,7 +241,9 @@ const QuizPreview = () => {
     );
   }
 
-  const canStart = !quiz.is_premium || hasPurchased;
+  const requiredLevel = quiz.level || quiz.course?.level || null;
+  const levelLocked = !!studentLevel && !!requiredLevel && requiredLevel !== studentLevel;
+  const canStart = (!quiz.is_premium || hasPurchased) && !levelLocked;
 
   return (
     <>
@@ -343,7 +356,29 @@ const QuizPreview = () => {
 
               {/* Start Button */}
               <div className="pt-2">
-                {quiz.is_premium && !canStart ? (
+                {levelLocked ? (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+                      <Lock className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-display font-bold text-amber-900">
+                          This quiz is for {requiredLevel} students
+                        </p>
+                        <p className="text-sm text-amber-800 mt-0.5">
+                          You're currently on {studentLevel}. Switch your level in your profile to unlock it.
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate("/profile/edit")}
+                    >
+                      Switch level in profile
+                    </Button>
+                  </div>
+                ) : quiz.is_premium && !hasPurchased ? (
                   <Button
                     size="lg"
                     className="w-full"
