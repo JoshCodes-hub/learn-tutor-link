@@ -822,10 +822,14 @@ const StudentDashboard = () => {
         {/* Mobile-first greeting header — matches product mockup */}
         <MobileGreetingHeader />
 
-        {/* Compact notification card — opens full inbox via "See more" */}
-        <div className="mb-4">
-          <DashboardNotificationCard />
-        </div>
+        {/* Unified Updates Center: notifications + announcements in one card */}
+        <UpdatesCenter />
+
+        {/* Premium quick actions */}
+        <PremiumQuickActions />
+
+        {/* Exam readiness widget */}
+        <ExamReadinessWidget />
 
         {/* Premium welcome strip — no profile photo, focus on greeting + path */}
         <motion.section
@@ -883,9 +887,6 @@ const StudentDashboard = () => {
 
         {/* Growth campaign banner */}
         <CampaignBanner />
-
-        {/* Admin-curated announcements */}
-        <PlatformAnnouncements />
 
         {/* Upload Document shortcut + first-visit / post-login welcome */}
         <UploadCTABanner />
