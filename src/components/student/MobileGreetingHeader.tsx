@@ -112,6 +112,10 @@ export const MobileGreetingHeader = () => {
         .update({ avatar_url: publicUrl, profile_image_url: publicUrl } as any)
         .eq("id", user.id);
       setLocalAvatar(publicUrl);
+      try {
+        localStorage.setItem(`overra.avatar.${user.id}`, publicUrl);
+        localStorage.setItem("overra.avatar.last", publicUrl);
+      } catch { /* noop */ }
       await refreshProfile();
       toast({ title: "Profile picture updated" });
     } catch (err: any) {
