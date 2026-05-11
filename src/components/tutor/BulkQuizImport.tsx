@@ -935,8 +935,18 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-destructive mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-destructive mb-1">Errors found:</p>
+                    <div className="text-sm flex-1">
+                      <div className="flex items-center justify-between mb-1 gap-2">
+                        <p className="font-medium text-destructive">
+                          {rejectedRows.length || errors.length} row{(rejectedRows.length || errors.length) !== 1 ? "s" : ""} rejected
+                        </p>
+                        {rejectedRows.length > 0 && (
+                          <Button variant="outline" size="sm" onClick={downloadErrorReport}>
+                            <Download className="w-3 h-3 mr-1" />
+                            Error report
+                          </Button>
+                        )}
+                      </div>
                       <ScrollArea className="max-h-32">
                         <ul className="list-disc list-inside space-y-0.5 text-muted-foreground">
                           {errors.slice(0, 10).map((error, i) => (
