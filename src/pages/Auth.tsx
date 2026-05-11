@@ -411,13 +411,12 @@ const Auth = () => {
               })()}
 
               <div className="relative overflow-hidden">
-                <AnimatePresence initial={false} mode="wait" custom={stepDir}>
+                <AnimatePresence initial={false} mode="wait">
                   <motion.div
                     key={signUpStep}
-                    custom={stepDir}
-                    initial={(d: number) => ({ opacity: 0, x: d * 40 })}
+                    initial={{ opacity: 0, x: stepDir * 40 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={(d: number) => ({ opacity: 0, x: d * -40 })}
+                    exit={{ opacity: 0, x: stepDir * -40 }}
                     transition={{ duration: 0.28, ease: "easeOut" }}
                     className="space-y-5"
                   >
