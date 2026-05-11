@@ -254,18 +254,18 @@ const Auth = () => {
         {/* Premium ambassador / brand showcase (lg+ only) */}
         <AuthBrandPanel />
 
-        <div className="w-full flex items-center justify-center p-4 sm:p-6 lg:p-10 relative z-10">
+        <div className="w-full flex items-start sm:items-center justify-center px-3 py-5 sm:p-6 lg:p-10 relative z-10">
           <article className="w-full max-w-md relative z-10 animate-fade-in">
         {/* Logo */}
-        <div className="text-center mb-7 lg:hidden">
+        <div className="text-center mb-5 sm:mb-7 lg:hidden">
           <a href="/" className="inline-flex items-center group">
             <img
               src={logo}
               alt="OverraPrep AI"
-              className="h-16 w-auto object-contain drop-shadow-[0_8px_30px_hsl(var(--primary)/0.45)] transition-transform group-hover:scale-105"
+              className="h-12 sm:h-16 w-auto object-contain drop-shadow-[0_8px_30px_hsl(var(--primary)/0.45)] transition-transform group-hover:scale-105"
             />
           </a>
-          <p className="mt-3 text-[11px] uppercase tracking-[0.3em] text-muted-foreground/80 font-bold">
+          <p className="mt-2 sm:mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.25em] sm:tracking-[0.3em] text-muted-foreground/80 font-bold">
             Study Smart · Not Hard
           </p>
         </div>
@@ -289,9 +289,9 @@ const Auth = () => {
         <div className="relative">
           {/* outer gold border glow */}
           <div className="absolute -inset-[1.5px] rounded-[28px] bg-gradient-to-br from-primary/60 via-amber-300/30 to-primary/60 opacity-70 blur-[2px]" aria-hidden />
-          <div className="relative bg-white/75 supports-[backdrop-filter]:bg-white/55 backdrop-blur-2xl rounded-[26px] border border-white/60 shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.45)] p-7 sm:p-8">
+          <div className="relative bg-white/85 supports-[backdrop-filter]:bg-white/65 backdrop-blur-2xl rounded-2xl sm:rounded-[26px] border border-white/60 shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.45)] p-4 sm:p-7 md:p-8">
           {/* Tab Switcher */}
-          <div className="relative flex mb-7 bg-muted/70 rounded-2xl p-1 border border-border/40">
+          <div className="relative flex mb-5 sm:mb-7 bg-muted/70 rounded-2xl p-1 border border-border/40">
             <span
               className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl bg-gradient-to-br from-primary to-amber-400 shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.6)] transition-all duration-300 ease-out ${
                 isSignUp ? "left-[calc(50%+2px)]" : "left-1"
