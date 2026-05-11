@@ -23,12 +23,37 @@ import { useStudentLevel } from "@/hooks/useStudentLevel";
  */
 export const MobileGreetingHeader = () => {
   const navigate = useNavigate();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, signOut } = useAuth();
+  const { level } = useStudentLevel();
   const [streak, setStreak] = useState<number>(0);
   const [unread, setUnread] = useState<number>(0);
   const [uploading, setUploading] = useState(false);
-  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+  const [localAvatar, setLocalAvatar] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("overra.avatar.last");
+    } catch {
+      return null;
+    }
+  });
+  const [levelOpen, setLevelOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const cached = localStorage.getItem(`overra.avatar.${user.id}`);
+      if (cached) setLocalAvatar(cached);
+    } catch { /* noop */ }
+  }, [user?.id]);
+
+  useEffect(() => {
+    const url = profile?.avatar_url || (profile as any)?.profile_image_url;
+    if (!url || !user) return;
+    try {
+      localStorage.setItem(`overra.avatar.${user.id}`, url);
+      localStorage.setItem("overra.avatar.last", url);
+    } catch { /* noop */ }
+  }, [profile?.avatar_url, user?.id]);
 
   useEffect(() => {
     if (!user) return;
