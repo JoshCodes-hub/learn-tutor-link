@@ -986,6 +986,9 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                       {invalidCount} invalid
                     </Badge>
                   )}
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/30">
+                    Level: {defaultLevel}
+                  </Badge>
                 </div>
                 <Button 
                   variant="ghost" 
@@ -994,6 +997,37 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                 >
                   Upload Different File
                 </Button>
+              </div>
+
+              {/* Pre-confirm grouped summary */}
+              <div className="p-3 rounded-lg border bg-muted/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Review before upload</p>
+                  {rejectedRows.length > 0 && (
+                    <Button variant="outline" size="sm" onClick={downloadErrorReport}>
+                      <Download className="w-3 h-3 mr-1" />
+                      Error report ({rejectedRows.length})
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {importedQuizzes.length} quiz{importedQuizzes.length !== 1 ? "zes" : ""} grouped from {importedQuizzes.reduce((s, q) => s + q.questions.length, 0)} question{importedQuizzes.reduce((s, q) => s + q.questions.length, 0) !== 1 ? "s" : ""}, all targeted to <span className="font-medium text-foreground">{defaultLevel}</span>.
+                </p>
+                <ScrollArea className="max-h-28">
+                  <ul className="text-xs space-y-1">
+                    {importedQuizzes.map((q, i) => (
+                      <li key={i} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          <span className="text-muted-foreground">{q.course_code}</span> · {q.title}
+                        </span>
+                        <span className="shrink-0 flex items-center gap-1">
+                          <Badge variant="outline" className="text-[10px] px-1 py-0">{q.questions.length} Q</Badge>
+                          <Badge variant="outline" className="text-[10px] px-1 py-0 bg-amber-500/10 text-amber-700 border-amber-500/30">{defaultLevel}</Badge>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </ScrollArea>
               </div>
 
               {/* Quiz Navigator */}
