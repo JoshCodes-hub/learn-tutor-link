@@ -35,7 +35,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { TUTOR_LEVEL_OPTIONS, formatLevelLabel } from "@/components/shared/LevelSelect";
+import { TUTOR_LEVEL_OPTIONS } from "@/components/shared/LevelSelect";
 import {
   DndContext,
   closestCenter,
