@@ -35,6 +35,10 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { exportToPdf } from "@/lib/exportPdf";
 import { ExportButton } from "./ExportButton";
 
+const LEVEL_OPTIONS = ["ALL", "100L", "200L", "300L", "400L", "500L", "JAMB"] as const;
+type LevelFilter = (typeof LEVEL_OPTIONS)[number];
+type StatusFilter = "all" | "pending" | "approved" | "rejected";
+
 interface TutorApplication {
   id: string;
   user_id: string;
@@ -59,6 +63,7 @@ interface Tutor {
   courses_count: number;
   questions_count: number;
   total_earnings: number;
+  levels: string[];
 }
 
 export function TutorManagement() {
@@ -71,6 +76,8 @@ export function TutorManagement() {
   const [adminNotes, setAdminNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeView, setActiveView] = useState<"applications" | "tutors">("applications");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>("ALL");
 
   const fetchData = async () => {
     try {
@@ -127,12 +134,22 @@ export function TutorManagement() {
               }
             }
 
+            // Distinct levels this tutor has published quizzes at
+            const { data: levelRows } = await supabase
+              .from("quizzes")
+              .select("level")
+              .eq("tutor_id", role.user_id);
+            const levels = Array.from(
+              new Set((levelRows || []).map((r: any) => r.level).filter(Boolean) as string[])
+            );
+
             return {
               user_id: role.user_id,
               profile: profile || { full_name: null, email: "", department: null },
               courses_count: coursesCount || 0,
               questions_count: questionsCount || 0,
               total_earnings: Math.round(totalEarnings),
+              levels,
             };
           })
         );
@@ -248,11 +265,18 @@ export function TutorManagement() {
   };
 
   const pendingApps = applications.filter((a) => a.status === "pending");
-  const filteredTutors = tutors.filter(
-    (t) =>
-      t.profile.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.profile.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredApps = applications.filter(
+    (a) => statusFilter === "all" || a.status === statusFilter
   );
+  const filteredTutors = tutors.filter((t) => {
+    const q = searchQuery.toLowerCase();
+    const matchSearch =
+      !q ||
+      t.profile.full_name?.toLowerCase().includes(q) ||
+      t.profile.email.toLowerCase().includes(q);
+    const matchLevel = levelFilter === "ALL" || t.levels.includes(levelFilter);
+    return matchSearch && matchLevel;
+  });
 
   const applicationColumns = [
     { key: "full_name", label: "Name" },
@@ -339,7 +363,27 @@ export function TutorManagement() {
       </div>
 
       {activeView === "applications" ? (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {(["all", "pending", "approved", "rejected"] as StatusFilter[]).map((s) => {
+              const count =
+                s === "all"
+                  ? applications.length
+                  : applications.filter((a) => a.status === s).length;
+              return (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={statusFilter === s ? "default" : "outline"}
+                  onClick={() => setStatusFilter(s)}
+                  className="capitalize"
+                >
+                  {s} ({count})
+                </Button>
+              );
+            })}
+          </div>
+          <div className="bg-card rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -352,14 +396,14 @@ export function TutorManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {applications.length === 0 ? (
+              {filteredApps.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No applications found
                   </TableCell>
                 </TableRow>
               ) : (
-                applications.map((app) => (
+                filteredApps.map((app) => (
                   <TableRow key={app.id}>
                     <TableCell>
                       <div>
@@ -405,9 +449,26 @@ export function TutorManagement() {
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {LEVEL_OPTIONS.map((lv) => {
+              const count =
+                lv === "ALL" ? tutors.length : tutors.filter((t) => t.levels.includes(lv)).length;
+              return (
+                <Button
+                  key={lv}
+                  size="sm"
+                  variant={levelFilter === lv ? "default" : "outline"}
+                  onClick={() => setLevelFilter(lv)}
+                >
+                  {lv === "ALL" ? "All levels" : lv} ({count})
+                </Button>
+              );
+            })}
+          </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -423,6 +484,7 @@ export function TutorManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tutor</TableHead>
+                  <TableHead>Levels</TableHead>
                   <TableHead className="text-center">Courses</TableHead>
                   <TableHead className="text-center">Questions</TableHead>
                   <TableHead className="text-center">Earnings</TableHead>
@@ -432,7 +494,7 @@ export function TutorManagement() {
               <TableBody>
                 {filteredTutors.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       No tutors found
                     </TableCell>
                   </TableRow>
@@ -445,6 +507,19 @@ export function TutorManagement() {
                             {tutor.profile.full_name || "Unknown"}
                           </p>
                           <p className="text-sm text-muted-foreground">{tutor.profile.email}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {tutor.levels.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            tutor.levels.map((lv) => (
+                              <Badge key={lv} variant="secondary" className="text-xs">
+                                {lv}
+                              </Badge>
+                            ))
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-center">{tutor.courses_count}</TableCell>
