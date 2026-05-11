@@ -12,6 +12,7 @@ import {
   X,
   ExternalLink,
   Sparkles,
+  Send,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,6 +41,7 @@ interface Announcement {
   is_published: boolean;
   is_pinned: boolean;
   created_at: string;
+  notified_at?: string | null;
 }
 
 const AUDIENCES = [
@@ -47,6 +49,15 @@ const AUDIENCES = [
   { value: "students", label: "Students" },
   { value: "tutors", label: "Tutors" },
   { value: "parents", label: "Parents" },
+];
+
+const CATEGORIES = [
+  { value: "general", label: "News" },
+  { value: "feature", label: "New feature" },
+  { value: "event", label: "Event" },
+  { value: "promo", label: "Offer" },
+  { value: "tips", label: "Study tip" },
+  { value: "maintenance", label: "Maintenance" },
 ];
 
 export const AnnouncementsManagement = () => {
@@ -59,6 +70,7 @@ export const AnnouncementsManagement = () => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [audience, setAudience] = useState("all");
+  const [category, setCategory] = useState("general");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkLabel, setLinkLabel] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -89,6 +101,7 @@ export const AnnouncementsManagement = () => {
     setTitle("");
     setBody("");
     setAudience("all");
+    setCategory("general");
     setLinkUrl("");
     setLinkLabel("");
     setImageFile(null);
@@ -144,6 +157,7 @@ export const AnnouncementsManagement = () => {
         link_url: linkUrl.trim() || null,
         link_label: linkLabel.trim() || null,
         audience,
+        category,
         is_pinned: isPinned,
         is_published: true,
         created_by: user?.id ?? null,
@@ -314,7 +328,7 @@ export const AnnouncementsManagement = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label>Audience</Label>
                   <Select value={audience} onValueChange={setAudience}>
@@ -325,6 +339,21 @@ export const AnnouncementsManagement = () => {
                       {AUDIENCES.map((a) => (
                         <SelectItem key={a.value} value={a.value}>
                           {a.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -443,6 +472,37 @@ export const AnnouncementsManagement = () => {
                         )}
                       </div>
                       <div className="flex flex-col gap-1 shrink-0">
+                        <button
+                          onClick={async () => {
+                            if (!a.is_published) {
+                              toast.error("Publish this announcement before notifying students.");
+                              return;
+                            }
+                            const t = toast.loading("Sending email blast…");
+                            const { data, error } = await supabase.functions.invoke(
+                              "notify-announcement",
+                              { body: { announcementId: a.id } }
+                            );
+                            toast.dismiss(t);
+                            if (error || (data as any)?.error) {
+                              toast.error((error as any)?.message || (data as any)?.error || "Failed to notify");
+                            } else {
+                              const r = data as { sent: number; failed: number; total: number };
+                              toast.success(`Notified ${r.sent}/${r.total} students${r.failed ? ` (${r.failed} failed)` : ""}`);
+                              fetchItems();
+                            }
+                          }}
+                          aria-label={a.notified_at ? "Re-send email blast" : "Notify students by email"}
+                          title={a.notified_at ? `Notified ${new Date(a.notified_at).toLocaleString()}` : "Notify students by email"}
+                          className={cn(
+                            "p-1.5 rounded-lg transition",
+                            a.notified_at
+                              ? "bg-emerald-500/15 text-emerald-700"
+                              : "text-amber-700 hover:bg-amber-500/15"
+                          )}
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => togglePin(a)}
                           aria-label={a.is_pinned ? "Unpin" : "Pin"}

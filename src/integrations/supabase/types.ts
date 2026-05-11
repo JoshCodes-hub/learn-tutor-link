@@ -1827,6 +1827,7 @@ export type Database = {
         Row: {
           audience: string
           body: string
+          category: string
           created_at: string
           created_by: string | null
           ends_at: string | null
@@ -1836,6 +1837,7 @@ export type Database = {
           is_published: boolean
           link_label: string | null
           link_url: string | null
+          notified_at: string | null
           starts_at: string
           title: string
           updated_at: string
@@ -1843,6 +1845,7 @@ export type Database = {
         Insert: {
           audience?: string
           body: string
+          category?: string
           created_at?: string
           created_by?: string | null
           ends_at?: string | null
@@ -1852,6 +1855,7 @@ export type Database = {
           is_published?: boolean
           link_label?: string | null
           link_url?: string | null
+          notified_at?: string | null
           starts_at?: string
           title: string
           updated_at?: string
@@ -1859,6 +1863,7 @@ export type Database = {
         Update: {
           audience?: string
           body?: string
+          category?: string
           created_at?: string
           created_by?: string | null
           ends_at?: string | null
@@ -1868,6 +1873,7 @@ export type Database = {
           is_published?: boolean
           link_label?: string | null
           link_url?: string | null
+          notified_at?: string | null
           starts_at?: string
           title?: string
           updated_at?: string
