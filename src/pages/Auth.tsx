@@ -1,10 +1,12 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, ArrowRight, Loader2, Gift, GraduationCap, Phone, MapPin, BookOpen, IdCard, Eye, EyeOff, Sparkles, ShieldCheck } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, ArrowLeft, Loader2, Gift, GraduationCap, Phone, MapPin, BookOpen, IdCard, Eye, EyeOff } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import logo from "@/assets/logo.png";
+import authBg from "@/assets/auth-bg.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,9 +16,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
 import { supabase } from "@/integrations/supabase/client";
 import AuthBrandPanel from "@/components/auth/AuthBrandPanel";
-
-// Lazy-loaded WebGL gold orb scene used as a luxe 3D backdrop.
-const Splash3DScene = lazy(() => import("@/components/splash/Splash3DScene"));
 
 const NIGERIAN_STATES = [
   "Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta",
@@ -70,6 +69,8 @@ const Auth = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [showSignInPwd, setShowSignInPwd] = useState(false);
   const [showSignUpPwd, setShowSignUpPwd] = useState(false);
+  const [signUpStep, setSignUpStep] = useState(0);
+  const [stepDir, setStepDir] = useState<1 | -1>(1);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
@@ -237,22 +238,21 @@ const Auth = () => {
         url="https://overraprep.com/auth"
       />
       <main
-        className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#fffaf0] via-background to-[#fff4d8] lg:grid lg:grid-cols-[1.05fr_1fr] xl:grid-cols-[1.15fr_1fr] flex items-center justify-center"
+        className="min-h-screen relative overflow-hidden bg-[#faf6ee] lg:grid lg:grid-cols-[1.05fr_1fr] xl:grid-cols-[1.15fr_1fr] flex items-center justify-center"
         role="main"
       >
-        {/* Premium ambassador / brand showcase (lg+ only) */}
-        <AuthBrandPanel />
-
-        {/* Lazy 3D gold orb scene — soft, sits behind the form column */}
-        <div className="pointer-events-none absolute inset-0 lg:left-auto lg:right-0 lg:w-1/2 opacity-[0.4] mix-blend-multiply" aria-hidden>
-          <Suspense fallback={null}>
-            <Splash3DScene />
-          </Suspense>
+        {/* Static editorial photo backdrop (mobile only — desktop shows AuthBrandPanel instead) */}
+        <div className="lg:hidden absolute inset-0 -z-10" aria-hidden>
+          <img
+            src={authBg}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/85 to-white/95" />
         </div>
 
-        {/* Premium gold ambient glow accents on the form side */}
-        <div className="pointer-events-none absolute -top-40 -right-40 w-[28rem] h-[28rem] rounded-full bg-primary/25 blur-[120px]" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-40 right-1/4 w-[24rem] h-[24rem] rounded-full bg-amber-300/25 blur-[120px]" aria-hidden />
+        {/* Premium ambassador / brand showcase (lg+ only) */}
+        <AuthBrandPanel />
 
         <div className="w-full flex items-center justify-center p-4 sm:p-6 lg:p-10 relative z-10">
           <article className="w-full max-w-md relative z-10 animate-fade-in">
