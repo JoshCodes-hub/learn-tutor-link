@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { Loader2, Camera, User, Clock, BookOpen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { LevelSelect, levelToDb } from "@/components/shared/LevelSelect";
 
 interface Course {
   id: string;
@@ -58,6 +59,7 @@ export function CreateQuizDialog({
   const [tokenCost, setTokenCost] = useState("10");
   const [isSimulation, setIsSimulation] = useState(false);
   const [availableQuestions, setAvailableQuestions] = useState(0);
+  const [level, setLevel] = useState("ALL");
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [tutorName, setTutorName] = useState<string | null>(null);
 
@@ -183,6 +185,7 @@ export function CreateQuizDialog({
           is_premium: isPremium,
           token_cost: isPremium ? parseInt(tokenCost) : 0,
           is_simulation: isSimulation,
+          level: levelToDb(level),
         })
         .select()
         .single();
@@ -235,6 +238,7 @@ export function CreateQuizDialog({
     setIsPremium(false);
     setTokenCost("10");
     setIsSimulation(false);
+    setLevel("ALL");
   };
 
   return (
@@ -363,6 +367,8 @@ export function CreateQuizDialog({
               rows={2}
             />
           </div>
+
+          <LevelSelect value={level} onChange={setLevel} label="Target Student Level" />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
