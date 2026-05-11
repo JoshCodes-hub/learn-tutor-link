@@ -60,6 +60,59 @@
       html, body {
         overscroll-behavior-y: none;
       }
+      /* ===== Pre-React boot splash (white + gold) =====
+         Visible immediately on first paint and stays up until React mounts.
+         If chunks fail or WebGL crashes the app, the #boot-fallback message
+         is revealed so the user never sees a blank white screen. */
+      #boot-splash {
+        position: fixed; inset: 0; z-index: 2147483646;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: linear-gradient(160deg, #fff8e1 0%, #f5c042 55%, #c9941f 100%);
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #1a1407;
+        transition: opacity .45s ease;
+      }
+      #boot-splash.is-hidden { opacity: 0; pointer-events: none; }
+      #boot-splash .boot-orb {
+        width: 96px; height: 96px; border-radius: 50%;
+        background: radial-gradient(circle at 32% 28%, #fffbe6, #f5c042 45%, #8a5a00 95%);
+        box-shadow: 0 0 60px rgba(255,210,90,.7), 0 18px 40px rgba(80,50,0,.35);
+        animation: bootFloat 2.4s ease-in-out infinite;
+      }
+      #boot-splash .boot-title {
+        margin-top: 26px; font-weight: 700; font-size: 18px; letter-spacing: .12em; text-transform: uppercase;
+      }
+      #boot-splash .boot-sub {
+        margin-top: 6px; font-size: 13px; opacity: .75;
+      }
+      #boot-splash .boot-spinner {
+        margin-top: 22px; width: 26px; height: 26px; border-radius: 50%;
+        border: 2.5px solid rgba(26,20,7,.18); border-top-color: #1a1407;
+        animation: bootSpin .9s linear infinite;
+      }
+      #boot-fallback {
+        display: none; max-width: 360px; margin-top: 26px; text-align: center;
+        padding: 18px 20px; border-radius: 16px;
+        background: rgba(255,255,255,.78); backdrop-filter: blur(8px);
+        box-shadow: 0 12px 40px rgba(80,50,0,.18);
+      }
+      #boot-fallback h2 { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
+      #boot-fallback p { margin: 0 0 14px; font-size: 13px; line-height: 1.45; opacity: .8; }
+      #boot-fallback button {
+        appearance: none; border: 0; cursor: pointer;
+        background: #1a1407; color: #fff8e1;
+        padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 13px;
+        letter-spacing: .04em;
+      }
+      #boot-fallback button:hover { background: #2a2110; }
+      @keyframes bootFloat {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50%      { transform: translateY(-8px) scale(1.03); }
+      }
+      @keyframes bootSpin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) {
+        #boot-splash .boot-orb, #boot-splash .boot-spinner { animation: none; }
+      }
     </style>
     
   
@@ -81,6 +134,54 @@
 
   <body>
     <div id="root"></div>
+
+    <!-- Pre-React splash. Removed by main.tsx once React mounts. -->
+    <div id="boot-splash" role="status" aria-live="polite" aria-label="Loading OverraPrep AI">
+      <div class="boot-orb" aria-hidden="true"></div>
+      <div class="boot-title">OverraPrep AI</div>
+      <div class="boot-sub">Study Smart, Not Hard.</div>
+      <div class="boot-spinner" aria-hidden="true"></div>
+      <div id="boot-fallback">
+        <h2>Hmm, that took a while.</h2>
+        <p id="boot-fallback-msg">We couldn't finish loading the app. Check your connection and try again.</p>
+        <button type="button" onclick="window.location.reload()">Reload app</button>
+      </div>
+    </div>
+    <script>
+      (function () {
+        // Reveal the fallback CTA if the app hasn't mounted within 12s,
+        // or if a chunk fails to load. Prevents blank-screen lock-up.
+        var FALLBACK_MS = 12000;
+        var shown = false;
+        function showFallback(msg) {
+          if (shown) return; shown = true;
+          var el = document.getElementById("boot-fallback");
+          if (!el) return;
+          if (msg) {
+            var m = document.getElementById("boot-fallback-msg");
+            if (m) m.textContent = msg;
+          }
+          el.style.display = "block";
+        }
+        var timer = setTimeout(function () {
+          if (!document.body.classList.contains("app-ready")) showFallback();
+        }, FALLBACK_MS);
+        window.__BOOT_FALLBACK__ = { show: showFallback, cancel: function () { clearTimeout(timer); } };
+        window.addEventListener("error", function (e) {
+          var msg = (e && e.message) || "";
+          if (/Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed/i.test(msg)) {
+            showFallback("A new version is available or your connection dropped. Tap reload to continue.");
+          }
+        });
+        window.addEventListener("unhandledrejection", function (e) {
+          var msg = (e && e.reason && (e.reason.message || e.reason)) || "";
+          if (/Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed/i.test(String(msg))) {
+            showFallback("A new version is available or your connection dropped. Tap reload to continue.");
+          }
+        });
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
