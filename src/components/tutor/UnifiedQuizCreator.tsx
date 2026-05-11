@@ -591,6 +591,9 @@ export function UnifiedQuizCreator({
               />
             </div>
 
+            {/* Target Student Level */}
+            <LevelSelect value={level} onChange={setLevel} label="Target Student Level" />
+
             {/* Duration & Question Count */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
