@@ -356,7 +356,29 @@ const QuizPreview = () => {
 
               {/* Start Button */}
               <div className="pt-2">
-                {quiz.is_premium && !canStart ? (
+                {levelLocked ? (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+                      <Lock className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-display font-bold text-amber-900">
+                          This quiz is for {requiredLevel} students
+                        </p>
+                        <p className="text-sm text-amber-800 mt-0.5">
+                          You're currently on {studentLevel}. Switch your level in your profile to unlock it.
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate("/profile/edit")}
+                    >
+                      Switch level in profile
+                    </Button>
+                  </div>
+                ) : quiz.is_premium && !hasPurchased ? (
                   <Button
                     size="lg"
                     className="w-full"
