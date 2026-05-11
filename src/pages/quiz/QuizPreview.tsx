@@ -37,10 +37,12 @@ interface Quiz {
   is_active: boolean;
   is_simulation: boolean;
   tutor_id: string | null;
+  level: string | null;
   course: {
     id: string;
     code: string;
     name: string;
+    level?: string | null;
   };
 }
 
@@ -59,7 +61,8 @@ interface Rating {
 const QuizPreview = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
+  const studentLevel = ((profile as any)?.level as string | null | undefined) ?? null;
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [tutor, setTutor] = useState<TutorProfile | null>(null);
   const [rating, setRating] = useState<Rating | null>(null);
@@ -79,7 +82,7 @@ const QuizPreview = () => {
           .from("quizzes")
           .select(`
             *,
-            course:courses(id, code, name)
+            course:courses(id, code, name, level)
           `)
           .eq("id", quizId)
           .single();
@@ -155,6 +158,11 @@ const QuizPreview = () => {
     if (!user) {
       toast.error("Please sign in to take this quiz");
       navigate("/auth", { state: { returnTo: `/quiz/${quizId}` } });
+      return;
+    }
+
+    if (levelLocked) {
+      toast.error(`This quiz is for ${requiredLevel} students. Switch your level in your profile to start.`);
       return;
     }
 
