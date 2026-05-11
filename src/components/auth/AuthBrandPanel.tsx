@@ -51,7 +51,7 @@ const STATS = [
 const AuthBrandPanel = () => {
   return (
     <aside
-      className="hidden lg:flex relative overflow-hidden flex-col justify-between p-10 xl:p-14 text-[hsl(35_50%_12%)]"
+      className="hidden lg:flex relative overflow-hidden flex-col justify-between p-10 xl:p-14 text-white"
       aria-label="Why students choose OverraPrep"
     >
       {/* Static editorial photo backdrop */}
@@ -79,25 +79,15 @@ const AuthBrandPanel = () => {
           </div>
         </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6, ease: "easeOut" }}
-          className="mt-10 text-4xl xl:text-5xl font-bold leading-[1.05] tracking-tight"
-        >
+        <h1 className="mt-10 text-4xl xl:text-5xl font-bold leading-[1.05] tracking-tight drop-shadow-md">
           Where Nigeria's<br />
-          <span className="bg-gradient-to-r from-[hsl(28_85%_28%)] via-[hsl(35_90%_35%)] to-[hsl(28_85%_28%)] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[hsl(45_95%_75%)] via-[hsl(40_100%_85%)] to-[hsl(45_95%_75%)] bg-clip-text text-transparent">
             top students prep
           </span>
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
-          className="mt-4 max-w-md text-base leading-relaxed text-[hsl(30_45%_18%)]/85"
-        >
+        </h1>
+        <p className="mt-4 max-w-md text-base leading-relaxed text-white/85">
           AI-graded mocks, instant explanations, and the largest FUTA past-question bank — built with our student ambassadors.
-        </motion.p>
+        </p>
 
         {/* Trust pills */}
         <div className="mt-6 flex flex-wrap gap-2">
