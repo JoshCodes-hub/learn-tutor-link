@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { saveResource } from "@/lib/userResources";
 import { kindFromFile } from "@/lib/extractText";
+import { track } from "@/lib/analytics";
+import { runLibraryAI, suggestedActionForMaterial } from "@/lib/libraryAI";
+import { Sparkles as SparklesIcon } from "lucide-react";
 
 type MaterialType = "outline" | "notes" | "past_q" | "slides" | "other";
 
@@ -62,6 +65,11 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Analytics: count how often the dialog is opened
+  useEffect(() => {
+    if (open) void track("upload_dialog_opened", {});
+  }, [open]);
+
   const [files, setFiles] = useState<File[]>([]);
   const [materialType, setMaterialType] = useState<MaterialType>("outline");
   const activeType = MATERIAL_TYPES.find((m) => m.value === materialType)!;
@@ -103,12 +111,13 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
     setUploading(true);
     setProgress({ done: 0, total: files.length });
     let okCount = 0;
+    const savedResources: Awaited<ReturnType<typeof saveResource>>[] = [];
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       try {
         const ext = (f.name.split(".").pop() || "bin").toLowerCase();
         const title = f.name.replace(/\.[^.]+$/, "");
-        await saveResource({
+        const saved = await saveResource({
           userId: user.id,
           kind: kindFromFile(f),
           title,
@@ -118,10 +127,21 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
           ext,
           meta: { material_type: materialType, original_name: f.name },
         });
+        savedResources.push(saved);
         okCount++;
+        void track("upload_completed", {
+          material_type: materialType,
+          mime: f.type || ext,
+          size_bytes: f.size,
+          folder: folder.trim() || "General",
+        });
       } catch (e) {
         console.error(e);
         toast.error(`Failed: ${f.name}`);
+        void track("upload_failed", {
+          material_type: materialType,
+          reason: e instanceof Error ? e.message : "unknown",
+        });
       }
       setProgress({ done: i + 1, total: files.length });
     }
@@ -131,6 +151,48 @@ export const UploadResourceDialog = ({ open, onOpenChange, existingFolders }: Pr
       qc.invalidateQueries({ queryKey: ["user-resources", user.id] });
       reset();
       onOpenChange(false);
+
+      // Auto-generate AI study aids based on selected template — fire-and-forget
+      // so the dialog closes immediately and the user can keep working.
+      const action = suggestedActionForMaterial(materialType);
+      if (action) {
+        const aiCandidates = savedResources.filter(
+          (r) => r.kind === "pdf" || r.kind === "note",
+        );
+        if (aiCandidates.length) {
+          void track("auto_generate_started", {
+            action,
+            material_type: materialType,
+            count: aiCandidates.length,
+          });
+          const label =
+            action === "flashcards" ? "flashcards"
+            : action === "summary"   ? "summary"
+            :                          "practice quiz";
+          toast.loading(`Auto-generating ${label}…`, { id: "auto-ai" });
+          (async () => {
+            let ok = 0;
+            for (const r of aiCandidates) {
+              try {
+                await runLibraryAI(r, action, user.id);
+                ok++;
+              } catch (err) {
+                console.error("auto AI failed", err);
+                void track("auto_generate_failed", {
+                  action,
+                  reason: err instanceof Error ? err.message : "unknown",
+                });
+              }
+            }
+            toast.dismiss("auto-ai");
+            qc.invalidateQueries({ queryKey: ["user-resources", user.id] });
+            if (ok > 0) {
+              toast.success(`${label.charAt(0).toUpperCase() + label.slice(1)} ready in your Library ✨`);
+              void track("auto_generate_completed", { action, ok_count: ok });
+            }
+          })();
+        }
+      }
     }
   };
 
