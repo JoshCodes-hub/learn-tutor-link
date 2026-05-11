@@ -1,0 +1,219 @@
+import { motion } from "framer-motion";
+import { Sparkles, ShieldCheck, GraduationCap, Star, Trophy, Users } from "lucide-react";
+import logo from "@/assets/logo.png";
+
+/**
+ * Premium brand showcase panel that sits next to the auth form on large
+ * screens. White + gold aesthetic, glassmorphic cards, animated ambassador
+ * stack, and rotating student testimonials. Hidden on mobile so the form
+ * gets full width.
+ */
+
+const AMBASSADORS = [
+  { name: "Ada O.",    seed: "Ada",     dept: "Computer Sci · 400L",  cgpa: "4.78" },
+  { name: "Tunde A.",  seed: "Tunde",   dept: "Mech Eng · 300L",      cgpa: "4.61" },
+  { name: "Zainab K.", seed: "Zainab",  dept: "Biochem · 200L",       cgpa: "4.92" },
+  { name: "Femi B.",   seed: "Femi",    dept: "Civil Eng · 500L",     cgpa: "4.44" },
+  { name: "Ngozi U.",  seed: "Ngozi",   dept: "Economics · 300L",     cgpa: "4.70" },
+];
+
+const avatarFor = (seed: string) =>
+  `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}&backgroundType=gradientLinear&backgroundColor=fff8e1,f5c042`;
+
+const TESTIMONIALS = [
+  {
+    quote:
+      "OverraPrep turned my CBT panic into confidence. I went from 52% mocks to a 78% real exam in 6 weeks.",
+    name: "Ada O.",
+    role: "Computer Science · FUTA",
+  },
+  {
+    quote:
+      "The AI explanations are sharper than my tutorials. I finally understand why I get questions wrong.",
+    name: "Tunde A.",
+    role: "Mechanical Engineering · FUTA",
+  },
+  {
+    quote:
+      "Daily streaks + leaderboards keep my class group accountable. We all moved up a grade band.",
+    name: "Zainab K.",
+    role: "Biochemistry · FUTA",
+  },
+];
+
+const STATS = [
+  { icon: Users,    value: "12,400+", label: "Active students" },
+  { icon: Trophy,   value: "78%",     label: "Avg. score lift" },
+  { icon: Star,     value: "4.9/5",   label: "Student rating" },
+];
+
+const AuthBrandPanel = () => {
+  return (
+    <aside
+      className="hidden lg:flex relative overflow-hidden flex-col justify-between p-10 xl:p-14 text-[hsl(35_50%_12%)]"
+      aria-label="Why students choose OverraPrep"
+    >
+      {/* Layered gold gradient backdrop */}
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "linear-gradient(160deg, hsl(45 95% 92%) 0%, hsl(43 88% 78%) 45%, hsl(40 78% 58%) 100%)",
+        }}
+        aria-hidden
+      />
+      {/* Soft glow accents */}
+      <div className="absolute -top-32 -left-20 w-[28rem] h-[28rem] rounded-full bg-white/40 blur-[120px] -z-10" aria-hidden />
+      <div className="absolute -bottom-32 -right-20 w-[34rem] h-[34rem] rounded-full bg-amber-200/50 blur-[140px] -z-10" aria-hidden />
+      {/* Subtle dotted texture */}
+      <div
+        className="absolute inset-0 opacity-[0.18] -z-10"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, hsl(35 60% 25% / 0.55) 1px, transparent 0)",
+          backgroundSize: "22px 22px",
+        }}
+        aria-hidden
+      />
+
+      {/* === Top: brand + headline === */}
+      <div>
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-white/80 backdrop-blur flex items-center justify-center shadow-[0_10px_30px_-12px_rgba(80,50,0,0.45)]">
+            <img src={logo} alt="OverraPrep AI" className="h-9 w-9 object-contain" />
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-[0.3em] uppercase opacity-70">OverraPrep AI</p>
+            <p className="text-sm font-semibold">Study Smart · Not Hard</p>
+          </div>
+        </div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.6, ease: "easeOut" }}
+          className="mt-10 text-4xl xl:text-5xl font-bold leading-[1.05] tracking-tight"
+        >
+          Where Nigeria's<br />
+          <span className="bg-gradient-to-r from-[hsl(28_85%_28%)] via-[hsl(35_90%_35%)] to-[hsl(28_85%_28%)] bg-clip-text text-transparent">
+            top students prep
+          </span>
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
+          className="mt-4 max-w-md text-base leading-relaxed text-[hsl(30_45%_18%)]/85"
+        >
+          AI-graded mocks, instant explanations, and the largest FUTA past-question bank — built with our student ambassadors.
+        </motion.p>
+
+        {/* Trust pills */}
+        <div className="mt-6 flex flex-wrap gap-2">
+          {[
+            { icon: ShieldCheck, label: "Bank-grade security" },
+            { icon: Sparkles,    label: "AI-powered explanations" },
+            { icon: GraduationCap, label: "Tutor-vetted content" },
+          ].map(({ icon: Icon, label }) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/65 backdrop-blur px-3 py-1.5 text-[11px] font-semibold border border-white/70 shadow-sm"
+            >
+              <Icon className="w-3.5 h-3.5 text-[hsl(30_80%_30%)]" />
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* === Middle: ambassador stack + rotating testimonial === */}
+      <div className="my-10 space-y-6">
+        <div className="rounded-3xl bg-white/65 backdrop-blur-xl border border-white/70 p-6 shadow-[0_30px_60px_-30px_rgba(80,50,0,0.45)]">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-70">
+              Student Ambassadors
+            </p>
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[hsl(30_80%_28%)]">
+              <Sparkles className="w-3 h-3" /> Verified scholars
+            </span>
+          </div>
+
+          {/* Avatar stack */}
+          <div className="mt-4 flex items-center">
+            <div className="flex -space-x-3">
+              {AMBASSADORS.map((a, i) => (
+                <motion.img
+                  key={a.seed}
+                  src={avatarFor(a.seed)}
+                  alt={a.name}
+                  loading="lazy"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + i * 0.07, duration: 0.4 }}
+                  className="h-12 w-12 rounded-full border-2 border-white object-cover bg-white shadow-md hover:translate-y-[-3px] transition-transform"
+                  style={{ zIndex: AMBASSADORS.length - i }}
+                />
+              ))}
+            </div>
+            <div className="ml-4 flex flex-col">
+              <span className="text-sm font-semibold">+ 240 ambassadors</span>
+              <span className="text-[11px] opacity-70">across 18 Nigerian universities</span>
+            </div>
+          </div>
+
+          {/* Rotating testimonial cards */}
+          <div className="mt-5 space-y-3">
+            {TESTIMONIALS.map((t, i) => (
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + i * 0.12, duration: 0.5, ease: "easeOut" }}
+                className="rounded-2xl bg-white/80 border border-white/80 p-4 shadow-sm"
+              >
+                <div className="flex gap-0.5 mb-1.5">
+                  {Array.from({ length: 5 }).map((_, s) => (
+                    <Star key={s} className="w-3 h-3 fill-[hsl(40_95%_50%)] text-[hsl(40_95%_50%)]" />
+                  ))}
+                </div>
+                <p className="text-[13px] leading-relaxed text-[hsl(28_45%_15%)]">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <img
+                    src={avatarFor(t.name)}
+                    alt={t.name}
+                    className="h-7 w-7 rounded-full border border-white shadow-sm"
+                  />
+                  <div className="leading-tight">
+                    <p className="text-[12px] font-semibold">{t.name}</p>
+                    <p className="text-[10px] opacity-70">{t.role}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* === Bottom: stats strip === */}
+      <div className="grid grid-cols-3 gap-3">
+        {STATS.map(({ icon: Icon, value, label }, i) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 + i * 0.08, duration: 0.5 }}
+            className="rounded-2xl bg-white/70 backdrop-blur border border-white/80 p-4 text-center shadow-sm"
+          >
+            <Icon className="w-4 h-4 mx-auto text-[hsl(30_80%_30%)]" />
+            <p className="mt-1.5 text-lg font-bold leading-none">{value}</p>
+            <p className="mt-1 text-[10px] uppercase tracking-wider opacity-70 font-semibold">{label}</p>
+          </motion.div>
+        ))}
+      </div>
+    </aside>
+  );
+};
+
+export default AuthBrandPanel;
