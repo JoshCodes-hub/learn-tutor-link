@@ -161,7 +161,10 @@ const QuizPreview = () => {
       return;
     }
 
-    if (levelLocked) {
+    const reqLvl = quiz.level || quiz.course?.level || null;
+    const locked = !!studentLevel && !!reqLvl && reqLvl !== studentLevel;
+    if (locked) {
+      const requiredLevel = reqLvl;
       toast.error(`This quiz is for ${requiredLevel} students. Switch your level in your profile to start.`);
       return;
     }
@@ -238,7 +241,9 @@ const QuizPreview = () => {
     );
   }
 
-  const canStart = !quiz.is_premium || hasPurchased;
+  const requiredLevel = quiz.level || quiz.course?.level || null;
+  const levelLocked = !!studentLevel && !!requiredLevel && requiredLevel !== studentLevel;
+  const canStart = (!quiz.is_premium || hasPurchased) && !levelLocked;
 
   return (
     <>
