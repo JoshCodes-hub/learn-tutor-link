@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
 import { supabase } from "@/integrations/supabase/client";
+import AuthBrandPanel from "@/components/auth/AuthBrandPanel";
 
 // Lazy-loaded WebGL gold orb scene used as a luxe 3D backdrop.
 const Splash3DScene = lazy(() => import("@/components/splash/Splash3DScene"));
@@ -236,24 +237,27 @@ const Auth = () => {
         url="https://overraprep.com/auth"
       />
       <main
-        className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-[#fffaf0] via-background to-[#fff4d8]"
+        className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#fffaf0] via-background to-[#fff4d8] lg:grid lg:grid-cols-[1.05fr_1fr] xl:grid-cols-[1.15fr_1fr] flex items-center justify-center"
         role="main"
       >
-        {/* Lazy 3D gold orb scene — soft, sits behind everything */}
-        <div className="pointer-events-none absolute inset-0 opacity-[0.55] mix-blend-multiply" aria-hidden>
+        {/* Premium ambassador / brand showcase (lg+ only) */}
+        <AuthBrandPanel />
+
+        {/* Lazy 3D gold orb scene — soft, sits behind the form column */}
+        <div className="pointer-events-none absolute inset-0 lg:left-auto lg:right-0 lg:w-1/2 opacity-[0.4] mix-blend-multiply" aria-hidden>
           <Suspense fallback={null}>
             <Splash3DScene />
           </Suspense>
         </div>
 
-        {/* Premium gold ambient glow accents */}
-        <div className="pointer-events-none absolute -top-40 -left-40 w-[28rem] h-[28rem] rounded-full bg-primary/30 blur-[120px]" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-40 -right-40 w-[28rem] h-[28rem] rounded-full bg-amber-300/30 blur-[120px]" aria-hidden />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,hsl(var(--primary)/0.15),transparent_60%)]" aria-hidden />
+        {/* Premium gold ambient glow accents on the form side */}
+        <div className="pointer-events-none absolute -top-40 -right-40 w-[28rem] h-[28rem] rounded-full bg-primary/25 blur-[120px]" aria-hidden />
+        <div className="pointer-events-none absolute -bottom-40 right-1/4 w-[24rem] h-[24rem] rounded-full bg-amber-300/25 blur-[120px]" aria-hidden />
 
-        <article className="w-full max-w-md relative z-10 animate-fade-in">
+        <div className="w-full flex items-center justify-center p-4 sm:p-6 lg:p-10 relative z-10">
+          <article className="w-full max-w-md relative z-10 animate-fade-in">
         {/* Logo */}
-        <div className="text-center mb-7">
+        <div className="text-center mb-7 lg:hidden">
           <a href="/" className="inline-flex items-center group">
             <img
               src={logo}
@@ -671,6 +675,7 @@ const Auth = () => {
           </a>
         </p>
       </article>
+        </div>
     </main>
     </>
   );
