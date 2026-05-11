@@ -1,246 +1,166 @@
-import { useState, useRef, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Upload,
-  FileText,
   Loader2,
   Play,
   Pause,
-  Download,
+  Square,
   Sparkles,
   Headphones,
-  Volume2,
   ListMusic,
+  Save,
+  FileText,
+  Volume2,
+  WifiOff,
+  Smartphone,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/seo/SEO";
-import { AudioPlayerCard } from "@/components/audio/AudioPlayerCard";
 import { cn } from "@/lib/utils";
+import { BrowserTts, isTtsSupported, listVoices, type TtsState, type TtsVoice } from "@/lib/browserTts";
 
-interface Voice {
-  id: string;
-  name: string;
-  description: string;
-  accent: string;
-}
+const MAX_CHARS = 50000; // on-device, no upstream limit
 
-// 4 voice presets — students can pick the one they vibe with.
-// Voice IDs are Noiz placeholders; tutors can swap from admin later.
-const VOICES: Voice[] = [
-  { id: "95814add", name: "Sarah", description: "Clear, warm female narrator", accent: "Neutral" },
-  { id: "brian-01", name: "Brian", description: "Calm, deep male storyteller", accent: "British" },
-  { id: "charlie-01", name: "Charlie", description: "Friendly conversational tone", accent: "American" },
-  { id: "lily-01", name: "Lily", description: "Soft, soothing for late-night study", accent: "Neutral" },
-];
+interface Section { title: string; text: string }
 
-const MAX_CHARS = 12000;
-
-// Calls the Overra TTS edge function (HF Space proxy). Auto-retries while warming up.
-async function overraTts(text: string, onWarming?: () => void): Promise<Blob> {
-  const payload = { text: text.slice(0, 5000), voice: "nigerian", beat_type: "afro_lofi" };
-  const MAX_RETRIES = 6;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const { data, error } = await supabase.functions.invoke("overra-tts", { body: payload });
-    if (!error && data instanceof Blob && data.type.startsWith("audio/")) return data;
-
-    let warming = false;
-    let message = "TTS failed";
-    if (error) {
-      message = error.message || message;
-      const ctx: any = (error as any).context;
-      try {
-        const txt = await ctx?.text?.();
-        if (txt) {
-          const j = JSON.parse(txt);
-          warming = !!j.warming_up;
-          message = j.message || j.error || message;
-        }
-      } catch {}
-      if (/wak|warm|load|503|starting/i.test(message)) warming = true;
-    } else if (data && typeof data === "object" && "warming_up" in (data as any)) {
-      warming = !!(data as any).warming_up;
-      message = (data as any).message || message;
-    }
-
-    if (warming && attempt < MAX_RETRIES) {
-      onWarming?.();
-      await new Promise((r) => setTimeout(r, 5000));
-      continue;
-    }
-    throw new Error(message);
-  }
-  throw new Error("Engine still warming up — please retry");
-}
-
-interface Section {
-  title: string;
-  text: string;
-  audioUrl?: string;
-  loading?: boolean;
-}
+const SPEEDS = [0.85, 1, 1.25, 1.5, 2];
 
 const AudioLearning = () => {
   const navigate = useNavigate();
   const [text, setText] = useState("");
-  const [voiceId, setVoiceId] = useState(VOICES[0].id);
+  const [fileName, setFileName] = useState("");
   const [extracting, setExtracting] = useState(false);
-  const [synthesizing, setSynthesizing] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string>("");
+
+  const [voices, setVoices] = useState<TtsVoice[]>([]);
+  const [voiceURI, setVoiceURI] = useState<string | null>(null);
+  const [rate, setRate] = useState(1);
+
+  const [state, setState] = useState<TtsState>("idle");
+  const [progress, setProgress] = useState(0);
+  const [chunkInfo, setChunkInfo] = useState({ chunk: 0, total: 0 });
+  const ttsRef = useRef<BrowserTts | null>(null);
+
   const [sections, setSections] = useState<Section[]>([]);
-  const [playingIdx, setPlayingIdx] = useState<number | null>(null);
-  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
+  const [activeSection, setActiveSection] = useState<number | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const supported = isTtsSupported();
+
+  // Load voices once
+  useEffect(() => {
+    if (!supported) return;
+    listVoices().then((vs) => {
+      setVoices(vs);
+      // Prefer English, local, default
+      const preferred =
+        vs.find((v) => v.default && v.lang.startsWith("en")) ||
+        vs.find((v) => v.localService && v.lang.startsWith("en")) ||
+        vs.find((v) => v.lang.startsWith("en")) ||
+        vs[0];
+      if (preferred) setVoiceURI(preferred.id);
+    });
+  }, [supported]);
+
+  // Cleanup on unmount
+  useEffect(() => () => ttsRef.current?.destroy(), []);
 
   const charCount = text.length;
-  const overLimit = charCount > MAX_CHARS;
 
   const onFile = async (file?: File) => {
     if (!file) return;
     setFileName(file.name);
     setExtracting(true);
-    setAudioUrl(null);
+    ttsRef.current?.stop();
     try {
       let extracted = "";
-      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+      const lower = file.name.toLowerCase();
+      if (file.type === "application/pdf" || lower.endsWith(".pdf")) {
         const pdfjs: any = await import("pdfjs-dist");
-        // worker URL via CDN to avoid bundler config issues
         pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
         const buf = await file.arrayBuffer();
         const pdf = await pdfjs.getDocument({ data: buf }).promise;
         const parts: string[] = [];
-        const maxPages = Math.min(pdf.numPages, 30);
+        const maxPages = Math.min(pdf.numPages, 50);
         for (let p = 1; p <= maxPages; p++) {
           const page = await pdf.getPage(p);
           const content = await page.getTextContent();
           parts.push(content.items.map((it: any) => it.str).join(" "));
         }
         extracted = parts.join("\n\n");
-        if (pdf.numPages > 30) {
-          toast.info(`Long PDF: only first 30 pages were read.`);
-        }
-      } else if (
-        file.name.toLowerCase().endsWith(".docx") ||
-        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      ) {
+        if (pdf.numPages > 50) toast.info("Long PDF — first 50 pages were read.");
+      } else if (lower.endsWith(".docx")) {
         const mammoth: any = await import("mammoth");
         const buf = await file.arrayBuffer();
         const res = await mammoth.extractRawText({ arrayBuffer: buf });
         extracted = res.value || "";
-      } else if (file.type.startsWith("text/") || file.name.toLowerCase().endsWith(".txt")) {
+      } else if (file.type.startsWith("text/") || lower.endsWith(".txt") || lower.endsWith(".md")) {
         extracted = await file.text();
       } else {
-        toast.error("Unsupported file. Use PDF, DOCX, or TXT.");
+        toast.error("Unsupported file. Use PDF, DOCX, TXT or MD.");
         return;
       }
       const cleaned = extracted.replace(/\s+/g, " ").trim();
-      if (!cleaned) {
-        toast.error("Could not extract any readable text from this file.");
-        return;
-      }
+      if (!cleaned) { toast.error("No readable text found."); return; }
       setText(cleaned.slice(0, MAX_CHARS));
       toast.success(`Extracted ${cleaned.length.toLocaleString()} characters`);
     } catch (e: any) {
       console.error(e);
-      toast.error("Failed to read file: " + (e?.message ?? "unknown error"));
+      toast.error("Failed to read file: " + (e?.message ?? "unknown"));
     } finally {
       setExtracting(false);
     }
   };
 
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-
-  // Split text into ~1800-char chunks at sentence/paragraph boundaries.
-  const chunkText = (raw: string, max = 1800): string[] => {
-    const clean = raw.replace(/\s+/g, " ").trim();
-    if (clean.length <= max) return [clean];
-    const sentences = clean.split(/(?<=[.!?])\s+/);
-    const chunks: string[] = [];
-    let buf = "";
-    for (const s of sentences) {
-      if ((buf + " " + s).trim().length > max) {
-        if (buf) chunks.push(buf.trim());
-        if (s.length > max) {
-          for (let i = 0; i < s.length; i += max) chunks.push(s.slice(i, i + max));
-          buf = "";
-        } else buf = s;
-      } else buf = (buf ? buf + " " : "") + s;
-    }
-    if (buf.trim()) chunks.push(buf.trim());
-    return chunks;
+  const ensureTts = (forText: string) => {
+    if (ttsRef.current) ttsRef.current.destroy();
+    const inst = new BrowserTts(forText);
+    inst.voiceURI = voiceURI;
+    inst.rate = rate;
+    inst.on(({ state, progress, chunk, total }) => {
+      setState(state);
+      setProgress(progress);
+      setChunkInfo({ chunk, total });
+    });
+    ttsRef.current = inst;
+    return inst;
   };
 
-  // Merge multiple WAV blobs into one playable WAV (strip headers from chunks 2+).
-  const mergeWavBlobs = async (blobs: Blob[]): Promise<Blob> => {
-    if (blobs.length === 1) return blobs[0];
-    const buffers = await Promise.all(blobs.map((b) => b.arrayBuffer()));
-    const HEADER = 44;
-    const dataParts = buffers.map((buf, i) => new Uint8Array(buf, i === 0 ? 0 : HEADER));
-    const totalLen = dataParts.reduce((s, p) => s + p.length, 0);
-    const merged = new Uint8Array(totalLen);
-    let offset = 0;
-    for (const p of dataParts) { merged.set(p, offset); offset += p.length; }
-    // Patch RIFF chunk size (offset 4) and data chunk size (offset 40) in header
-    const view = new DataView(merged.buffer);
-    view.setUint32(4, totalLen - 8, true);
-    view.setUint32(40, totalLen - HEADER, true);
-    return new Blob([merged], { type: "audio/wav" });
+  const handlePlay = () => {
+    if (!supported) { toast.error("Your browser doesn't support on-device speech."); return; }
+    if (!text.trim()) { toast.error("Add text or upload a document first."); return; }
+    setActiveSection(null);
+    if (ttsRef.current && state === "paused") { ttsRef.current.play(); return; }
+    if (ttsRef.current && state === "playing") { ttsRef.current.pause(); return; }
+    const inst = ensureTts(text);
+    inst.play();
   };
 
-  const synthesize = async () => {
-    if (!text.trim()) {
-      toast.error("Add some text or upload a document first");
-      return;
-    }
-    setSynthesizing(true);
-    setAudioUrl(null);
-    setProgress(null);
-    try {
-      const chunks = chunkText(text);
-      setProgress({ done: 0, total: chunks.length });
-      const blobs: Blob[] = [];
-      for (let i = 0; i < chunks.length; i++) {
-        const blob = await overraTts(chunks[i], () =>
-          toast.message("Engine waking up… retrying in 5s"),
-        );
-        blobs.push(blob);
-        setProgress({ done: i + 1, total: chunks.length });
-      }
-      const merged = blobs.length === 1 ? blobs[0] : new Blob(blobs, { type: "audio/mpeg" });
-      const url = URL.createObjectURL(merged);
-      setAudioUrl(url);
-      toast.success("Narration ready — press play or download");
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e?.message ?? "Failed to generate audio");
-    } finally {
-      setSynthesizing(false);
-      setProgress(null);
-    }
+  const handleStop = () => ttsRef.current?.stop();
+
+  const handleRate = (r: number) => {
+    setRate(r);
+    if (ttsRef.current) ttsRef.current.setRate(r);
   };
 
-  const downloadName = useMemo(() => {
-    const base = fileName ? fileName.replace(/\.[^.]+$/, "") : "overraprep-narration";
-    return `${base}.wav`;
-  }, [fileName]);
+  const handleVoice = (id: string) => {
+    setVoiceURI(id);
+    if (ttsRef.current) ttsRef.current.setVoice(id);
+  };
 
-  // Split text into sections by headings or paragraph groups (~1500 chars each).
+  // Section splitter
   const splitIntoSections = (raw: string): Section[] => {
     const clean = raw.replace(/\r\n/g, "\n").trim();
     if (!clean) return [];
-
-    // 1) Try heading-style splits (lines like "1.", "Chapter X", "SECTION", ALL CAPS lines).
     const headingRe = /\n(?=(?:Chapter\s+\d+|Section\s+\d+|\d+\.\s+[A-Z]|[A-Z][A-Z\s]{4,}\n))/g;
     let parts = clean.split(headingRe).map((p) => p.trim()).filter(Boolean);
-
-    // 2) If no headings found, group paragraphs into ~1500-char sections.
     if (parts.length < 2) {
       const paras = clean.split(/\n{2,}|(?<=\.)\s{2,}/).map((p) => p.trim()).filter(Boolean);
       parts = [];
@@ -251,7 +171,6 @@ const AudioLearning = () => {
       }
       if (buf.trim()) parts.push(buf.trim());
     }
-
     return parts.map((body, i) => {
       const firstLine = body.split("\n")[0].trim();
       const title = firstLine.length > 0 && firstLine.length <= 80
@@ -262,309 +181,327 @@ const AudioLearning = () => {
   };
 
   const generateTranscript = () => {
-    if (!text.trim()) {
-      toast.error("Add some text or upload a document first");
-      return;
-    }
+    if (!text.trim()) return toast.error("Add some text first.");
     const next = splitIntoSections(text);
-    if (!next.length) {
-      toast.error("Could not split text into sections");
-      return;
-    }
+    if (!next.length) return toast.error("Could not split text.");
     setSections(next);
-    setPlayingIdx(null);
     toast.success(`Transcript generated — ${next.length} sections`);
   };
 
-  const synthSection = async (idx: number) => {
+  const playSection = (idx: number) => {
     const sec = sections[idx];
     if (!sec) return;
-    setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, loading: true } : s)));
-    try {
-      const chunks = chunkText(sec.text);
-      const blobs: Blob[] = [];
-      for (const c of chunks) {
-        const blob = await overraTts(c, () =>
-          toast.message("Engine waking up… retrying in 5s"),
-        );
-        blobs.push(blob);
-      }
-      const merged = blobs.length === 1 ? blobs[0] : new Blob(blobs, { type: "audio/mpeg" });
-      const url = URL.createObjectURL(merged);
-      setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, audioUrl: url, loading: false } : s)));
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e?.message ?? "Failed to narrate section");
-      setSections((prev) => prev.map((s, i) => (i === idx ? { ...s, loading: false } : s)));
-    }
+    if (activeSection === idx && state === "playing") { ttsRef.current?.pause(); return; }
+    if (activeSection === idx && state === "paused") { ttsRef.current?.play(); return; }
+    setActiveSection(idx);
+    const inst = ensureTts(sec.text);
+    inst.play();
   };
 
-  const togglePlay = async (idx: number) => {
-    const sec = sections[idx];
-    if (!sec) return;
-    if (!sec.audioUrl) { await synthSection(idx); return; }
-    // Pause others
-    Object.entries(audioRefs.current).forEach(([k, el]) => {
-      if (Number(k) !== idx && el) el.pause();
-    });
-    const el = audioRefs.current[idx];
-    if (!el) return;
-    if (playingIdx === idx && !el.paused) { el.pause(); setPlayingIdx(null); }
-    else { el.play(); setPlayingIdx(idx); }
+  const saveTranscript = () => {
+    if (!text.trim()) return;
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(fileName || "narration").replace(/\.[^.]+$/, "")}-transcript.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Transcript saved");
   };
 
+  // Group voices: English first, then localService
+  const groupedVoices = useMemo(() => {
+    const en = voices.filter((v) => v.lang.toLowerCase().startsWith("en"));
+    const others = voices.filter((v) => !v.lang.toLowerCase().startsWith("en"));
+    return [...en, ...others].slice(0, 12);
+  }, [voices]);
+
+  const isPlaying = state === "playing";
+  const isPaused = state === "paused";
 
   return (
     <>
       <SEO
-        title="Audio Learning — Listen to your notes"
-        description="Upload your study documents and listen on the go. AI-powered text-to-speech with natural voices."
+        title="AI Narration — Listen to your notes offline"
+        description="Turn notes into audio using your phone's built-in voice. No internet, no API keys."
         url="/audio-learning"
       />
-      <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-40 bg-card/80 backdrop-blur border-b border-border">
-          <div className="container mx-auto px-4 h-14 flex items-center gap-2">
+      <div className="min-h-screen bg-background pb-12">
+        <header className="sticky top-0 z-40 bg-card/85 backdrop-blur border-b border-border">
+          <div className="container mx-auto px-4 h-14 flex items-center gap-2 max-w-3xl">
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4 mr-1" /> Back
             </Button>
             <div className="ml-auto flex items-center gap-2">
               <Headphones className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-sm">Audio Learning</span>
+              <span className="font-semibold text-sm">AI Narration</span>
             </div>
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-6 max-w-3xl space-y-6">
-          {/* Hero */}
+        <main className="container mx-auto px-4 py-5 max-w-3xl space-y-5">
+          {/* Hero player card — matches mockup */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="rounded-3xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/20 p-6 md:p-8"
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/80 p-6 text-primary-foreground shadow-xl"
           >
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/15 border border-primary/30 mb-3">
-              <Sparkles className="w-3 h-3 text-primary" />
-              <span className="text-[11px] font-bold tracking-wider uppercase text-primary">
-                New
-              </span>
+            <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+            <div className="absolute -left-6 bottom-0 w-32 h-32 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative flex items-start gap-4">
+              <div className="shrink-0 w-16 h-16 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center ring-1 ring-white/20">
+                <Headphones className="w-8 h-8" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 mb-1.5">
+                  <Sparkles className="w-3 h-3" />
+                  <span className="text-[10px] font-bold tracking-wider uppercase">On-device</span>
+                </div>
+                <h1 className="font-display text-xl font-bold tracking-tight">AI Narration</h1>
+                <p className="text-xs opacity-90 mt-0.5">Listen to your document — no internet needed.</p>
+              </div>
             </div>
-            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight">
-              Turn your notes into audio
-            </h1>
-            <p className="mt-2 text-sm md:text-base text-muted-foreground max-w-xl">
-              Upload a PDF, Word doc, or paste text. Pick a voice. Listen while you walk,
-              relax or commute. Clear English, simple to follow.
-            </p>
+
+            {/* Progress + transport */}
+            <div className="relative mt-5">
+              <div className="h-1.5 rounded-full bg-white/25 overflow-hidden">
+                <motion.div
+                  className="h-full bg-white rounded-full"
+                  animate={{ width: `${Math.round(progress * 100)}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+              <div className="flex items-center justify-between mt-1.5 text-[11px] opacity-90 font-mono">
+                <span>{chunkInfo.total ? `Chunk ${Math.min(chunkInfo.chunk + (isPlaying ? 1 : 0), chunkInfo.total)} / ${chunkInfo.total}` : "—"}</span>
+                <span>{Math.round(progress * 100)}%</span>
+              </div>
+            </div>
+
+            <div className="relative mt-4 flex items-center justify-center gap-4">
+              <button
+                onClick={handleStop}
+                disabled={state === "idle"}
+                className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 disabled:opacity-40 flex items-center justify-center transition-all active:scale-95"
+                aria-label="Stop"
+              >
+                <Square className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handlePlay}
+                disabled={!text.trim() || extracting}
+                className="w-16 h-16 rounded-full bg-white text-primary shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                aria-label={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 translate-x-0.5" />}
+              </button>
+              <button
+                onClick={() => { ttsRef.current?.stop(); setTimeout(handlePlay, 50); }}
+                disabled={state === "idle"}
+                className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 disabled:opacity-40 flex items-center justify-center transition-all active:scale-95"
+                aria-label="Restart"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Speed chips */}
+            <div className="relative mt-4">
+              <p className="text-[11px] opacity-80 mb-1.5 font-medium">Playback Speed</p>
+              <div className="flex gap-1.5 flex-wrap">
+                {SPEEDS.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => handleRate(s)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                      rate === s
+                        ? "bg-white text-primary shadow"
+                        : "bg-white/15 hover:bg-white/25",
+                    )}
+                  >
+                    {s}x
+                  </button>
+                ))}
+              </div>
+            </div>
           </motion.div>
 
-          {/* Upload */}
+          {/* Capability badges */}
+          <div className="flex flex-wrap gap-2 -mt-1">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-semibold">
+              <WifiOff className="w-3 h-3" /> Works offline
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
+              <Smartphone className="w-3 h-3" /> Uses your phone's voice
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-[11px] font-semibold">
+              No API key
+            </span>
+          </div>
+
+          {!supported && (
+            <Card className="p-4 border-destructive/30 bg-destructive/5 text-sm">
+              Your browser doesn't expose the on-device speech engine. Try Chrome, Safari or Edge.
+            </Card>
+          )}
+
+          {/* Upload + paste */}
           <Card className="p-5 space-y-4">
-            <Label className="font-semibold">1. Add your content</Label>
+            <Label className="font-semibold flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" /> Add your content
+            </Label>
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={extracting}
               className={cn(
                 "w-full flex items-center justify-center gap-3 p-5 rounded-xl border-2 border-dashed",
-                "border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors",
-                "disabled:opacity-60",
+                "border-primary/30 hover:border-primary/60 hover:bg-primary/5 transition-colors disabled:opacity-60",
               )}
             >
-              {extracting ? (
-                <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              ) : (
-                <Upload className="w-5 h-5 text-primary" />
-              )}
-              <div className="text-left">
-                <p className="font-semibold text-sm">
-                  {extracting
-                    ? "Reading your file…"
-                    : fileName
-                    ? fileName
-                    : "Upload PDF, DOCX or TXT"}
+              {extracting ? <Loader2 className="w-5 h-5 animate-spin text-primary" /> : <Upload className="w-5 h-5 text-primary" />}
+              <div className="text-left min-w-0">
+                <p className="font-semibold text-sm truncate">
+                  {extracting ? "Reading your file…" : fileName || "Upload PDF, DOCX, TXT or MD"}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Max ~30 pages. We'll extract the text for you.
-                </p>
+                <p className="text-xs text-muted-foreground">Up to 50 pages • text extracted on your device</p>
               </div>
             </button>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.docx,.txt,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".pdf,.docx,.txt,.md,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="hidden"
               onChange={(e) => onFile(e.target.files?.[0])}
             />
-
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs text-muted-foreground">Or paste / edit text</Label>
-                <span
-                  className={cn(
-                    "text-[11px] font-medium",
-                    overLimit ? "text-destructive" : "text-muted-foreground",
-                  )}
-                >
-                  {charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()}
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  {charCount.toLocaleString()} chars
                 </span>
               </div>
               <Textarea
                 value={text}
-                onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS + 200))}
-                rows={8}
-                placeholder="Paste lecture notes, a chapter, or any study text here…"
+                onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
+                rows={6}
+                placeholder="Paste lecture notes, a chapter, or any study text…"
                 className="resize-y font-sans text-sm leading-relaxed"
               />
             </div>
           </Card>
 
           {/* Voice picker */}
-          <Card className="p-5 space-y-4">
-            <Label className="font-semibold">2. Pick a voice</Label>
-            <div className="grid grid-cols-2 gap-3">
-              {VOICES.map((v) => {
-                const active = voiceId === v.id;
-                return (
-                  <button
-                    key={v.id}
-                    onClick={() => setVoiceId(v.id)}
-                    className={cn(
-                      "text-left rounded-xl p-3 border-2 transition-all",
-                      active
-                        ? "border-primary bg-primary/5 shadow-md"
-                        : "border-border hover:border-primary/50 hover:bg-muted/50",
-                    )}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-semibold text-sm">{v.name}</p>
-                        <p className="text-[11px] text-muted-foreground">{v.accent}</p>
-                      </div>
-                      <Volume2
-                        className={cn(
-                          "w-4 h-4 shrink-0",
-                          active ? "text-primary" : "text-muted-foreground",
-                        )}
-                      />
-                    </div>
-                    <p className="mt-1 text-[11px] text-muted-foreground leading-snug">
-                      {v.description}
-                    </p>
-                  </button>
-                );
-              })}
+          <Card className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="font-semibold flex items-center gap-2">
+                <Volume2 className="w-4 h-4 text-primary" /> Pick a voice
+              </Label>
+              <span className="text-[11px] text-muted-foreground">{groupedVoices.length} available</span>
             </div>
-          </Card>
-
-          {/* Synthesize */}
-          <Card className="p-5 space-y-4">
-            <Label className="font-semibold">3. Generate audio</Label>
-            <Button
-              onClick={synthesize}
-              disabled={synthesizing || !text.trim()}
-              className="w-full h-12 text-base font-semibold"
-            >
-              {synthesizing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {progress ? `Narrating ${progress.done}/${progress.total}…` : "Preparing…"}
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 mr-2" />
-                  Read Document
-                </>
-              )}
-            </Button>
-
-            {audioUrl && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="pt-2"
-              >
-                <AudioPlayerCard
-                  src={audioUrl}
-                  title={downloadName}
-                  transcript={text}
-                  downloadName={downloadName}
-                  resumeKey={`main:${downloadName}`}
-                />
-              </motion.div>
+            {groupedVoices.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Loading your phone's voices…</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {groupedVoices.map((v) => {
+                  const active = voiceURI === v.id;
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => handleVoice(v.id)}
+                      className={cn(
+                        "text-left rounded-xl p-3 border-2 transition-all min-w-0",
+                        active ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/50 hover:bg-muted/40",
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-semibold text-[13px] truncate">{v.name}</p>
+                        {v.localService && (
+                          <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                            OFFLINE
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{v.lang}</p>
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </Card>
 
-          {/* Section-by-section transcript */}
+          {/* Sections */}
           <Card className="p-5 space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <Label className="font-semibold flex items-center gap-2">
-                <ListMusic className="w-4 h-4 text-primary" />
-                Section-by-section transcript
+                <ListMusic className="w-4 h-4 text-primary" /> Section transcript
               </Label>
               <Button size="sm" variant="outline" onClick={generateTranscript} disabled={!text.trim()}>
                 {sections.length ? "Regenerate" : "Generate"}
               </Button>
             </div>
-
             {sections.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                Split your document into sections and play each part on its own.
-              </p>
+              <p className="text-xs text-muted-foreground">Split your document into sections and play each part on its own.</p>
             ) : (
-              <ul className="space-y-3">
-                {sections.map((s, i) => {
-                  const isPlaying = playingIdx === i;
-                  return (
-                    <li key={i} className="rounded-xl border border-border bg-card p-3 space-y-2">
-                      <div className="flex items-start gap-3">
-                        <span className="shrink-0 mt-0.5 inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-[11px] font-bold text-primary">
-                          {i + 1}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate">{s.title}</p>
-                          <p className="text-[11px] text-muted-foreground line-clamp-2">
-                            {s.text.slice(0, 140)}…
-                          </p>
+              <ul className="space-y-2">
+                <AnimatePresence initial={false}>
+                  {sections.map((s, i) => {
+                    const isActive = activeSection === i;
+                    const playing = isActive && isPlaying;
+                    return (
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={cn(
+                          "rounded-xl border p-3 transition-colors",
+                          isActive ? "border-primary bg-primary/5" : "border-border bg-card",
+                        )}
+                      >
+                        <div className="flex items-start gap-3 min-w-0">
+                          <span className="shrink-0 mt-0.5 inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                            {i + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm truncate">{s.title}</p>
+                            <p className="text-[11px] text-muted-foreground line-clamp-2">{s.text.slice(0, 160)}…</p>
+                            {isActive && (
+                              <div className="mt-2 h-1 rounded-full bg-muted overflow-hidden">
+                                <motion.div className="h-full bg-primary" animate={{ width: `${Math.round(progress * 100)}%` }} />
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            size="icon"
+                            variant={playing ? "default" : "outline"}
+                            onClick={() => playSection(i)}
+                            className="shrink-0"
+                            aria-label={playing ? "Pause" : "Play"}
+                          >
+                            {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                          </Button>
                         </div>
-                        <Button
-                          size="icon"
-                          variant={isPlaying ? "default" : "outline"}
-                          onClick={() => togglePlay(i)}
-                          disabled={s.loading}
-                          className="shrink-0"
-                          aria-label={isPlaying ? "Pause" : "Play"}
-                        >
-                          {s.loading ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : isPlaying ? <Pause className="w-4 h-4" />
-                            : <Play className="w-4 h-4" />}
-                        </Button>
-                      </div>
-
-                      {s.audioUrl && (
-                        <div className="flex items-center gap-2">
-                          <audio
-                            ref={(el) => { audioRefs.current[i] = el; }}
-                            src={s.audioUrl}
-                            controls
-                            onEnded={() => setPlayingIdx(null)}
-                            onPause={() => { if (playingIdx === i) setPlayingIdx(null); }}
-                            className="w-full h-9"
-                          />
-                          <a href={s.audioUrl} download={`${fileName.replace(/\.[^.]+$/, "") || "section"}-${i + 1}.wav`}>
-                            <Button size="icon" variant="ghost" aria-label="Download section">
-                              <Download className="w-4 h-4" />
-                            </Button>
-                          </a>
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
+                      </motion.li>
+                    );
+                  })}
+                </AnimatePresence>
               </ul>
             )}
           </Card>
 
-          <p className="text-center text-[11px] text-muted-foreground pb-6">
-            Powered by Noiz AI · OverraPrep — Read with Ease.
+          {/* Action row — mirrors mockup */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button variant="outline" onClick={saveTranscript} disabled={!text.trim()} className="h-12">
+              <FileText className="w-4 h-4 mr-2" /> Save Transcript
+            </Button>
+            <Button onClick={handlePlay} disabled={!text.trim() || extracting} className="h-12">
+              {isPlaying ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+              {isPlaying ? "Pause" : isPaused ? "Resume" : "Listen"}
+            </Button>
+          </div>
+
+          <p className="text-center text-[11px] text-muted-foreground pt-2">
+            Powered by your device's built-in speech engine · No data leaves your phone.
           </p>
         </main>
       </div>
