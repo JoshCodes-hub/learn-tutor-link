@@ -880,6 +880,9 @@ const StudentDashboard = () => {
         {/* Admin-curated announcements */}
         <PlatformAnnouncements />
 
+        {/* Upload Document shortcut + first-visit / post-login welcome */}
+        <UploadCTABanner />
+
         {/* Fresh courses (admin + tutor created) — desktop only; mobile uses Continue Learning instead */}
         <div className="hidden sm:block">
           <FreshCourses />
