@@ -71,7 +71,8 @@ export const BottomTabBar = () => {
     >
       <ul className="grid grid-cols-5">
         {tabs.map(({ to, label, icon: Icon }) => {
-          const active = location.pathname === to || location.pathname.startsWith(to + "/");
+          const path = to.split("?")[0];
+          const active = location.pathname === path || location.pathname.startsWith(path + "/");
           return (
             <li key={to}>
               <Link
