@@ -65,6 +65,13 @@ interface ImportedQuiz {
   questions: ImportedQuestion[];
 }
 
+interface RejectedRow {
+  row: number;
+  reason: string;
+  missing_fields: string[];
+  data: Record<string, any>;
+}
+
 interface BulkQuizImportProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -89,6 +96,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   const { user } = useAuth();
   const [importedQuizzes, setImportedQuizzes] = useState<ImportedQuiz[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
+  const [rejectedRows, setRejectedRows] = useState<RejectedRow[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [viewMode, setViewMode] = useState<"upload" | "preview">("upload");
@@ -187,6 +195,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   const processFile = async (file: File) => {
     setIsProcessing(true);
     setErrors([]);
+    setRejectedRows([]);
     setImportedQuizzes([]);
     setProcessingStatus({ stage: "reading", progress: 0, message: "Reading file..." });
 
@@ -230,6 +239,11 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
       // Group rows by quiz title - each row is one question for a quiz
       const quizMap = new Map<string, { quizData: any; questions: any[] }>();
       const parseErrors: string[] = [];
+      const rejected: RejectedRow[] = [];
+      const pushReject = (rowNum: number, row: any, missing: string[], reason: string) => {
+        parseErrors.push(`Row ${rowNum}: ${reason}`);
+        rejected.push({ row: rowNum, reason, missing_fields: missing, data: row });
+      };
 
       for (let index = 0; index < jsonData.length; index++) {
         const row = jsonData[index] as any;
@@ -268,23 +282,36 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
 
         // Validate required fields
         if (!title) {
-          parseErrors.push(`Row ${rowNum}: Missing quiz title`);
+          pushReject(rowNum, row, ["quiz_title"], "Missing quiz title");
           continue;
         }
         if (!courseCode) {
-          parseErrors.push(`Row ${rowNum}: Missing course code`);
+          pushReject(rowNum, row, ["course_code"], "Missing course code");
           continue;
         }
         if (!questionText) {
-          parseErrors.push(`Row ${rowNum}: Missing question text`);
+          pushReject(rowNum, row, ["question_text"], "Missing question text");
           continue;
         }
-        if (!optionA || !optionB || !optionC || !optionD) {
-          parseErrors.push(`Row ${rowNum}: Missing one or more options`);
+        const missingOpts: string[] = [];
+        if (!optionA) missingOpts.push("option_a");
+        if (!optionB) missingOpts.push("option_b");
+        if (!optionC) missingOpts.push("option_c");
+        if (!optionD) missingOpts.push("option_d");
+        if (missingOpts.length) {
+          pushReject(rowNum, row, missingOpts, `Missing options: ${missingOpts.join(", ")}`);
           continue;
         }
         if (!["A", "B", "C", "D"].includes(correctOption)) {
-          parseErrors.push(`Row ${rowNum}: Invalid correct option "${correctOption}" - must be A, B, C, or D`);
+          pushReject(rowNum, row, ["correct_option"], `Invalid correct option "${correctOption}" - must be A, B, C, or D`);
+          continue;
+        }
+        if (durationMinutes <= 0 || isNaN(durationMinutes)) {
+          pushReject(rowNum, row, ["duration_minutes"], "Duration must be a positive number");
+          continue;
+        }
+        if (!["easy", "medium", "hard"].includes(difficulty)) {
+          pushReject(rowNum, row, ["difficulty"], `Invalid difficulty "${difficulty}" - must be easy, medium, or hard`);
           continue;
         }
 
@@ -340,6 +367,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
 
       setImportedQuizzes(quizzes);
       setErrors(parseErrors);
+      setRejectedRows(rejected);
 
       if (quizzes.length > 0) {
         toast.success(`Successfully parsed ${quizzes.length} quizzes`);
@@ -792,6 +820,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   const resetState = () => {
     setImportedQuizzes([]);
     setErrors([]);
+    setRejectedRows([]);
     setViewMode("upload");
     setPreviewIndex(0);
     setProcessingStatus(null);
