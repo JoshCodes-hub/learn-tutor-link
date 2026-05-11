@@ -51,6 +51,15 @@ const AUDIENCES = [
   { value: "parents", label: "Parents" },
 ];
 
+const CATEGORIES = [
+  { value: "general", label: "News" },
+  { value: "feature", label: "New feature" },
+  { value: "event", label: "Event" },
+  { value: "promo", label: "Offer" },
+  { value: "tips", label: "Study tip" },
+  { value: "maintenance", label: "Maintenance" },
+];
+
 export const AnnouncementsManagement = () => {
   const { user } = useAuth();
   const [items, setItems] = useState<Announcement[]>([]);
@@ -61,6 +70,7 @@ export const AnnouncementsManagement = () => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [audience, setAudience] = useState("all");
+  const [category, setCategory] = useState("general");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkLabel, setLinkLabel] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -91,6 +101,7 @@ export const AnnouncementsManagement = () => {
     setTitle("");
     setBody("");
     setAudience("all");
+    setCategory("general");
     setLinkUrl("");
     setLinkLabel("");
     setImageFile(null);
@@ -146,6 +157,7 @@ export const AnnouncementsManagement = () => {
         link_url: linkUrl.trim() || null,
         link_label: linkLabel.trim() || null,
         audience,
+        category,
         is_pinned: isPinned,
         is_published: true,
         created_by: user?.id ?? null,
