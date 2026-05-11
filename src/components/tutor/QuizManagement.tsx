@@ -35,6 +35,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { TUTOR_LEVEL_OPTIONS, formatLevelLabel } from "@/components/shared/LevelSelect";
 import {
   DndContext,
   closestCenter,
@@ -178,6 +179,7 @@ const QuizManagement = () => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
+  const [filterLevel, setFilterLevel] = useState<string>("ALL");
 
   // Bulk selection state
   const [selectedQuizzes, setSelectedQuizzes] = useState<Set<string>>(new Set());
@@ -618,9 +620,15 @@ const QuizManagement = () => {
         (filterStatus === "active" && quiz.is_active) ||
         (filterStatus === "inactive" && !quiz.is_active);
 
-      return matchesSearch && matchesFilter;
+      const matchesLevel =
+        filterLevel === "ALL" ||
+        (filterLevel === "__none__"
+          ? !(quiz as any).level
+          : (quiz as any).level === filterLevel);
+
+      return matchesSearch && matchesFilter && matchesLevel;
     });
-  }, [quizzes, searchQuery, filterStatus]);
+  }, [quizzes, searchQuery, filterStatus, filterLevel]);
 
   const filteredAvailableQuestions = useMemo(() => {
     const currentQuestionIds = new Set(quizQuestions.map((qq) => qq.question_id));
