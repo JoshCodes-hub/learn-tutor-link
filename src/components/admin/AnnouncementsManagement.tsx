@@ -462,7 +462,7 @@ export const AnnouncementsManagement = () => {
                             } else {
                               const r = data as { sent: number; failed: number; total: number };
                               toast.success(`Notified ${r.sent}/${r.total} students${r.failed ? ` (${r.failed} failed)` : ""}`);
-                              load();
+                              fetchItems();
                             }
                           }}
                           aria-label={a.notified_at ? "Re-send email blast" : "Notify students by email"}
