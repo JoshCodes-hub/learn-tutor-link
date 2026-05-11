@@ -689,6 +689,45 @@ const QuizManagement = () => {
             </Tabs>
           </div>
 
+          {/* Level filter chips */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground mr-1">Level:</span>
+            {TUTOR_LEVEL_OPTIONS.map((opt) => {
+              const count =
+                opt.value === "ALL"
+                  ? quizzes.length
+                  : quizzes.filter((q) => (q as any).level === opt.value).length;
+              const active = filterLevel === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFilterLevel(opt.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {opt.label} {count > 0 && <span className="opacity-70">({count})</span>}
+                </button>
+              );
+            })}
+            {quizzes.some((q) => !(q as any).level) && (
+              <button
+                type="button"
+                onClick={() => setFilterLevel("__none__")}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                  filterLevel === "__none__"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                Unset
+              </button>
+            )}
+          </div>
+
           {/* Bulk Actions Bar */}
           {selectedQuizzes.size > 0 && (
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-primary/10 rounded-lg border border-primary/20">
