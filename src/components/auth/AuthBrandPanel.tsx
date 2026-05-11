@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Sparkles, ShieldCheck, GraduationCap, Star, Trophy, Users } from "lucide-react";
 import logo from "@/assets/logo.png";
+import authBg from "@/assets/auth-bg.jpg";
 
 /**
  * Premium brand showcase panel that sits next to the auth form on large
@@ -50,29 +51,19 @@ const STATS = [
 const AuthBrandPanel = () => {
   return (
     <aside
-      className="hidden lg:flex relative overflow-hidden flex-col justify-between p-10 xl:p-14 text-[hsl(35_50%_12%)]"
+      className="hidden lg:flex relative overflow-hidden flex-col justify-between p-10 xl:p-14 text-white"
       aria-label="Why students choose OverraPrep"
     >
-      {/* Layered gold gradient backdrop */}
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background:
-            "linear-gradient(160deg, hsl(45 95% 92%) 0%, hsl(43 88% 78%) 45%, hsl(40 78% 58%) 100%)",
-        }}
+      {/* Static editorial photo backdrop */}
+      <img
+        src={authBg}
+        alt=""
         aria-hidden
+        className="absolute inset-0 -z-10 h-full w-full object-cover"
       />
-      {/* Soft glow accents */}
-      <div className="absolute -top-32 -left-20 w-[28rem] h-[28rem] rounded-full bg-white/40 blur-[120px] -z-10" aria-hidden />
-      <div className="absolute -bottom-32 -right-20 w-[34rem] h-[34rem] rounded-full bg-amber-200/50 blur-[140px] -z-10" aria-hidden />
-      {/* Subtle dotted texture */}
+      {/* Readability scrim */}
       <div
-        className="absolute inset-0 opacity-[0.18] -z-10"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, hsl(35 60% 25% / 0.55) 1px, transparent 0)",
-          backgroundSize: "22px 22px",
-        }}
+        className="absolute inset-0 -z-10 bg-gradient-to-br from-[hsl(35_55%_12%/0.55)] via-[hsl(30_50%_15%/0.45)] to-[hsl(25_60%_10%/0.65)]"
         aria-hidden
       />
 
@@ -88,25 +79,15 @@ const AuthBrandPanel = () => {
           </div>
         </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6, ease: "easeOut" }}
-          className="mt-10 text-4xl xl:text-5xl font-bold leading-[1.05] tracking-tight"
-        >
+        <h1 className="mt-10 text-4xl xl:text-5xl font-bold leading-[1.05] tracking-tight drop-shadow-md">
           Where Nigeria's<br />
-          <span className="bg-gradient-to-r from-[hsl(28_85%_28%)] via-[hsl(35_90%_35%)] to-[hsl(28_85%_28%)] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[hsl(45_95%_75%)] via-[hsl(40_100%_85%)] to-[hsl(45_95%_75%)] bg-clip-text text-transparent">
             top students prep
           </span>
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
-          className="mt-4 max-w-md text-base leading-relaxed text-[hsl(30_45%_18%)]/85"
-        >
+        </h1>
+        <p className="mt-4 max-w-md text-base leading-relaxed text-white/85">
           AI-graded mocks, instant explanations, and the largest FUTA past-question bank — built with our student ambassadors.
-        </motion.p>
+        </p>
 
         {/* Trust pills */}
         <div className="mt-6 flex flex-wrap gap-2">
