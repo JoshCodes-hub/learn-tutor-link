@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LevelSelect, levelToDb } from "@/components/shared/LevelSelect";
 
 interface ImportedQuestion {
   question_text: string;
@@ -95,6 +96,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
   const [isDragging, setIsDragging] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus | null>(null);
   const [existingCourses, setExistingCourses] = useState<Course[]>([]);
+  const [defaultLevel, setDefaultLevel] = useState("ALL");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch existing courses on mount
@@ -653,6 +655,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                 code: quiz.course_code,
                 name: quiz.course_name,
                 created_by: user.id,
+                level: levelToDb(defaultLevel),
               })
               .select("id")
               .single();
@@ -707,6 +710,7 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
               token_cost: quiz.token_cost,
               is_simulation: quiz.is_simulation,
               is_active: true,
+              level: levelToDb(defaultLevel),
             })
             .select("id")
             .single();
@@ -823,6 +827,13 @@ export function BulkQuizImport({ open, onOpenChange, onSuccess }: BulkQuizImport
                   </Button>
                 </div>
               </div>
+
+              {/* Default Student Level for all imported quizzes */}
+              <LevelSelect
+                value={defaultLevel}
+                onChange={setDefaultLevel}
+                label="Target Student Level (applied to all imported quizzes)"
+              />
 
               {/* Upload Area */}
                 <div className="space-y-2">

@@ -39,6 +39,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { BulkQuestionImport } from "./BulkQuestionImport";
 import { QuestionImageUpload } from "./QuestionImageUpload";
+import { LevelSelect, levelToDb } from "@/components/shared/LevelSelect";
 
 interface Question {
   question_text: string;
@@ -103,6 +104,7 @@ export function UnifiedQuizCreator({
   const [questionCount, setQuestionCount] = useState("10");
   const [isPremium, setIsPremium] = useState(false);
   const [tokenCost, setTokenCost] = useState("10");
+  const [level, setLevel] = useState("ALL");
   
   // Questions
   const [questions, setQuestions] = useState<Question[]>([{ ...emptyQuestion }]);
@@ -185,6 +187,7 @@ export function UnifiedQuizCreator({
       setQuestionCount("10");
       setIsPremium(false);
       setTokenCost("10");
+      setLevel("ALL");
       setQuestions([{ ...emptyQuestion }]);
       setCurrentIndex(0);
       setUseExistingQuestions(false);
@@ -269,6 +272,7 @@ export function UnifiedQuizCreator({
             name: courseName.trim(),
             code: courseCode.trim().toUpperCase(),
             created_by: user.id,
+            level: levelToDb(level),
           })
           .select()
           .single();
@@ -350,6 +354,7 @@ export function UnifiedQuizCreator({
           is_premium: isPremium,
           token_cost: isPremium ? parseInt(tokenCost) || 0 : 0,
           is_simulation: isSimulation,
+          level: levelToDb(level),
         })
         .select()
         .single();
@@ -585,6 +590,9 @@ export function UnifiedQuizCreator({
                 rows={2}
               />
             </div>
+
+            {/* Target Student Level */}
+            <LevelSelect value={level} onChange={setLevel} label="Target Student Level" />
 
             {/* Duration & Question Count */}
             <div className="grid grid-cols-2 gap-4">

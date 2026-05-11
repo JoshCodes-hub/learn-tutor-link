@@ -1426,6 +1426,7 @@ export type Database = {
           file_url: string
           id: string
           is_published: boolean
+          level: string | null
           thumbnail_url: string | null
           title: string
           tutor_id: string
@@ -1443,6 +1444,7 @@ export type Database = {
           file_url: string
           id?: string
           is_published?: boolean
+          level?: string | null
           thumbnail_url?: string | null
           title: string
           tutor_id: string
@@ -1460,6 +1462,7 @@ export type Database = {
           file_url?: string
           id?: string
           is_published?: boolean
+          level?: string | null
           thumbnail_url?: string | null
           title?: string
           tutor_id?: string
@@ -2474,6 +2477,7 @@ export type Database = {
           is_active: boolean
           is_premium: boolean
           is_simulation: boolean
+          level: string | null
           question_count: number
           school_class_id: string | null
           school_id: string | null
@@ -2490,6 +2494,7 @@ export type Database = {
           is_active?: boolean
           is_premium?: boolean
           is_simulation?: boolean
+          level?: string | null
           question_count?: number
           school_class_id?: string | null
           school_id?: string | null
@@ -2506,6 +2511,7 @@ export type Database = {
           is_active?: boolean
           is_premium?: boolean
           is_simulation?: boolean
+          level?: string | null
           question_count?: number
           school_class_id?: string | null
           school_id?: string | null
@@ -4369,6 +4375,7 @@ export type Database = {
           description: string | null
           id: string
           is_published: boolean
+          level: string | null
           slug: string | null
           title: string
           tutor_id: string
@@ -4380,6 +4387,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_published?: boolean
+          level?: string | null
           slug?: string | null
           title: string
           tutor_id: string
@@ -4391,6 +4399,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_published?: boolean
+          level?: string | null
           slug?: string | null
           title?: string
           tutor_id?: string

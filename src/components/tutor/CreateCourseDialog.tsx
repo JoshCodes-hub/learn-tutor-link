@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Plus, X } from "lucide-react";
+import { LevelSelect, levelToDb } from "@/components/shared/LevelSelect";
 
 interface CreateCourseDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function CreateCourseDialog({
   const [department, setDepartment] = useState("");
   const [description, setDescription] = useState("");
   const [topics, setTopics] = useState<string[]>([""]);
+  const [level, setLevel] = useState("ALL");
 
   const addTopic = () => {
     setTopics([...topics, ""]);
@@ -69,6 +71,7 @@ export function CreateCourseDialog({
           name: name.trim(),
           department: department.trim() || null,
           description: description.trim() || null,
+          level: levelToDb(level),
           created_by: user.id,
         })
         .select()
@@ -109,6 +112,7 @@ export function CreateCourseDialog({
     setDepartment("");
     setDescription("");
     setTopics([""]);
+    setLevel("ALL");
   };
 
   return (
@@ -165,6 +169,8 @@ export function CreateCourseDialog({
               rows={3}
             />
           </div>
+
+          <LevelSelect value={level} onChange={setLevel} label="Target Student Level" />
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">

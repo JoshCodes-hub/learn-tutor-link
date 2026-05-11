@@ -35,6 +35,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { TUTOR_LEVEL_OPTIONS } from "@/components/shared/LevelSelect";
 import {
   DndContext,
   closestCenter,
@@ -178,6 +179,7 @@ const QuizManagement = () => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
+  const [filterLevel, setFilterLevel] = useState<string>("ALL");
 
   // Bulk selection state
   const [selectedQuizzes, setSelectedQuizzes] = useState<Set<string>>(new Set());
@@ -618,9 +620,15 @@ const QuizManagement = () => {
         (filterStatus === "active" && quiz.is_active) ||
         (filterStatus === "inactive" && !quiz.is_active);
 
-      return matchesSearch && matchesFilter;
+      const matchesLevel =
+        filterLevel === "ALL" ||
+        (filterLevel === "__none__"
+          ? !(quiz as any).level
+          : (quiz as any).level === filterLevel);
+
+      return matchesSearch && matchesFilter && matchesLevel;
     });
-  }, [quizzes, searchQuery, filterStatus]);
+  }, [quizzes, searchQuery, filterStatus, filterLevel]);
 
   const filteredAvailableQuestions = useMemo(() => {
     const currentQuestionIds = new Set(quizQuestions.map((qq) => qq.question_id));
@@ -679,6 +687,45 @@ const QuizManagement = () => {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+          </div>
+
+          {/* Level filter chips */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground mr-1">Level:</span>
+            {TUTOR_LEVEL_OPTIONS.map((opt) => {
+              const count =
+                opt.value === "ALL"
+                  ? quizzes.length
+                  : quizzes.filter((q) => (q as any).level === opt.value).length;
+              const active = filterLevel === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFilterLevel(opt.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {opt.label} {count > 0 && <span className="opacity-70">({count})</span>}
+                </button>
+              );
+            })}
+            {quizzes.some((q) => !(q as any).level) && (
+              <button
+                type="button"
+                onClick={() => setFilterLevel("__none__")}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                  filterLevel === "__none__"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/40"
+                }`}
+              >
+                Unset
+              </button>
+            )}
           </div>
 
           {/* Bulk Actions Bar */}
