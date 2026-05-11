@@ -106,28 +106,17 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
+        // Heavy/optional libs only — let Rollup handle React + the rest to
+        // avoid TDZ "Cannot access X before initialization" from cross-chunk
+        // circular deps between vendor-react and the catch-all vendor chunk.
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return;
-          // Heavy/optional libs — only loaded when needed
           if (id.includes("xlsx")) return "vendor-xlsx";
           if (id.includes("mammoth")) return "vendor-mammoth";
-          // PDF + QR are dynamically imported in src/lib/{exportPdf,exportStudyPack,reportCard}.ts
           if (id.includes("jspdf") || id.includes("html2canvas") || id.includes("qrcode")) return "vendor-reports";
           if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
-          if (id.includes("framer-motion")) return "vendor-motion";
-          if (id.includes("@radix-ui")) return "vendor-radix";
-          if (id.includes("@supabase")) return "vendor-supabase";
-          if (id.includes("lucide-react")) return "vendor-icons";
-          // Keep react, react-dom, scheduler, and react-router in ONE chunk so
-          // scheduler initializes before react-dom calls unstable_scheduleCallback.
-          if (
-            id.includes("react-router") ||
-            id.includes("react-dom") ||
-            id.includes("/react/") ||
-            id.includes("/scheduler/") ||
-            id.includes("\\scheduler\\")
-          ) return "vendor-react";
-          return "vendor";
+          if (id.includes("three") || id.includes("@react-three")) return "vendor-three";
+          return undefined;
         },
       },
     },
