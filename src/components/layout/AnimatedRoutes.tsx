@@ -102,6 +102,7 @@ const CommunityWall = lazy(() => import("@/pages/community/CommunityWall"));
 const CGPACalculator = lazy(() => import("@/pages/student/CGPACalculator"));
 const StudyPacks = lazy(() => import("@/pages/student/StudyPacks"));
 const Library = lazy(() => import("@/pages/student/Library"));
+const UploadAnalytics = lazy(() => import("@/pages/student/UploadAnalytics"));
 const ChatInbox = lazy(() => import("@/pages/chat/Inbox"));
 const ChatThread = lazy(() => import("@/pages/chat/ThreadView"));
 const ChatJoin = lazy(() => import("@/pages/chat/ChatJoin"));
@@ -330,6 +331,7 @@ export const AnimatedRoutes = () => {
           <Route path="/cgpa" element={<PageTransition><CGPACalculator /></PageTransition>} />
           <Route path="/study-packs" element={<PageTransition><StudyPacks /></PageTransition>} />
           <Route path="/library" element={<PageTransition><Library /></PageTransition>} />
+          <Route path="/library/analytics" element={<PageTransition><UploadAnalytics /></PageTransition>} />
           <Route path="/tutor/question-cards" element={<PageTransition><TutorQuestionCards /></PageTransition>} />
           <Route path="/study-hub" element={<PageTransition><StudyHub /></PageTransition>} />
           <Route path="/study-hub/:courseId" element={<PageTransition><StudyHubCourse /></PageTransition>} />

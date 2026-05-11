@@ -14,8 +14,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Library as LibraryIcon, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones, Upload, Sparkles,
+  Library as LibraryIcon, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones, Upload, Sparkles, BarChart3,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import UploadResourceDialog from "@/components/student/library/UploadResourceDialog";
@@ -137,12 +138,17 @@ const Library = () => {
                 Upload course outlines & materials. Generate flashcards, summaries & quizzes with AI.
               </p>
             </div>
-            <Button
-              onClick={() => setUploadOpen(true)}
-              className="shrink-0 gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md"
-            >
-              <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Upload</span>
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button asChild variant="outline" size="icon" title="Upload analytics" aria-label="Upload analytics">
+                <Link to="/library/analytics"><BarChart3 className="w-4 h-4" /></Link>
+              </Button>
+              <Button
+                onClick={() => setUploadOpen(true)}
+                className="gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md"
+              >
+                <Upload className="w-4 h-4" /> <span className="hidden sm:inline">Upload</span>
+              </Button>
+            </div>
           </div>
 
           {/* Search + kind chips */}
