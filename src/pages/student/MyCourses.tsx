@@ -60,8 +60,6 @@ const MyCourses = () => {
     const q = search.trim().toLowerCase();
     return allCourses.filter((c) => {
       if (courseIds.includes(c.id)) return false;
-      // Level-lock: if student has a level set, only show courses matching their level OR courses with no level
-      if (studentLevel && c.level && c.level !== studentLevel) return false;
       if (!q) return true;
       return (
         c.code.toLowerCase().includes(q) ||
@@ -70,6 +68,9 @@ const MyCourses = () => {
       );
     });
   }, [allCourses, courseIds, search, studentLevel]);
+
+  const isLocked = (c: Course) =>
+    !!studentLevel && !!c.level && c.level !== studentLevel;
 
   const enroll = async (id: string) => {
     if (!user) return;
@@ -176,22 +177,48 @@ const MyCourses = () => {
               </CardContent></Card>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {browseable.map((c) => (
-                  <Card key={c.id} className="glass-card hover:shadow-elegant transition-all">
-                    <CardHeader>
-                      <Badge variant="outline" className="mb-2 w-fit">{c.code}</Badge>
-                      <CardTitle className="text-base font-display">{c.name}</CardTitle>
-                      {(c.level || c.department) && (
-                        <CardDescription>{c.level ? `${c.level} Level` : ""}{c.level && c.department ? " · " : ""}{c.department || ""}</CardDescription>
+                {browseable.map((c) => {
+                  const locked = isLocked(c);
+                  return (
+                    <Card
+                      key={c.id}
+                      className={`glass-card transition-all relative ${
+                        locked ? "opacity-75 grayscale-[35%]" : "hover:shadow-elegant"
+                      }`}
+                    >
+                      {locked && (
+                        <div className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                          <Lock className="w-3 h-3" /> {c.level} Only
+                        </div>
                       )}
-                    </CardHeader>
-                    <CardContent>
-                      <Button size="sm" className="w-full" disabled={busy === c.id} onClick={() => enroll(c.id)}>
-                        <Plus className="w-4 h-4 mr-1" /> Add to my courses
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <CardHeader>
+                        <Badge variant="outline" className="mb-2 w-fit">{c.code}</Badge>
+                        <CardTitle className="text-base font-display">{c.name}</CardTitle>
+                        {(c.level || c.department) && (
+                          <CardDescription>{c.level ? `${c.level} Level` : ""}{c.level && c.department ? " · " : ""}{c.department || ""}</CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        {locked ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full"
+                            asChild
+                          >
+                            <Link to="/profile/edit">
+                              <Lock className="w-4 h-4 mr-1" /> Switch to {c.level} Level
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button size="sm" className="w-full" disabled={busy === c.id} onClick={() => enroll(c.id)}>
+                            <Plus className="w-4 h-4 mr-1" /> Add to my courses
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
             {!studentLevel && (
