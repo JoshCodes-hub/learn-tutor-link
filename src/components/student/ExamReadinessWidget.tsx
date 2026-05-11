@@ -139,7 +139,7 @@ export const ExamReadinessWidget = () => {
                 {weak.map((t, i) => (
                   <Link
                     key={i}
-                    to={`/student/weak-area-drill/${encodeURIComponent(t.courseId || t.name)}${lvlQs}`}
+                    to={`/student/weak/${encodeURIComponent(t.courseId || t.name)}${lvlQs}`}
                     className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10.5px] font-semibold hover:bg-amber-200 transition"
                   >
                     {t.name} <ArrowRight className="w-2.5 h-2.5" />
