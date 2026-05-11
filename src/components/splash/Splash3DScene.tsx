@@ -9,10 +9,11 @@ const supportsWebGL = () => {
   try {
     const canvas = document.createElement("canvas");
     const options = { failIfMajorPerformanceCaveat: true };
-    const context =
+    const context = (
       canvas.getContext("webgl2", options) ||
       canvas.getContext("webgl", options) ||
-      canvas.getContext("experimental-webgl", options as WebGLContextAttributes);
+      canvas.getContext("experimental-webgl", options as WebGLContextAttributes)
+    ) as WebGLRenderingContext | WebGL2RenderingContext | null;
 
     if (!context) return false;
     context.getExtension("WEBGL_lose_context")?.loseContext();
