@@ -147,6 +147,25 @@ export const AudioPlayerCard = ({
     return isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.18;
   });
 
+  // Narration volume (separate from BGM) + EQ preset — persisted per student
+  const [narrationVolume, setNarrationVolume] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const v = Number(localStorage.getItem("audio-narration-volume") || "1");
+    return isFinite(v) ? Math.min(1, Math.max(0, v)) : 1;
+  });
+  const [eqId, setEqId] = useState<string>(() => {
+    if (typeof window === "undefined") return "flat";
+    return localStorage.getItem("audio-eq-id") || "flat";
+  });
+
+  // Web Audio refs for the EQ chain
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const lowFilterRef = useRef<BiquadFilterNode | null>(null);
+  const midFilterRef = useRef<BiquadFilterNode | null>(null);
+  const highFilterRef = useRef<BiquadFilterNode | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
+
   // Resolve the active BGM URL (custom upload wins)
   const activeBgmUrl =
     bgmId === "custom" ? customBgmUrl ?? "" : PIANO_PRESETS.find((p) => p.id === bgmId)?.url ?? "";
@@ -159,6 +178,56 @@ export const AudioPlayerCard = ({
     if (typeof window !== "undefined") localStorage.setItem("audio-bgm-volume", String(bgmVolume));
     if (bgmRef.current) bgmRef.current.volume = bgmVolume;
   }, [bgmVolume]);
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("audio-narration-volume", String(narrationVolume));
+    if (gainRef.current) gainRef.current.gain.value = narrationVolume;
+    else if (audioRef.current) audioRef.current.volume = narrationVolume;
+  }, [narrationVolume]);
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("audio-eq-id", eqId);
+    const preset = EQ_PRESETS.find((p) => p.id === eqId) ?? EQ_PRESETS[0];
+    if (lowFilterRef.current) lowFilterRef.current.gain.value = preset.low;
+    if (midFilterRef.current) midFilterRef.current.gain.value = preset.mid;
+    if (highFilterRef.current) highFilterRef.current.gain.value = preset.high;
+  }, [eqId]);
+
+  // Wire up the Web Audio EQ chain on first play (browsers require user gesture).
+  const ensureAudioGraph = () => {
+    if (audioCtxRef.current || !audioRef.current) return;
+    try {
+      const Ctx: typeof AudioContext =
+        (window.AudioContext || (window as any).webkitAudioContext);
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      audioCtxRef.current = ctx;
+      const src = ctx.createMediaElementSource(audioRef.current);
+      sourceRef.current = src;
+
+      const low = ctx.createBiquadFilter();
+      low.type = "lowshelf"; low.frequency.value = 200;
+      const mid = ctx.createBiquadFilter();
+      mid.type = "peaking"; mid.frequency.value = 1000; mid.Q.value = 1;
+      const high = ctx.createBiquadFilter();
+      high.type = "highshelf"; high.frequency.value = 4000;
+
+      const gain = ctx.createGain();
+      gain.gain.value = narrationVolume;
+
+      const preset = EQ_PRESETS.find((p) => p.id === eqId) ?? EQ_PRESETS[0];
+      low.gain.value = preset.low;
+      mid.gain.value = preset.mid;
+      high.gain.value = preset.high;
+
+      src.connect(low); low.connect(mid); mid.connect(high); high.connect(gain); gain.connect(ctx.destination);
+
+      lowFilterRef.current = low;
+      midFilterRef.current = mid;
+      highFilterRef.current = high;
+      gainRef.current = gain;
+    } catch {
+      // Fallback silently — element-level volume will still apply.
+    }
+  };
 
   // Sync BGM playback with main narration (only when BGM is enabled)
   useEffect(() => {
@@ -228,6 +297,8 @@ export const AudioPlayerCard = ({
   const toggle = () => {
     const el = audioRef.current;
     if (!el) return;
+    ensureAudioGraph();
+    if (audioCtxRef.current?.state === "suspended") audioCtxRef.current.resume().catch(() => void 0);
     if (el.paused) {
       el.play();
       setPlaying(true);
