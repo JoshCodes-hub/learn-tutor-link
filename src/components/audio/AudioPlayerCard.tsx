@@ -9,8 +9,33 @@ import {
   Captions,
   Volume2,
   VolumeX,
+  Music,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/**
+ * Royalty-free soft piano loops (CC0/Pixabay-hosted).
+ * Users can also upload their own track via the BGM controls.
+ */
+const PIANO_PRESETS: { id: string; label: string; url: string }[] = [
+  { id: "off", label: "Off", url: "" },
+  {
+    id: "calm",
+    label: "Calm Piano",
+    url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3",
+  },
+  {
+    id: "study",
+    label: "Study Piano",
+    url: "https://cdn.pixabay.com/audio/2022/10/30/audio_347111d654.mp3",
+  },
+  {
+    id: "focus",
+    label: "Focus Keys",
+    url: "https://cdn.pixabay.com/audio/2024/02/14/audio_8b5b8f3a4d.mp3",
+  },
+];
 
 interface AudioPlayerCardProps {
   src: string;
@@ -26,6 +51,8 @@ interface AudioPlayerCardProps {
   resumeKey?: string;
   /** Optional handler for the "Save to Library" footer button */
   onSaveToLibrary?: () => void;
+  /** Show the piano background-music mixer (default true). */
+  showBgm?: boolean;
 }
 
 const SPEEDS = [1, 1.5, 2] as const;
@@ -73,14 +100,81 @@ export const AudioPlayerCard = ({
   className,
   resumeKey,
   onSaveToLibrary,
+  showBgm = true,
 }: AudioPlayerCardProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [current, setCurrent] = useState(0);
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const [muted, setMuted] = useState(false);
   const [showCaptions, setShowCaptions] = useState(false);
+
+  // Piano BGM state — persisted between sessions
+  const [bgmId, setBgmId] = useState<string>(() => {
+    if (typeof window === "undefined") return "off";
+    return localStorage.getItem("audio-bgm-id") || "off";
+  });
+  const [customBgmUrl, setCustomBgmUrl] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("audio-bgm-custom-url");
+  });
+  const [customBgmName, setCustomBgmName] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("audio-bgm-custom-name");
+  });
+  const [bgmVolume, setBgmVolume] = useState<number>(() => {
+    if (typeof window === "undefined") return 0.18;
+    const v = Number(localStorage.getItem("audio-bgm-volume") || "0.18");
+    return isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.18;
+  });
+
+  // Resolve the active BGM URL (custom upload wins)
+  const activeBgmUrl =
+    bgmId === "custom" ? customBgmUrl ?? "" : PIANO_PRESETS.find((p) => p.id === bgmId)?.url ?? "";
+
+  // Persist preferences
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("audio-bgm-id", bgmId);
+  }, [bgmId]);
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("audio-bgm-volume", String(bgmVolume));
+    if (bgmRef.current) bgmRef.current.volume = bgmVolume;
+  }, [bgmVolume]);
+
+  // Sync BGM playback with main narration (only when BGM is enabled)
+  useEffect(() => {
+    const el = bgmRef.current;
+    if (!el) return;
+    el.volume = bgmVolume;
+    el.loop = true;
+    if (!activeBgmUrl) {
+      el.pause();
+      return;
+    }
+    if (playing) {
+      el.play().catch(() => void 0);
+    } else {
+      el.pause();
+    }
+  }, [playing, activeBgmUrl, bgmVolume]);
+
+  const onPickCustomFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("audio/")) return;
+    const url = URL.createObjectURL(f);
+    setCustomBgmUrl(url);
+    setCustomBgmName(f.name);
+    setBgmId("custom");
+    if (typeof window !== "undefined") {
+      // Object URLs don't survive reloads, but persist the name so the chip stays meaningful
+      localStorage.setItem("audio-bgm-custom-url", url);
+      localStorage.setItem("audio-bgm-custom-name", f.name);
+    }
+  };
 
   // Restore resume position
   useEffect(() => {
@@ -160,6 +254,8 @@ export const AudioPlayerCard = ({
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
       />
+      {/* Background piano loop, plays at low volume under narration */}
+      <audio ref={bgmRef} src={activeBgmUrl || undefined} loop preload="auto" />
 
       {/* Hero header */}
       <div className="relative px-6 pt-7 pb-6 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white">
@@ -293,6 +389,84 @@ export const AudioPlayerCard = ({
             ))}
           </div>
         </div>
+
+        {/* Piano background music mixer */}
+        {showBgm && (
+          <div className="mt-5 rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/30 p-3.5">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <Music className="h-3.5 w-3.5 text-white" />
+              </div>
+              <p className="text-[13px] font-semibold text-foreground/85 flex-1">Piano background</p>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-[11px] font-semibold text-amber-700 hover:text-amber-800 inline-flex items-center gap-1 px-2 py-1 rounded-md hover:bg-amber-100/60 transition"
+              >
+                <Upload className="h-3 w-3" /> Upload
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="audio/*"
+                onChange={onPickCustomFile}
+                className="hidden"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {PIANO_PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setBgmId(p.id)}
+                  aria-pressed={bgmId === p.id}
+                  className={cn(
+                    "text-[11px] font-bold px-2.5 py-1 rounded-full border transition",
+                    bgmId === p.id
+                      ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                      : "bg-white text-amber-800 border-amber-200 hover:bg-amber-50",
+                  )}
+                >
+                  {p.label}
+                </button>
+              ))}
+              {customBgmUrl && (
+                <button
+                  type="button"
+                  onClick={() => setBgmId("custom")}
+                  aria-pressed={bgmId === "custom"}
+                  className={cn(
+                    "text-[11px] font-bold px-2.5 py-1 rounded-full border transition max-w-[140px] truncate",
+                    bgmId === "custom"
+                      ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                      : "bg-white text-amber-800 border-amber-200 hover:bg-amber-50",
+                  )}
+                  title={customBgmName ?? "Your track"}
+                >
+                  ♪ {customBgmName ?? "Your track"}
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <Volume2 className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={bgmVolume}
+                onChange={(e) => setBgmVolume(Number(e.target.value))}
+                aria-label="Background music volume"
+                className="flex-1 h-1.5 rounded-full appearance-none bg-amber-100 accent-amber-500"
+              />
+              <span className="text-[10px] tabular-nums font-semibold text-amber-800 w-8 text-right">
+                {Math.round(bgmVolume * 100)}%
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Captions / transcript */}
         <AnimatePresence>
