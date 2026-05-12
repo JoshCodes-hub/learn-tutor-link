@@ -359,6 +359,16 @@ const Auth = () => {
             /* Sign In Form */
             <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4 sm:space-y-5">
               <div className="space-y-2">
+                <Label className="text-foreground text-xs sm:text-sm font-medium">
+                  I'm signing in as
+                </Label>
+                <RoleSelectionCards value={intendedRole} onChange={setIntendedRole} size="sm" />
+                <p className="text-[11px] text-muted-foreground">
+                  Defaults to Student. We'll alert you if your account doesn't have the selected role.
+                </p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="signin-email" className="text-foreground text-xs sm:text-sm font-medium">
                   Email
                 </Label>
