@@ -367,10 +367,24 @@ const StudentTutorCourses = () => {
                                             <FileText className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                                             <span className="truncate">{m.title}</span>
                                           </span>
+                                          <div className="flex items-center gap-0.5 shrink-0">
                                           <Button
                                             size="sm"
                                             variant="ghost"
-                                            className="h-7 px-2 text-amber-700 hover:bg-amber-50 shrink-0"
+                                            className="h-7 px-2 text-amber-700 hover:bg-amber-50"
+                                            onClick={() => handleToggleBookmark(m)}
+                                            aria-label="Bookmark"
+                                          >
+                                            {bookmarkedIds.has(`material:${m.id}`) ? (
+                                              <BookmarkCheck className="w-3.5 h-3.5 fill-amber-500" />
+                                            ) : (
+                                              <Bookmark className="w-3.5 h-3.5" />
+                                            )}
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 px-2 text-amber-700 hover:bg-amber-50"
                                             onClick={() => handleDownload(m)}
                                             disabled={downloading === m.id}
                                           >
@@ -382,6 +396,7 @@ const StudentTutorCourses = () => {
                                               <Download className="w-3.5 h-3.5" />
                                             )}
                                           </Button>
+                                          </div>
                                         </li>
                                       ))}
                                     </ul>
