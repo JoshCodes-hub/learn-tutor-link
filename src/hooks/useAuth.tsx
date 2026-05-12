@@ -67,9 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select("role")
         .eq("user_id", userId);
 
-      if (rolesData) {
-        setRoles(rolesData.map((r) => r.role as AppRole));
-      }
+      const fetchedRoles = (rolesData || []).map((r) => r.role as AppRole);
+      // Some older accounts can exist without a row in user_roles. Treat them
+      // as students only, so student pages open without weakening tutor/admin gates.
+      setRoles(fetchedRoles.length > 0 ? fetchedRoles : ["student"]);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
