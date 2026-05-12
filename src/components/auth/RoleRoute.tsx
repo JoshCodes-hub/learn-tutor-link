@@ -40,7 +40,7 @@ export const RoleRoute = ({
   allow: AppRole[];
   children: ReactNode;
 }) => {
-  const { user, isLoading, primaryRole, hasRole, signOut } = useAuth();
+  const { user, isLoading, primaryRole, hasRole, signOut, roles } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -48,7 +48,10 @@ export const RoleRoute = ({
     !!user &&
     (hasRole("admin") || (primaryRole && allow.includes(primaryRole as AppRole)));
 
-  const denied = !isLoading && !!user && !allowed;
+  // Roles load async after the session resolves. Treat "user but no roles yet"
+  // as still-loading so we don't flash the Access Blocked screen.
+  const rolesLoading = !!user && roles.length === 0 && !primaryRole;
+  const denied = !isLoading && !rolesLoading && !!user && !allowed;
 
   useEffect(() => {
     if (denied) {
@@ -67,7 +70,7 @@ export const RoleRoute = ({
     }
   }, [denied, primaryRole, allow]);
 
-  if (isLoading) {
+  if (isLoading || rolesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
