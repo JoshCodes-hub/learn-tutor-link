@@ -14,6 +14,7 @@ import { MaterialAIPanel } from "@/components/study-hub/MaterialAIPanel";
 import { ExportStudyPackDialog } from "@/components/study-hub/ExportStudyPackDialog";
 import { StudyCoachPanel } from "@/components/study-hub/StudyCoachPanel";
 import { LearningGoalsPanel } from "@/components/study-hub/LearningGoalsPanel";
+import { CourseChat } from "@/components/course/CourseChat";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -218,6 +219,7 @@ const StudyHubCourse = () => {
                 mode="study_hub"
               />
               {courseId && <LearningGoalsPanel courseId={courseId} />}
+              {courseId && <CourseChat courseId={courseId} courseCode={course.code} />}
             </div>
           </div>
         </div>
