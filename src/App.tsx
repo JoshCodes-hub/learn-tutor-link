@@ -13,6 +13,7 @@ import OfflineBanner from "@/components/native/OfflineBanner";
 import BottomTabBar from "@/components/app-shell/BottomTabBar";
 import NewStudyPackFAB from "@/components/student/NewStudyPackFAB";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import RoleBadge from "@/components/auth/RoleBadge";
 import { NetworkStatus } from "@/components/system/NetworkStatus";
 import ScrollToTop from "@/components/system/ScrollToTop";
 import PageViewTracker from "@/components/system/PageViewTracker";
@@ -61,6 +62,7 @@ const App = () => {
                 </div>
                 <BottomTabBar />
                 <NewStudyPackFAB />
+                <RoleBadge />
               </BiometricUnlock>
             </AuthProvider>
           </BrowserRouter>
