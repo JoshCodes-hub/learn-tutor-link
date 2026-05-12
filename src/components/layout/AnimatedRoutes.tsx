@@ -6,6 +6,7 @@ import PageTransition from "./PageTransition";
 import { AcademicPathGate } from "@/components/auth/AcademicPathGate";
 import { TutorPendingGate } from "@/components/auth/TutorPendingGate";
 import { AdminRoute } from "@/components/auth/AdminRoute";
+import { RoleRoute } from "@/components/auth/RoleRoute";
 import { FEATURES } from "@/config/features";
 import ComingSoon from "@/pages/ComingSoon";
 import { Navigate } from "react-router-dom";
@@ -171,17 +172,21 @@ export const AnimatedRoutes = () => {
           <Route
             path="/student/dashboard"
             element={
-              <PageTransition>
-                <StudentDashboard />
-              </PageTransition>
+              <RoleRoute allow={["student"]}>
+                <PageTransition>
+                  <StudentDashboard />
+                </PageTransition>
+              </RoleRoute>
             }
           />
           <Route
             path="/tutor/dashboard"
             element={
-              <PageTransition>
-                <TutorDashboard />
-              </PageTransition>
+              <RoleRoute allow={["tutor"]}>
+                <PageTransition>
+                  <TutorDashboard />
+                </PageTransition>
+              </RoleRoute>
             }
           />
           <Route
