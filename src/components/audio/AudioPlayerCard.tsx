@@ -11,6 +11,8 @@ import {
   VolumeX,
   Music,
   Upload,
+  Sliders,
+  Mic,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +58,20 @@ interface AudioPlayerCardProps {
 }
 
 const SPEEDS = [1, 1.5, 2] as const;
+
+/**
+ * 3-band equalizer presets (low / mid / high gain in dB).
+ * Applied to narration only via Web Audio biquad filters.
+ */
+type EqPreset = { id: string; label: string; low: number; mid: number; high: number };
+const EQ_PRESETS: EqPreset[] = [
+  { id: "flat",   label: "Flat",        low: 0,  mid: 0,  high: 0 },
+  { id: "voice",  label: "Voice",       low: -2, mid: 4,  high: 2 },
+  { id: "bass",   label: "Bass Boost",  low: 6,  mid: 0,  high: -1 },
+  { id: "bright", label: "Bright",      low: -2, mid: 1,  high: 5 },
+  { id: "study",  label: "Study Calm",  low: 1,  mid: -1, high: -2 },
+];
+
 const fmt = (s: number) => {
   if (!isFinite(s) || s < 0) s = 0;
   const m = Math.floor(s / 60);
@@ -131,6 +147,25 @@ export const AudioPlayerCard = ({
     return isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.18;
   });
 
+  // Narration volume (separate from BGM) + EQ preset — persisted per student
+  const [narrationVolume, setNarrationVolume] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    const v = Number(localStorage.getItem("audio-narration-volume") || "1");
+    return isFinite(v) ? Math.min(1, Math.max(0, v)) : 1;
+  });
+  const [eqId, setEqId] = useState<string>(() => {
+    if (typeof window === "undefined") return "flat";
+    return localStorage.getItem("audio-eq-id") || "flat";
+  });
+
+  // Web Audio refs for the EQ chain
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const lowFilterRef = useRef<BiquadFilterNode | null>(null);
+  const midFilterRef = useRef<BiquadFilterNode | null>(null);
+  const highFilterRef = useRef<BiquadFilterNode | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
+
   // Resolve the active BGM URL (custom upload wins)
   const activeBgmUrl =
     bgmId === "custom" ? customBgmUrl ?? "" : PIANO_PRESETS.find((p) => p.id === bgmId)?.url ?? "";
@@ -143,6 +178,56 @@ export const AudioPlayerCard = ({
     if (typeof window !== "undefined") localStorage.setItem("audio-bgm-volume", String(bgmVolume));
     if (bgmRef.current) bgmRef.current.volume = bgmVolume;
   }, [bgmVolume]);
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("audio-narration-volume", String(narrationVolume));
+    if (gainRef.current) gainRef.current.gain.value = narrationVolume;
+    else if (audioRef.current) audioRef.current.volume = narrationVolume;
+  }, [narrationVolume]);
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("audio-eq-id", eqId);
+    const preset = EQ_PRESETS.find((p) => p.id === eqId) ?? EQ_PRESETS[0];
+    if (lowFilterRef.current) lowFilterRef.current.gain.value = preset.low;
+    if (midFilterRef.current) midFilterRef.current.gain.value = preset.mid;
+    if (highFilterRef.current) highFilterRef.current.gain.value = preset.high;
+  }, [eqId]);
+
+  // Wire up the Web Audio EQ chain on first play (browsers require user gesture).
+  const ensureAudioGraph = () => {
+    if (audioCtxRef.current || !audioRef.current) return;
+    try {
+      const Ctx: typeof AudioContext =
+        (window.AudioContext || (window as any).webkitAudioContext);
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      audioCtxRef.current = ctx;
+      const src = ctx.createMediaElementSource(audioRef.current);
+      sourceRef.current = src;
+
+      const low = ctx.createBiquadFilter();
+      low.type = "lowshelf"; low.frequency.value = 200;
+      const mid = ctx.createBiquadFilter();
+      mid.type = "peaking"; mid.frequency.value = 1000; mid.Q.value = 1;
+      const high = ctx.createBiquadFilter();
+      high.type = "highshelf"; high.frequency.value = 4000;
+
+      const gain = ctx.createGain();
+      gain.gain.value = narrationVolume;
+
+      const preset = EQ_PRESETS.find((p) => p.id === eqId) ?? EQ_PRESETS[0];
+      low.gain.value = preset.low;
+      mid.gain.value = preset.mid;
+      high.gain.value = preset.high;
+
+      src.connect(low); low.connect(mid); mid.connect(high); high.connect(gain); gain.connect(ctx.destination);
+
+      lowFilterRef.current = low;
+      midFilterRef.current = mid;
+      highFilterRef.current = high;
+      gainRef.current = gain;
+    } catch {
+      // Fallback silently — element-level volume will still apply.
+    }
+  };
 
   // Sync BGM playback with main narration (only when BGM is enabled)
   useEffect(() => {
@@ -212,6 +297,8 @@ export const AudioPlayerCard = ({
   const toggle = () => {
     const el = audioRef.current;
     if (!el) return;
+    ensureAudioGraph();
+    if (audioCtxRef.current?.state === "suspended") audioCtxRef.current.resume().catch(() => void 0);
     if (el.paused) {
       el.play();
       setPlaying(true);
@@ -392,6 +479,52 @@ export const AudioPlayerCard = ({
 
         {/* Piano background music mixer */}
         {showBgm && (
+          <>
+          {/* Narration volume + Equalizer presets */}
+          <div className="mt-5 rounded-2xl border border-amber-100 bg-white p-3.5">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <Mic className="h-3.5 w-3.5 text-white" />
+              </div>
+              <p className="text-[13px] font-semibold text-foreground/85 flex-1">Narration</p>
+              <Sliders className="h-3.5 w-3.5 text-amber-700" />
+            </div>
+            <div className="flex items-center gap-2.5 mb-3">
+              <Volume2 className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={narrationVolume}
+                onChange={(e) => setNarrationVolume(Number(e.target.value))}
+                aria-label="Narration volume"
+                className="flex-1 h-1.5 rounded-full appearance-none bg-amber-100 accent-amber-500"
+              />
+              <span className="text-[10px] tabular-nums font-semibold text-amber-800 w-8 text-right">
+                {Math.round(narrationVolume * 100)}%
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {EQ_PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { ensureAudioGraph(); setEqId(p.id); }}
+                  aria-pressed={eqId === p.id}
+                  className={cn(
+                    "text-[11px] font-bold px-2.5 py-1 rounded-full border transition",
+                    eqId === p.id
+                      ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                      : "bg-white text-amber-800 border-amber-200 hover:bg-amber-50",
+                  )}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-5 rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/30 p-3.5">
             <div className="flex items-center gap-2 mb-2.5">
               <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
@@ -466,6 +599,7 @@ export const AudioPlayerCard = ({
               </span>
             </div>
           </div>
+          </>
         )}
 
         {/* Captions / transcript */}

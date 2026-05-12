@@ -920,6 +920,38 @@ export type Database = {
           },
         ]
       }
+      course_chat_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_chat_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "course_chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_modes: {
         Row: {
           course_id: string
@@ -946,6 +978,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      course_pinned_prompts: {
+        Row: {
+          content: string
+          course_id: string
+          created_at: string
+          created_by: string
+          id: string
+        }
+        Insert: {
+          content: string
+          course_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+        }
+        Update: {
+          content?: string
+          course_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_pinned_prompts_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       course_survival_kits: {
         Row: {
@@ -3416,6 +3480,39 @@ export type Database = {
           },
         ]
       }
+      student_download_history: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          id: string
+          level: string | null
+          resource_id: string
+          resource_type: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          level?: string | null
+          resource_id: string
+          resource_type: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          level?: string | null
+          resource_id?: string
+          resource_type?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       student_quiz_purchases: {
         Row: {
           id: string
@@ -3447,6 +3544,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_resource_bookmarks: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          id: string
+          level: string | null
+          resource_id: string
+          resource_type: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          level?: string | null
+          resource_id: string
+          resource_type: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          level?: string | null
+          resource_id?: string
+          resource_type?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       study_material_artifacts: {
         Row: {

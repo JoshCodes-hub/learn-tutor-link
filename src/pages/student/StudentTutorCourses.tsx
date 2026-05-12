@@ -29,7 +29,11 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  Bookmark,
+  BookmarkCheck,
+  History,
 } from "lucide-react";
+import { recordDownload, toggleBookmark, fetchBookmarks } from "@/lib/studentLibrary";
 
 interface TutorMini {
   id: string;
@@ -51,8 +55,16 @@ const StudentTutorCourses = () => {
   const [search, setSearch] = useState("");
   const [downloading, setDownloading] = useState<string | null>(null);
   const [showAllLevels, setShowAllLevels] = useState(false);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
 
   const studentLevel = (profile as any)?.level as string | undefined;
+
+  useEffect(() => {
+    if (!user) return;
+    fetchBookmarks(user.id).then((rows) => {
+      setBookmarkedIds(new Set((rows ?? []).map((r: any) => `${r.resource_type}:${r.resource_id}`)));
+    });
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -141,6 +153,7 @@ const StudentTutorCourses = () => {
   const handleDownload = async (m: TutorMaterial) => {
     if (m.kind === "link" && m.external_url) {
       window.open(m.external_url, "_blank", "noopener");
+      if (user) recordDownload({ userId: user.id, resourceType: "material", resourceId: m.id, title: m.title, level: studentLevel ?? null });
       return;
     }
     if (!m.storage_path) {
@@ -155,6 +168,22 @@ const StudentTutorCourses = () => {
       return;
     }
     window.open(url, "_blank", "noopener");
+    if (user) recordDownload({ userId: user.id, resourceType: "material", resourceId: m.id, title: m.title, level: studentLevel ?? null });
+  };
+
+  const handleToggleBookmark = async (m: TutorMaterial) => {
+    if (!user) return;
+    const key = `material:${m.id}`;
+    const result = await toggleBookmark({
+      userId: user.id, resourceType: "material", resourceId: m.id,
+      title: m.title, level: studentLevel ?? null,
+    });
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      if (result === "added") next.add(key); else next.delete(key);
+      return next;
+    });
+    toast.success(result === "added" ? "Bookmarked" : "Removed bookmark");
   };
 
   if (authLoading || loading) {
@@ -338,10 +367,24 @@ const StudentTutorCourses = () => {
                                             <FileText className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                                             <span className="truncate">{m.title}</span>
                                           </span>
+                                          <div className="flex items-center gap-0.5 shrink-0">
                                           <Button
                                             size="sm"
                                             variant="ghost"
-                                            className="h-7 px-2 text-amber-700 hover:bg-amber-50 shrink-0"
+                                            className="h-7 px-2 text-amber-700 hover:bg-amber-50"
+                                            onClick={() => handleToggleBookmark(m)}
+                                            aria-label="Bookmark"
+                                          >
+                                            {bookmarkedIds.has(`material:${m.id}`) ? (
+                                              <BookmarkCheck className="w-3.5 h-3.5 fill-amber-500" />
+                                            ) : (
+                                              <Bookmark className="w-3.5 h-3.5" />
+                                            )}
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 px-2 text-amber-700 hover:bg-amber-50"
                                             onClick={() => handleDownload(m)}
                                             disabled={downloading === m.id}
                                           >
@@ -353,6 +396,7 @@ const StudentTutorCourses = () => {
                                               <Download className="w-3.5 h-3.5" />
                                             )}
                                           </Button>
+                                          </div>
                                         </li>
                                       ))}
                                     </ul>
