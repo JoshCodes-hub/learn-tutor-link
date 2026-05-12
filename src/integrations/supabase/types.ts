@@ -888,6 +888,38 @@ export type Database = {
           },
         ]
       }
+      course_chat_messages: {
+        Row: {
+          content: string
+          course_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          course_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_chat_messages_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_modes: {
         Row: {
           course_id: string
@@ -5149,6 +5181,10 @@ export type Database = {
       }
       is_chat_member: {
         Args: { _thread_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_course_participant: {
+        Args: { _course_id: string; _user_id: string }
         Returns: boolean
       }
       is_school_member: {
