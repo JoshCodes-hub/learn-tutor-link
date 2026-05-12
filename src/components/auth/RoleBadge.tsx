@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Shield, GraduationCap, User as UserIcon, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { logSecurityEvent } from "@/lib/securityAudit";
 
 const HIDDEN_PREFIXES = ["/auth", "/forgot-password", "/reset-password", "/onboarding"];
 
@@ -24,6 +25,10 @@ export const RoleBadge = () => {
   const label = isAdmin ? "Admin" : isTutor ? "Tutor" : primaryRole.replace("_", " ");
 
   const handleSwitch = async () => {
+    await logSecurityEvent(user.id, "role_switch", {
+      from_role: primaryRole,
+      reason: "user_initiated",
+    });
     await signOut();
     navigate("/auth?reason=switch", { replace: true });
   };
