@@ -16,6 +16,7 @@ export interface TutorCurriculum {
   is_published: boolean;
   created_at: string;
   updated_at: string;
+  level?: string | null;
 }
 
 export interface TutorTopic {
