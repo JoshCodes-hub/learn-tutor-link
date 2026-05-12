@@ -40,7 +40,7 @@ export const RoleRoute = ({
   allow: AppRole[];
   children: ReactNode;
 }) => {
-  const { user, isLoading, primaryRole, hasRole, signOut, roles } = useAuth();
+  const { user, isLoading, primaryRole, hasRole, signOut, roles = [] } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
