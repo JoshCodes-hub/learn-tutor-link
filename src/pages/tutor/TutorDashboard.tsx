@@ -396,40 +396,26 @@ const TutorDashboard = () => {
           onCreateQuiz={() => setShowUnifiedQuizCreator(true)}
         />
 
-        {/* Create Quiz/Exam Banner */}
-        <div className="mb-6 p-5 rounded-xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Create Quiz or Exam</h3>
-                <p className="text-sm text-muted-foreground">Set up quizzes with questions, time limits, and more</p>
-              </div>
-            </div>
-            <Button onClick={() => setShowUnifiedQuizCreator(true)} className="shrink-0">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Quiz or Exam
-            </Button>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex flex-wrap gap-3 mb-8">
+        {/* Primary Actions (single, consolidated row) */}
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-8">
           <Button onClick={() => setShowUnifiedQuizCreator(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Create Quiz or Exam
           </Button>
           <Button variant="outline" onClick={() => setShowBulkQuizImport(true)}>
             <FileText className="w-4 h-4 mr-2" />
-            Bulk Import Quizzes
+            Bulk Import
           </Button>
           <Button variant="outline" onClick={() => setShowCreateCourse(true)}>
-            <Plus className="w-4 h-4 mr-2" />
+            <BookOpen className="w-4 h-4 mr-2" />
             Add Course
           </Button>
-          <Button variant="outline" onClick={() => setShowUploadQuestions(true)} disabled={courses.length === 0}>
+          <Button
+            variant="outline"
+            onClick={() => setShowUploadQuestions(true)}
+            disabled={courses.length === 0}
+            title={courses.length === 0 ? "Add a course first" : undefined}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Upload Questions
           </Button>
@@ -604,10 +590,19 @@ const TutorDashboard = () => {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => navigate(`/tutor/course/${course.id}`)}
+                      onClick={() => setShowUploadQuestions(true)}
                     >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Manage
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Questions
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => navigate("/lecture-notes")}
+                    >
+                      <FileText className="w-4 h-4 mr-1" />
+                      Notes
                     </Button>
                   </div>
                 </div>
@@ -633,6 +628,7 @@ const TutorDashboard = () => {
 
         {/* Question Reports Section */}
         <div id="question-reports" className="mb-8 scroll-mt-24">
+          <QuestionReports />
         </div>
       </main>
 
@@ -642,7 +638,7 @@ const TutorDashboard = () => {
         onOpenChange={setShowCreateCourse}
         onSuccess={() => {
           setShowCreateCourse(false);
-          window.location.reload();
+          refreshData();
         }}
       />
       <CreateQuizDialog
@@ -651,7 +647,7 @@ const TutorDashboard = () => {
         courses={courses}
         onSuccess={() => {
           setShowCreateQuiz(false);
-          window.location.reload();
+          refreshData();
         }}
       />
       <UploadQuestionsDialog
@@ -660,7 +656,7 @@ const TutorDashboard = () => {
         courses={courses}
         onSuccess={() => {
           setShowUploadQuestions(false);
-          window.location.reload();
+          refreshData();
         }}
       />
       <QuickQuizCreator
@@ -668,7 +664,7 @@ const TutorDashboard = () => {
         onOpenChange={setShowQuickQuizCreator}
         courses={courses}
         onSuccess={() => {
-          window.location.reload();
+          refreshData();
         }}
       />
       <WithdrawalRequestDialog
@@ -686,7 +682,7 @@ const TutorDashboard = () => {
         onSuccess={() => {
           setShowEditQuiz(false);
           setSelectedQuiz(null);
-          window.location.reload();
+          refreshData();
         }}
       />
       <DeleteQuizDialog
@@ -696,21 +692,21 @@ const TutorDashboard = () => {
         onSuccess={() => {
           setShowDeleteQuiz(false);
           setSelectedQuiz(null);
-          window.location.reload();
+          refreshData();
         }}
       />
       <UnifiedQuizCreator
         open={showUnifiedQuizCreator}
         onOpenChange={setShowUnifiedQuizCreator}
         onSuccess={() => {
-          window.location.reload();
+          refreshData();
         }}
       />
       <BulkQuizImport
         open={showBulkQuizImport}
         onOpenChange={setShowBulkQuizImport}
         onSuccess={() => {
-          window.location.reload();
+          refreshData();
         }}
       />
       <OnboardingDialog
