@@ -11,6 +11,8 @@ import {
   VolumeX,
   Music,
   Upload,
+  Sliders,
+  Mic,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +58,20 @@ interface AudioPlayerCardProps {
 }
 
 const SPEEDS = [1, 1.5, 2] as const;
+
+/**
+ * 3-band equalizer presets (low / mid / high gain in dB).
+ * Applied to narration only via Web Audio biquad filters.
+ */
+type EqPreset = { id: string; label: string; low: number; mid: number; high: number };
+const EQ_PRESETS: EqPreset[] = [
+  { id: "flat",   label: "Flat",        low: 0,  mid: 0,  high: 0 },
+  { id: "voice",  label: "Voice",       low: -2, mid: 4,  high: 2 },
+  { id: "bass",   label: "Bass Boost",  low: 6,  mid: 0,  high: -1 },
+  { id: "bright", label: "Bright",      low: -2, mid: 1,  high: 5 },
+  { id: "study",  label: "Study Calm",  low: 1,  mid: -1, high: -2 },
+];
+
 const fmt = (s: number) => {
   if (!isFinite(s) || s < 0) s = 0;
   const m = Math.floor(s / 60);
