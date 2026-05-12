@@ -29,7 +29,11 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  Bookmark,
+  BookmarkCheck,
+  History,
 } from "lucide-react";
+import { recordDownload, toggleBookmark, fetchBookmarks } from "@/lib/studentLibrary";
 
 interface TutorMini {
   id: string;
@@ -51,8 +55,16 @@ const StudentTutorCourses = () => {
   const [search, setSearch] = useState("");
   const [downloading, setDownloading] = useState<string | null>(null);
   const [showAllLevels, setShowAllLevels] = useState(false);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
 
   const studentLevel = (profile as any)?.level as string | undefined;
+
+  useEffect(() => {
+    if (!user) return;
+    fetchBookmarks(user.id).then((rows) => {
+      setBookmarkedIds(new Set((rows ?? []).map((r: any) => `${r.resource_type}:${r.resource_id}`)));
+    });
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -141,6 +153,7 @@ const StudentTutorCourses = () => {
   const handleDownload = async (m: TutorMaterial) => {
     if (m.kind === "link" && m.external_url) {
       window.open(m.external_url, "_blank", "noopener");
+      if (user) recordDownload({ userId: user.id, resourceType: "material", resourceId: m.id, title: m.title, level: studentLevel ?? null });
       return;
     }
     if (!m.storage_path) {
@@ -155,6 +168,22 @@ const StudentTutorCourses = () => {
       return;
     }
     window.open(url, "_blank", "noopener");
+    if (user) recordDownload({ userId: user.id, resourceType: "material", resourceId: m.id, title: m.title, level: studentLevel ?? null });
+  };
+
+  const handleToggleBookmark = async (m: TutorMaterial) => {
+    if (!user) return;
+    const key = `material:${m.id}`;
+    const result = await toggleBookmark({
+      userId: user.id, resourceType: "material", resourceId: m.id,
+      title: m.title, level: studentLevel ?? null,
+    });
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      if (result === "added") next.add(key); else next.delete(key);
+      return next;
+    });
+    toast.success(result === "added" ? "Bookmarked" : "Removed bookmark");
   };
 
   if (authLoading || loading) {
