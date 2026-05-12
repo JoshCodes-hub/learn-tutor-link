@@ -63,6 +63,7 @@ const Auth = () => {
   const modeFromUrl = searchParams.get("mode");
   const intent = searchParams.get("intent") || "";
   const redirect = searchParams.get("redirect") || "";
+  const reason = searchParams.get("reason") || "";
   const [isSignUp, setIsSignUp] = useState(modeFromUrl === "signup" || !!referralCodeFromUrl || !!intent);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -74,6 +75,30 @@ const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, signIn, signUp } = useAuth();
+
+  // Surface reasons that brought the user back to /auth (expired, switching, etc.)
+  useEffect(() => {
+    if (!reason) return;
+    if (reason === "expired") {
+      toast({
+        variant: "destructive",
+        title: "Session expired",
+        description: "Your session has timed out for security. Please sign in again.",
+      });
+    } else if (reason === "switch") {
+      toast({
+        title: "Switch account",
+        description: "Sign in with a different role to continue.",
+      });
+    } else if (reason === "unauthorized") {
+      toast({
+        variant: "destructive",
+        title: "Access denied",
+        description: "You don't have permission for that area. Sign in with the correct role.",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reason]);
 
   const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -139,12 +164,23 @@ const Auth = () => {
     const { error } = await signIn(data.email, data.password);
     
     if (error) {
+      const msg = (error.message || "").toLowerCase();
+      let friendly = error.message;
+      if (msg.includes("invalid login credentials")) {
+        friendly = "Invalid email or password. Please try again.";
+      } else if (msg.includes("email not confirmed")) {
+        friendly = "Please verify your email address before signing in. Check your inbox for the confirmation link.";
+      } else if (msg.includes("too many requests") || msg.includes("rate")) {
+        friendly = "Too many attempts. Please wait a minute and try again.";
+      } else if (msg.includes("network") || msg.includes("fetch")) {
+        friendly = "Network error. Check your connection and try again.";
+      } else if (msg.includes("user not found")) {
+        friendly = "No account found with that email. Sign up to create one.";
+      }
       toast({
         variant: "destructive",
         title: "Sign in failed",
-        description: error.message === "Invalid login credentials" 
-          ? "Invalid email or password. Please try again."
-          : error.message,
+        description: friendly,
       });
     } else {
       toast({

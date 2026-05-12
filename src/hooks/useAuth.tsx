@@ -91,6 +91,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setProfile(null);
           setRoles([]);
+          // Detect involuntary sign-outs (e.g. refresh-token expired) and
+          // route the user back to /auth with a clear reason.
+          if (event === "SIGNED_OUT") {
+            try {
+              const wasSignedIn = sessionStorage.getItem("overra_was_signed_in") === "1";
+              const manual = sessionStorage.getItem("overra_manual_signout") === "1";
+              sessionStorage.removeItem("overra_manual_signout");
+              sessionStorage.removeItem("overra_was_signed_in");
+              if (wasSignedIn && !manual && typeof window !== "undefined") {
+                const path = window.location.pathname;
+                if (!path.startsWith("/auth")) {
+                  window.location.replace("/auth?reason=expired");
+                }
+              }
+            } catch { /* noop */ }
+          }
+        }
+        if (session?.user) {
+          try { sessionStorage.setItem("overra_was_signed_in", "1"); } catch { /* noop */ }
         }
       }
     );
@@ -139,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    try { sessionStorage.setItem("overra_manual_signout", "1"); } catch { /* noop */ }
     await supabase.auth.signOut();
     setProfile(null);
     setRoles([]);
