@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  ClipboardCheck, Headphones, Layers, Bot, Library, FolderOpen,
+  ClipboardCheck, Headphones, Layers, Bot, GraduationCap, BookmarkCheck,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,12 +26,12 @@ interface Tile {
 }
 
 const TILES: Tile[] = [
-  { icon: ClipboardCheck, title: "Practice Quiz",  subtitle: "Test your knowledge",  to: "/student/readiness", tone: "violet" },
-  { icon: Headphones,     title: "Audio Reader",   subtitle: "Listen to your notes", to: "/audio-learning",    tone: "emerald" },
-  { icon: Layers,         title: "Flashcards",     subtitle: "Smart revision",       to: "/flashcards",        tone: "orange" },
-  { icon: Bot,            title: "AI Tutor",       subtitle: "Ask anything",         to: "/ai-tutor",          tone: "sky" },
-  { icon: Library,        title: "My Library",     subtitle: "Saved resources",      to: "/library",           tone: "rose" },
-  { icon: FolderOpen,     title: "Study Packs",    subtitle: "My generated packs",   to: "/study-packs",       tone: "amber" },
+  { icon: GraduationCap,  title: "Tutor Courses", subtitle: "Browse by your level", to: "/student/tutor-courses",   tone: "violet" },
+  { icon: Headphones,     title: "Audio Reader",  subtitle: "Listen + piano BGM",   to: "/audio-learning",          tone: "emerald" },
+  { icon: ClipboardCheck, title: "Practice Quiz", subtitle: "Test your knowledge",  to: "/student/readiness",       tone: "orange" },
+  { icon: Layers,         title: "Flashcards",    subtitle: "Smart revision",       to: "/flashcards",              tone: "sky" },
+  { icon: Bot,            title: "AI Tutor",      subtitle: "Ask anything",         to: "/ai-tutor",                tone: "rose" },
+  { icon: BookmarkCheck,  title: "Library + History", subtitle: "Saved & downloads", to: "/student/library-history", tone: "amber" },
 ];
 
 export const StudyPackQuickActions = () => {
