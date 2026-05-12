@@ -479,6 +479,52 @@ export const AudioPlayerCard = ({
 
         {/* Piano background music mixer */}
         {showBgm && (
+          <>
+          {/* Narration volume + Equalizer presets */}
+          <div className="mt-5 rounded-2xl border border-amber-100 bg-white p-3.5">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <Mic className="h-3.5 w-3.5 text-white" />
+              </div>
+              <p className="text-[13px] font-semibold text-foreground/85 flex-1">Narration</p>
+              <Sliders className="h-3.5 w-3.5 text-amber-700" />
+            </div>
+            <div className="flex items-center gap-2.5 mb-3">
+              <Volume2 className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={narrationVolume}
+                onChange={(e) => setNarrationVolume(Number(e.target.value))}
+                aria-label="Narration volume"
+                className="flex-1 h-1.5 rounded-full appearance-none bg-amber-100 accent-amber-500"
+              />
+              <span className="text-[10px] tabular-nums font-semibold text-amber-800 w-8 text-right">
+                {Math.round(narrationVolume * 100)}%
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {EQ_PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { ensureAudioGraph(); setEqId(p.id); }}
+                  aria-pressed={eqId === p.id}
+                  className={cn(
+                    "text-[11px] font-bold px-2.5 py-1 rounded-full border transition",
+                    eqId === p.id
+                      ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                      : "bg-white text-amber-800 border-amber-200 hover:bg-amber-50",
+                  )}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-5 rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/30 p-3.5">
             <div className="flex items-center gap-2 mb-2.5">
               <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
@@ -553,6 +599,7 @@ export const AudioPlayerCard = ({
               </span>
             </div>
           </div>
+          </>
         )}
 
         {/* Captions / transcript */}
