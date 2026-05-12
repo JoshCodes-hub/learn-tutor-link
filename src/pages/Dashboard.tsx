@@ -1,241 +1,105 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Loader2, ArrowRight, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useOnboarding } from "@/hooks/useOnboarding";
 import { Button } from "@/components/ui/button";
-import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
-import TutorApplicationDialog from "@/components/landing/TutorApplicationDialog";
 import { SEO } from "@/components/seo/SEO";
-import { 
-  LogOut, 
-  User, 
-  GraduationCap, 
-  Shield,
-  Brain,
-  Target,
-  TrendingUp,
-  FileText,
-  Users,
-  Settings,
-  ChevronRight,
-  Loader2
-} from "lucide-react";
+import RoleSelectionCards, { type IntendedRole } from "@/components/auth/RoleSelectionCards";
+import { logSecurityEvent } from "@/lib/securityAudit";
 import logo from "@/assets/logo.png";
 
+const ROLE_HOME: Record<IntendedRole, string> = {
+  student: "/student/dashboard",
+  tutor: "/tutor/dashboard",
+  admin: "/admin/dashboard",
+};
+
+/**
+ * Role hub. Lets the user explicitly choose where to go (defaulting to
+ * Student). RoleRoute on each destination enforces actual permissions —
+ * picking "Admin" without the admin role still hits the Access Blocked
+ * screen. Selection is purely a navigation hint, not a privilege grant.
+ */
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, profile, primaryRole, isLoading, signOut, hasRole } = useAuth();
-  const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
-  const [showTutorDialog, setShowTutorDialog] = useState(false);
+  const [selected, setSelected] = useState<IntendedRole>("student");
 
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
-      navigate("/auth");
+      navigate("/auth", { replace: true });
       return;
     }
-    // Redirect to role-specific dashboard.
-    // Default to student dashboard when no role has loaded yet —
-    // every new signup gets the 'student' role via the DB trigger,
-    // so this is the safe fallback.
-    if (primaryRole === "tutor") {
-      navigate("/tutor/dashboard", { replace: true });
-    } else if (primaryRole === "admin") {
-      navigate("/admin/dashboard", { replace: true });
-    } else {
-      navigate("/student/dashboard", { replace: true });
-    }
-  }, [user, isLoading, primaryRole, navigate]);
+    // Pre-select the user's strongest role, but never escalate above what
+    // they actually have. Default stays "student".
+    if (hasRole("admin")) setSelected("admin");
+    else if (hasRole("tutor")) setSelected("tutor");
+    else setSelected("student");
+  }, [user, isLoading, hasRole, navigate]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
-
-  if (isLoading || primaryRole !== "admin") {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Loading…</p>
         </div>
       </div>
     );
   }
 
-  const role = primaryRole as string | null;
-
-  const getRoleIcon = () => {
-    switch (role) {
-      case "admin":
-        return <Shield className="w-5 h-5" />;
-      case "tutor":
-        return <GraduationCap className="w-5 h-5" />;
-      default:
-        return <User className="w-5 h-5" />;
-    }
+  const handleContinue = async () => {
+    await logSecurityEvent(user.id, "role_selected", {
+      intended_role: selected,
+      current_role: primaryRole,
+      from: "dashboard_hub",
+    });
+    navigate(ROLE_HOME[selected]);
   };
 
-  const getRoleColor = () => {
-    switch (role) {
-      case "admin":
-        return "bg-destructive/10 text-destructive";
-      case "tutor":
-        return "bg-accent/10 text-accent";
-      default:
-        return "bg-primary/10 text-primary";
-    }
-  };
-
-  const studentQuickActions = [
-    { icon: Brain, label: "Practice Questions", description: "Start a new practice session", href: "/practice" },
-    { icon: Target, label: "CBT Simulation", description: "Take a timed mock exam", href: "/simulation" },
-    { icon: TrendingUp, label: "My Progress", description: "View your performance analytics", href: "/progress" },
-  ];
-
-  const tutorQuickActions = [
-    { icon: FileText, label: "Create Quiz", description: "Upload new quiz content", href: "/tutor/create" },
-    { icon: TrendingUp, label: "My Earnings", description: "View revenue dashboard", href: "/tutor/earnings" },
-    { icon: Users, label: "Student Stats", description: "See who's using your content", href: "/tutor/stats" },
-  ];
-
-  const adminQuickActions = [
-    { icon: Users, label: "Manage Users", description: "View and manage all users", href: "/admin/users" },
-    { icon: GraduationCap, label: "Tutor Applications", description: "Review pending applications", href: "/admin/applications" },
-    { icon: Settings, label: "Platform Settings", description: "Configure platform options", href: "/admin/settings" },
-  ];
-
-  const getQuickActions = () => {
-    if (hasRole("admin")) return adminQuickActions;
-    if (hasRole("tutor")) return tutorQuickActions;
-    return studentQuickActions;
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth?reason=switch", { replace: true });
   };
 
   return (
     <>
       <SEO
-        title="Dashboard"
-        description="Your OverraPrep AI dashboard - access your learning tools and track your progress."
-        noindex={true}
+        title="Choose your view"
+        description="Pick which OverraPrep workspace to enter."
+        noindex
         url="https://overraprep.com/dashboard"
       />
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="bg-card border-b border-border sticky top-0 z-50" role="banner">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center group">
-              <img 
-                src={logo} 
-                alt="OverraPrep AI FUTA" 
-                className="h-10 w-auto object-contain"
-              />
-            </Link>
-
-            <div className="flex items-center gap-4">
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${getRoleColor()}`}>
-                {getRoleIcon()}
-                <span className="text-sm font-medium capitalize">{primaryRole}</span>
-              </div>
-              
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-xl bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-lg">
+          <div className="flex items-center justify-between mb-6">
+            <img src={logo} alt="OverraPrep" className="h-9 w-auto" />
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-1.5" /> Sign out
+            </Button>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-            Welcome back, {profile?.full_name || "there"}! 👋
+          <h1 className="font-display text-2xl font-bold mb-1">
+            Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}.
           </h1>
-          <p className="text-muted-foreground">
-            {role === "admin" && "Manage the platform and review tutor applications."}
-            {role === "tutor" && "Create content and track your earnings."}
-            {role === "student" && "Ready to ace your exams? Let's practice!"}
+          <p className="text-sm text-muted-foreground mb-6">
+            Choose how you'd like to use OverraPrep. You can always switch later.
           </p>
+
+          <RoleSelectionCards value={selected} onChange={setSelected} size="md" />
+
+          <p className="text-xs text-muted-foreground mt-3">
+            Signed in as <span className="font-semibold capitalize">{primaryRole || "student"}</span>.
+            Picking a role you don't have will show an Access Blocked message instead of granting access.
+          </p>
+
+          <Button className="w-full mt-6" size="lg" onClick={handleContinue}>
+            Continue as {selected[0].toUpperCase() + selected.slice(1)}
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
-
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="font-display text-xl font-bold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid md:grid-cols-3 gap-4">
-            {getQuickActions().map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={index}
-                  onClick={() => navigate(action.href)}
-                  className="bg-card rounded-xl border border-border p-6 text-left hover:shadow-lg hover:border-primary/30 transition-all duration-300 group"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <Icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                  </div>
-                  <h3 className="font-display font-semibold text-foreground mb-1">
-                    {action.label}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {action.description}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Role-specific content */}
-        {role === "student" && (
-          <div className="bg-gradient-card rounded-2xl border border-border p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <GraduationCap className="w-6 h-6 text-accent" />
-              <h2 className="font-display text-xl font-bold text-foreground">
-                Want to become a Tutor?
-              </h2>
-            </div>
-            <p className="text-muted-foreground mb-4">
-              Share your knowledge and earn money by creating quiz content for fellow students.
-            </p>
-            <Button variant="accent" onClick={() => setShowTutorDialog(true)}>
-              Apply as Tutor
-            </Button>
-          </div>
-        )}
-
-        {primaryRole === "admin" && (
-          <div className="bg-gradient-card rounded-2xl border border-border p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Shield className="w-6 h-6 text-destructive" />
-              <h2 className="font-display text-xl font-bold text-foreground">
-                Admin Panel
-              </h2>
-            </div>
-            <p className="text-muted-foreground mb-4">
-              You have full access to manage users, review applications, and configure platform settings.
-            </p>
-            <Button variant="default" onClick={() => navigate("/admin/applications")}>
-              Review Tutor Applications
-            </Button>
-          </div>
-        )}
-      </main>
-
-      <OnboardingDialog
-        isOpen={showOnboarding}
-        onComplete={completeOnboarding}
-        userRole={primaryRole as "student" | "tutor" | "admin"}
-        userName={profile?.full_name || undefined}
-      />
-
-      <TutorApplicationDialog open={showTutorDialog} onOpenChange={setShowTutorDialog} />
-    </div>
+      </div>
     </>
   );
 };

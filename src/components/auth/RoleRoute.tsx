@@ -1,8 +1,10 @@
 import { ReactNode, useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Loader2, ShieldAlert, ArrowRight, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { logSecurityEvent } from "@/lib/securityAudit";
+import { Button } from "@/components/ui/button";
 
 type AppRole = "student" | "tutor" | "admin" | "school_owner" | "school_admin" | "teacher" | "parent";
 
@@ -38,8 +40,9 @@ export const RoleRoute = ({
   allow: AppRole[];
   children: ReactNode;
 }) => {
-  const { user, isLoading, primaryRole, hasRole } = useAuth();
+  const { user, isLoading, primaryRole, hasRole, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const allowed =
     !!user &&
@@ -55,6 +58,11 @@ export const RoleRoute = ({
         description: `You're signed in as ${
           ROLE_LABEL[primaryRole || "student"] || "a user"
         }. This area requires: ${allow.map((r) => ROLE_LABEL[r] || r).join(", ")}.`,
+      });
+      void logSecurityEvent(user!.id, "role_blocked", {
+        current_role: primaryRole,
+        required_roles: allow,
+        attempted_path: location.pathname,
       });
     }
   }, [denied, primaryRole, allow]);
@@ -77,7 +85,49 @@ export const RoleRoute = ({
 
   if (!allowed) {
     const home = ROLE_HOME[primaryRole || "student"] || "/student/dashboard";
-    return <Navigate to={home} replace />;
+    const required = allow.map((r) => ROLE_LABEL[r] || r).join(" or ");
+    const current = ROLE_LABEL[primaryRole || "student"] || "your account";
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="max-w-md w-full text-center bg-card border border-border rounded-2xl p-8 shadow-xl"
+        >
+          <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+            <ShieldAlert className="w-7 h-7 text-destructive" />
+          </div>
+          <h1 className="font-display text-2xl font-bold mb-2">Access blocked</h1>
+          <p className="text-sm text-muted-foreground mb-1">
+            This page requires the <span className="font-semibold text-foreground">{required}</span> role.
+          </p>
+          <p className="text-sm text-muted-foreground mb-6">
+            You're currently signed in as <span className="font-semibold text-foreground">{current}</span>.
+            We'll send you to <span className="font-mono text-xs">{home}</span>.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button className="flex-1" onClick={() => navigate(home, { replace: true })}>
+              Go to my dashboard <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={async () => {
+                await logSecurityEvent(user.id, "role_switch", {
+                  from_role: primaryRole,
+                  reason: "blocked_page",
+                  attempted_path: location.pathname,
+                });
+                await signOut();
+                navigate("/auth?reason=switch", { replace: true });
+              }}
+            >
+              <LogOut className="w-4 h-4 mr-2" /> Switch account
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
