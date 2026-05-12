@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { UserCog, ArrowRight, CheckCircle2, X } from "lucide-react";
@@ -15,8 +15,28 @@ export const CompleteProfileCard = ({ profile, onDismiss }: CompleteProfileCardP
   const navigate = useNavigate();
 
   const { missing, percent } = useMemo(() => getProfileCompleteness(profile), [profile]);
+  // Persistent dismissal: once a user dismisses (or finishes), it never nags again.
+  const dismissKey = profile?.id ? `complete-profile-dismissed:${profile.id}` : null;
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    if (typeof window === "undefined" || !dismissKey) return false;
+    return localStorage.getItem(dismissKey) === "1";
+  });
 
-  if (missing.length === 0) return null;
+  // Auto-mark as permanently dismissed once the profile is complete so we don't re-show
+  // even if the user later clears a field.
+  useEffect(() => {
+    if (dismissKey && missing.length === 0) {
+      localStorage.setItem(dismissKey, "1");
+    }
+  }, [dismissKey, missing.length]);
+
+  const handleDismiss = () => {
+    if (dismissKey) localStorage.setItem(dismissKey, "1");
+    setDismissed(true);
+    onDismiss?.();
+  };
+
+  if (missing.length === 0 || dismissed) return null;
 
   return (
     <motion.div
@@ -26,15 +46,14 @@ export const CompleteProfileCard = ({ profile, onDismiss }: CompleteProfileCardP
       className="relative overflow-hidden rounded-2xl border border-amber-200/60 bg-gradient-to-br from-amber-50 via-white to-amber-50/40 p-5 md:p-6 shadow-[0_8px_30px_-12px_rgba(180,140,40,0.25)] mb-6"
     >
       <div className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full bg-amber-300/30 blur-3xl" />
-      {onDismiss && (
-        <button
-          onClick={onDismiss}
-          aria-label="Dismiss"
-          className="absolute top-3 right-3 p-1 rounded-full hover:bg-amber-100 text-amber-700 transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      )}
+      <button
+        onClick={handleDismiss}
+        aria-label="Dismiss reminder"
+        title="Don't show this again"
+        className="absolute top-3 right-3 p-1 rounded-full hover:bg-amber-100 text-amber-700 transition-colors"
+      >
+        <X className="w-4 h-4" />
+      </button>
       <div className="relative flex items-start gap-4">
         <div className="shrink-0 h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md">
           <UserCog className="w-6 h-6 text-white" />
