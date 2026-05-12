@@ -16,9 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { SEO } from "@/components/seo/SEO";
 import { supabase } from "@/integrations/supabase/client";
 import AuthBrandPanel from "@/components/auth/AuthBrandPanel";
-import RoleSelectionCards, { type IntendedRole } from "@/components/auth/RoleSelectionCards";
 import { mapAuthError } from "@/lib/authErrors";
-import { logSecurityEvent } from "@/lib/securityAudit";
 
 const NIGERIAN_STATES = [
   "Abia","Adamawa","Akwa Ibom","Anambra","Bauchi","Bayelsa","Benue","Borno","Cross River","Delta",
@@ -75,16 +73,9 @@ const Auth = () => {
   const [showSignUpPwd, setShowSignUpPwd] = useState(false);
   const [signUpStep, setSignUpStep] = useState(0);
   const [stepDir, setStepDir] = useState<1 | -1>(1);
-  const [intendedRole, setIntendedRole] = useState<IntendedRole>(() => {
-    try {
-      const stored = sessionStorage.getItem("overra_intended_role");
-      if (stored === "tutor" || stored === "admin" || stored === "student") return stored;
-    } catch { /* noop */ }
-    return "student";
-  });
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, signIn, signUp } = useAuth();
+  const { user, primaryRole, signIn, signUp } = useAuth();
 
   // Surface reasons that brought the user back to /auth (expired, switching, etc.)
   useEffect(() => {
@@ -134,15 +125,19 @@ const Auth = () => {
     if (intent === "parent") return "/parent/dashboard";
     // New students go through the onboarding wizard before the dashboard
     if (justSignedUp) return "/onboarding/match";
-    return "/dashboard";
+    if (primaryRole === "admin") return "/admin/dashboard";
+    if (primaryRole === "tutor") return "/tutor/dashboard";
+    if (primaryRole === "school_owner" || primaryRole === "school_admin" || primaryRole === "teacher") return "/school/dashboard";
+    if (primaryRole === "parent") return "/parent/dashboard";
+    return "/student/dashboard";
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && primaryRole) {
       navigate(postAuthDestination());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, navigate]);
+  }, [user, primaryRole, navigate]);
 
   const signInForm = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
@@ -171,7 +166,6 @@ const Auth = () => {
 
   const handleSignIn = async (data: SignInFormData) => {
     setIsSubmitting(true);
-    try { sessionStorage.setItem("overra_intended_role", intendedRole); } catch { /* noop */ }
     const { error } = await signIn(data.email, data.password);
     
     if (error) {
@@ -185,12 +179,8 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      // Best-effort audit (current user id is in session storage from useAuth)
-      try {
-        const uid = sessionStorage.getItem("overra_last_user_id");
-        if (uid) void logSecurityEvent(uid, "role_selected", { intended_role: intendedRole });
-      } catch { /* noop */ }
-      navigate(postAuthDestination());
+      // Let the auth state listener load the user's real role, then redirect
+      // straight into the correct dashboard instead of stopping at the role hub.
     }
     setIsSubmitting(false);
   };
@@ -358,16 +348,6 @@ const Auth = () => {
           {!isSignUp ? (
             /* Sign In Form */
             <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4 sm:space-y-5">
-              <div className="space-y-2">
-                <Label className="text-foreground text-xs sm:text-sm font-medium">
-                  I'm signing in as
-                </Label>
-                <RoleSelectionCards value={intendedRole} onChange={setIntendedRole} size="sm" />
-                <p className="text-[11px] text-muted-foreground">
-                  Defaults to Student. We'll alert you if your account doesn't have the selected role.
-                </p>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="signin-email" className="text-foreground text-xs sm:text-sm font-medium">
                   Email
