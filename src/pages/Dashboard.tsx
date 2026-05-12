@@ -41,7 +41,7 @@ const Dashboard = () => {
     if (primaryRole === "tutor") {
       navigate("/tutor/dashboard", { replace: true });
     } else if (primaryRole === "admin") {
-      // Admin stays on this page
+      navigate("/admin/dashboard", { replace: true });
     } else {
       navigate("/student/dashboard", { replace: true });
     }
