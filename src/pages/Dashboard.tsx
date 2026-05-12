@@ -41,7 +41,7 @@ const Dashboard = () => {
     if (primaryRole === "tutor") {
       navigate("/tutor/dashboard", { replace: true });
     } else if (primaryRole === "admin") {
-      // Admin stays on this page
+      navigate("/admin/dashboard", { replace: true });
     } else {
       navigate("/student/dashboard", { replace: true });
     }
@@ -52,7 +52,7 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  if (isLoading || (primaryRole as string | null) !== "admin") {
+  if (isLoading || primaryRole !== "admin") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
