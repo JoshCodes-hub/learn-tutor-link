@@ -98,12 +98,15 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
 
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/study-coach`;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const resp = await fetch(url, {
         method: "POST",
         signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ messages: next, course, materials, mode, action: "chat", verifiedOnly }),
       });
