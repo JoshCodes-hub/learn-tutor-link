@@ -73,6 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles(fetchedRoles.length > 0 ? fetchedRoles : ["student"]);
     } catch (error) {
       console.error("Error fetching user data:", error);
+      // Fail safe for older/flaky accounts: keep users moving as students only.
+      // Tutor/admin access still requires a successful role fetch via RoleRoute.
+      setRoles(["student"]);
     }
   }, []);
 
