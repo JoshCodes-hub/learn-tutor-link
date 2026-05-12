@@ -84,7 +84,7 @@ const Auth = () => {
   });
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, signIn, signUp } = useAuth();
+  const { user, primaryRole, signIn, signUp } = useAuth();
 
   // Surface reasons that brought the user back to /auth (expired, switching, etc.)
   useEffect(() => {
@@ -134,15 +134,19 @@ const Auth = () => {
     if (intent === "parent") return "/parent/dashboard";
     // New students go through the onboarding wizard before the dashboard
     if (justSignedUp) return "/onboarding/match";
-    return "/dashboard";
+    if (primaryRole === "admin") return "/admin/dashboard";
+    if (primaryRole === "tutor") return "/tutor/dashboard";
+    if (primaryRole === "school_owner" || primaryRole === "school_admin" || primaryRole === "teacher") return "/school/dashboard";
+    if (primaryRole === "parent") return "/parent/dashboard";
+    return "/student/dashboard";
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && primaryRole) {
       navigate(postAuthDestination());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, navigate]);
+  }, [user, primaryRole, navigate]);
 
   const signInForm = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
@@ -190,7 +194,8 @@ const Auth = () => {
         const uid = sessionStorage.getItem("overra_last_user_id");
         if (uid) void logSecurityEvent(uid, "role_selected", { intended_role: intendedRole });
       } catch { /* noop */ }
-      navigate(postAuthDestination());
+      // Let the auth state listener load the user's real role, then redirect
+      // straight into the correct dashboard instead of stopping at the role hub.
     }
     setIsSubmitting(false);
   };
