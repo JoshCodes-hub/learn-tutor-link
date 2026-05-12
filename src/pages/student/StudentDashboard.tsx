@@ -935,6 +935,35 @@ const StudentDashboard = () => {
         {/* Phase 2: 6-tile direct-nav Quick Actions */}
         <StudyPackQuickActions />
 
+        {/* Prominent Audio Reader hero */}
+        <button
+          type="button"
+          onClick={() => navigate("/audio-learning")}
+          className="group relative w-full mb-6 overflow-hidden rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-5 text-left shadow-[0_10px_30px_-15px_rgba(217,119,6,0.35)] hover:shadow-[0_18px_40px_-18px_rgba(217,119,6,0.45)] transition-all"
+          aria-label="Open Audio Reader with piano background music"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 shrink-0 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg ring-4 ring-amber-100">
+              <Headphones className="h-7 w-7 text-white" strokeWidth={2.2} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700">New</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Piano BGM · EQ</span>
+              </div>
+              <h3 className="font-display text-lg sm:text-xl font-bold text-foreground leading-tight mt-0.5">
+                Audio Reader
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-snug mt-0.5">
+                Listen to your notes with calming piano under the narration.
+              </p>
+            </div>
+            <div className="hidden sm:flex h-9 w-9 items-center justify-center rounded-full bg-amber-600 text-white group-hover:translate-x-0.5 transition-transform">
+              <ChevronRight className="h-5 w-5" />
+            </div>
+          </div>
+        </button>
+
         {/* Continue Learning — per-course progress bars (mockup) */}
         <ContinueLearning />
 
