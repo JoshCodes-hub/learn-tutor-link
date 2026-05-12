@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { logSecurityEvent } from "@/lib/securityAudit";
 
 type AppRole = "student" | "tutor" | "admin" | "school_owner" | "school_admin" | "teacher" | "parent";
 export type AcademicPath = "secondary" | "jamb" | "university";
@@ -97,11 +98,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
               const wasSignedIn = sessionStorage.getItem("overra_was_signed_in") === "1";
               const manual = sessionStorage.getItem("overra_manual_signout") === "1";
+              const lastUserId = sessionStorage.getItem("overra_last_user_id");
               sessionStorage.removeItem("overra_manual_signout");
               sessionStorage.removeItem("overra_was_signed_in");
+              sessionStorage.removeItem("overra_last_user_id");
               if (wasSignedIn && !manual && typeof window !== "undefined") {
                 const path = window.location.pathname;
                 if (!path.startsWith("/auth")) {
+                  // Best-effort audit log (fires before redirect; failure is swallowed)
+                  void logSecurityEvent(lastUserId, "session_expired", {
+                    from_path: path,
+                    event,
+                  });
                   window.location.replace("/auth?reason=expired");
                 }
               }
@@ -109,7 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
         if (session?.user) {
-          try { sessionStorage.setItem("overra_was_signed_in", "1"); } catch { /* noop */ }
+          try {
+            sessionStorage.setItem("overra_was_signed_in", "1");
+            sessionStorage.setItem("overra_last_user_id", session.user.id);
+          } catch { /* noop */ }
         }
       }
     );
