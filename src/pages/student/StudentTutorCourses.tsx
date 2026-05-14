@@ -32,8 +32,10 @@ import {
   Bookmark,
   BookmarkCheck,
   History,
+  Save,
 } from "lucide-react";
 import { recordDownload, toggleBookmark, fetchBookmarks } from "@/lib/studentLibrary";
+import { saveResource, type ResourceKind } from "@/lib/userResources";
 
 interface TutorMini {
   id: string;
@@ -56,6 +58,8 @@ const StudentTutorCourses = () => {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [showAllLevels, setShowAllLevels] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   const studentLevel = (profile as any)?.level as string | undefined;
 
@@ -184,6 +188,58 @@ const StudentTutorCourses = () => {
       return next;
     });
     toast.success(result === "added" ? "Bookmarked" : "Removed bookmark");
+  };
+
+  const guessKind = (m: TutorMaterial): ResourceKind => {
+    const ext = (m.storage_path || m.title || "").split(".").pop()?.toLowerCase() || "";
+    if (["mp3", "wav", "m4a", "ogg"].includes(ext)) return "audio";
+    if (["png", "jpg", "jpeg", "webp", "gif"].includes(ext)) return "image";
+    if (ext === "pdf") return "pdf";
+    return "note";
+  };
+
+  const handleSaveToLibrary = async (m: TutorMaterial) => {
+    if (!user) { toast.error("Please sign in"); return; }
+    const key = `tutor-mat:${m.id}`;
+    if (savedIds.has(key)) { toast.info("Already in your Library"); return; }
+    setSavingId(m.id);
+    try {
+      if (m.kind === "link" && m.external_url) {
+        const blob = new Blob([`${m.title}\n${m.external_url}\n`], { type: "text/plain" });
+        await saveResource({
+          userId: user.id, kind: "note", title: m.title, folder: "Tutor Courses",
+          blob, mime: "text/plain", ext: "txt",
+          meta: { source: "tutor_material", material_id: m.id, external_url: m.external_url },
+        });
+      } else if (m.content_text && !m.storage_path) {
+        const blob = new Blob([m.content_text], { type: "text/plain" });
+        await saveResource({
+          userId: user.id, kind: "note", title: m.title, folder: "Tutor Courses",
+          blob, mime: "text/plain", ext: "txt",
+          meta: { source: "tutor_material", material_id: m.id },
+        });
+      } else if (m.storage_path) {
+        const url = await getTutorMaterialSignedUrl(m.storage_path, 600);
+        if (!url) throw new Error("Could not fetch file");
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Download failed");
+        const blob = await res.blob();
+        const ext = m.storage_path.split(".").pop() || undefined;
+        await saveResource({
+          userId: user.id, kind: guessKind(m), title: m.title, folder: "Tutor Courses",
+          blob, mime: blob.type || undefined, ext,
+          meta: { source: "tutor_material", material_id: m.id },
+        });
+      } else {
+        throw new Error("Nothing to save");
+      }
+      setSavedIds((prev) => new Set(prev).add(key));
+      toast.success("Saved to your Library forever");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save");
+    } finally {
+      setSavingId(null);
+    }
   };
 
   if (authLoading || loading) {
@@ -379,6 +435,21 @@ const StudentTutorCourses = () => {
                                               <BookmarkCheck className="w-3.5 h-3.5 fill-amber-500" />
                                             ) : (
                                               <Bookmark className="w-3.5 h-3.5" />
+                                            )}
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 px-2 text-amber-700 hover:bg-amber-50"
+                                            onClick={() => handleSaveToLibrary(m)}
+                                            disabled={savingId === m.id}
+                                            aria-label="Save to Library"
+                                            title="Save to Library (keeps it forever)"
+                                          >
+                                            {savingId === m.id ? (
+                                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                              <Save className={`w-3.5 h-3.5 ${savedIds.has(`tutor-mat:${m.id}`) ? "text-emerald-600" : ""}`} />
                                             )}
                                           </Button>
                                           <Button
