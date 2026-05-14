@@ -530,6 +530,11 @@ const StudentTutorCourses = () => {
                                           <span className="flex items-center gap-1.5 min-w-0">
                                             <FileText className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                                             <span className="truncate">{m.title}</span>
+                                            {cachedIds.has(m.id) && (
+                                              <Badge variant="outline" className="ml-1 px-1.5 py-0 h-4 text-[9px] border-emerald-200 bg-emerald-50 text-emerald-700">
+                                                Offline
+                                              </Badge>
+                                            )}
                                           </span>
                                           <div className="flex items-center gap-0.5 shrink-0">
                                           <Button
