@@ -36,6 +36,16 @@ import {
 } from "lucide-react";
 import { recordDownload, toggleBookmark, fetchBookmarks } from "@/lib/studentLibrary";
 import { saveResource, type ResourceKind } from "@/lib/userResources";
+import {
+  cacheMaterialOffline,
+  getCachedMaterial,
+  listCachedMaterialIds,
+  openCachedBlob,
+  getAutoSaveEnabled,
+  setAutoSaveEnabled,
+} from "@/lib/offlineLibraryCache";
+import { Switch } from "@/components/ui/switch";
+import { CloudDownload } from "lucide-react";
 
 interface TutorMini {
   id: string;
@@ -60,6 +70,8 @@ const StudentTutorCourses = () => {
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [savingId, setSavingId] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [autoSave, setAutoSaveState] = useState<boolean>(getAutoSaveEnabled());
+  const [cachedIds, setCachedIds] = useState<Set<string>>(new Set());
 
   const studentLevel = (profile as any)?.level as string | undefined;
 
@@ -69,6 +81,10 @@ const StudentTutorCourses = () => {
       setBookmarkedIds(new Set((rows ?? []).map((r: any) => `${r.resource_type}:${r.resource_id}`)));
     });
   }, [user]);
+
+  useEffect(() => {
+    listCachedMaterialIds().then((ids) => setCachedIds(new Set(ids))).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -150,6 +166,7 @@ const StudentTutorCourses = () => {
           (grouped[m.topic_id] ||= []).push(m as TutorMaterial);
         });
         setMaterialsByTopic((prev) => ({ ...prev, ...grouped }));
+        if (autoSave) void autoSaveMaterials((mats || []) as TutorMaterial[]);
       }
     }
   };
@@ -164,15 +181,40 @@ const StudentTutorCourses = () => {
       toast.error("No file attached");
       return;
     }
+    try {
+      const cached = await getCachedMaterial(m.id);
+      if (cached) {
+        openCachedBlob(cached);
+        if (user) recordDownload({ userId: user.id, resourceType: "material", resourceId: m.id, title: m.title, level: studentLevel ?? null });
+        return;
+      }
+    } catch { /* fall through */ }
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      toast.error("You're offline and this file isn't cached yet");
+      return;
+    }
     setDownloading(m.id);
     const url = await getTutorMaterialSignedUrl(m.storage_path, 600);
-    setDownloading(null);
     if (!url) {
+      setDownloading(null);
       toast.error("Could not generate download link");
       return;
     }
     window.open(url, "_blank", "noopener");
     if (user) recordDownload({ userId: user.id, resourceType: "material", resourceId: m.id, title: m.title, level: studentLevel ?? null });
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const blob = await res.blob();
+        const ext = m.storage_path.split(".").pop() || undefined;
+        await cacheMaterialOffline({
+          id: m.id, title: m.title, mime: blob.type || "application/octet-stream",
+          ext, blob, cached_at: Date.now(),
+        });
+        setCachedIds((prev) => new Set(prev).add(m.id));
+      }
+    } catch { /* ignore */ }
+    setDownloading(null);
   };
 
   const handleToggleBookmark = async (m: TutorMaterial) => {
@@ -230,6 +272,13 @@ const StudentTutorCourses = () => {
           blob, mime: blob.type || undefined, ext,
           meta: { source: "tutor_material", material_id: m.id },
         });
+        try {
+          await cacheMaterialOffline({
+            id: m.id, title: m.title, mime: blob.type || "application/octet-stream",
+            ext, blob, cached_at: Date.now(),
+          });
+          setCachedIds((prev) => new Set(prev).add(m.id));
+        } catch { /* ignore */ }
       } else {
         throw new Error("Nothing to save");
       }
@@ -239,6 +288,51 @@ const StudentTutorCourses = () => {
       toast.error(e instanceof Error ? e.message : "Could not save");
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const autoSaveMaterials = async (mats: TutorMaterial[]) => {
+    if (!user || !autoSave) return;
+    for (const m of mats) {
+      const key = `tutor-mat:${m.id}`;
+      if (savedIds.has(key)) continue;
+      try {
+        if (m.kind === "link" && m.external_url) {
+          await saveResource({
+            userId: user.id, kind: "note", title: m.title, folder: "Tutor Courses",
+            blob: new Blob([`${m.title}\n${m.external_url}\n`], { type: "text/plain" }),
+            mime: "text/plain", ext: "txt",
+            meta: { source: "tutor_material_auto", material_id: m.id, external_url: m.external_url },
+          });
+        } else if (m.content_text && !m.storage_path) {
+          await saveResource({
+            userId: user.id, kind: "note", title: m.title, folder: "Tutor Courses",
+            blob: new Blob([m.content_text], { type: "text/plain" }),
+            mime: "text/plain", ext: "txt",
+            meta: { source: "tutor_material_auto", material_id: m.id },
+          });
+        } else if (m.storage_path) {
+          const url = await getTutorMaterialSignedUrl(m.storage_path, 600);
+          if (!url) continue;
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const blob = await res.blob();
+          const ext = m.storage_path.split(".").pop() || undefined;
+          await saveResource({
+            userId: user.id, kind: guessKind(m), title: m.title, folder: "Tutor Courses",
+            blob, mime: blob.type || undefined, ext,
+            meta: { source: "tutor_material_auto", material_id: m.id },
+          });
+          try {
+            await cacheMaterialOffline({
+              id: m.id, title: m.title, mime: blob.type || "application/octet-stream",
+              ext, blob, cached_at: Date.now(),
+            });
+            setCachedIds((prev) => new Set(prev).add(m.id));
+          } catch { /* ignore */ }
+        } else continue;
+        setSavedIds((prev) => new Set(prev).add(key));
+      } catch { /* skip silently */ }
     }
   };
 
@@ -294,6 +388,20 @@ const StudentTutorCourses = () => {
                 {showAllLevels ? `Only ${studentLevel}` : "All Levels"}
               </Button>
             )}
+          </div>
+          <div className="relative mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-white/15 backdrop-blur px-3.5 py-2.5 border border-white/25">
+            <CloudDownload className="w-4 h-4 text-white shrink-0" />
+            <div className="flex-1 min-w-[180px]">
+              <p className="text-[12px] font-semibold leading-tight">Auto-save & offline</p>
+              <p className="text-[11px] text-white/85 leading-snug">
+                Save tutor files to your Library on view, and open them offline anytime.
+              </p>
+            </div>
+            <Switch
+              checked={autoSave}
+              onCheckedChange={(v) => { setAutoSaveState(v); setAutoSaveEnabled(v); toast.success(v ? "Auto-save on" : "Auto-save off"); }}
+              aria-label="Auto-save tutor materials"
+            />
           </div>
         </motion.section>
 
