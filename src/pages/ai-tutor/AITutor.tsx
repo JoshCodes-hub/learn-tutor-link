@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { MessageSquare, Send, Sparkles, Bot, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { sanitizeAIText } from "@/lib/sanitizeAI";
 
 interface Message { role: "user" | "assistant"; content: string; }
 
@@ -101,8 +104,16 @@ const AITutor = () => {
               {messages.map((m, i) => (
                 <div key={i} className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}>
                   {m.role === "assistant" && <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0"><Bot className="w-4 h-4 text-primary" /></div>}
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                    {m.content || (loading && i === messages.length - 1 ? <Sparkles className="w-4 h-4 animate-pulse" /> : "")}
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[13.5px] leading-relaxed ${m.role === "user" ? "bg-primary text-primary-foreground whitespace-pre-wrap" : "bg-muted text-foreground"}`}>
+                    {m.role === "assistant" ? (
+                      m.content ? (
+                        <div className="prose prose-sm max-w-none font-sans prose-headings:font-serif prose-p:my-1.5 prose-strong:text-primary">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{sanitizeAIText(m.content)}</ReactMarkdown>
+                        </div>
+                      ) : (loading && i === messages.length - 1 ? <Sparkles className="w-4 h-4 animate-pulse" /> : "")
+                    ) : (
+                      m.content
+                    )}
                   </div>
                   {m.role === "user" && <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0"><UserIcon className="w-4 h-4" /></div>}
                 </div>

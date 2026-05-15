@@ -9,6 +9,9 @@ import { FileText, Layers, ListChecks, Sparkles, Loader2, RefreshCw, Headphones,
 import { OverraAudioSuite } from "./OverraAudioSuite";
 import { ChatWithNotesPanel } from "./ChatWithNotesPanel";
 import { SaveToLibraryButton } from "@/components/student/SaveToLibraryButton";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { sanitizeAIText } from "@/lib/sanitizeAI";
 
 type Kind = "summary" | "key_points" | "flashcards" | "likely_questions";
 type Tab = Kind | "audio" | "chat";
@@ -78,15 +81,18 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
     const c = data.summary as { text?: string } | null;
     if (loadingKind === "summary") return <CenterLoader label="Reading and summarizing..." />;
     if (!c?.text) return <Empty />;
+    const clean = sanitizeAIText(c.text);
     return (
       <div className="space-y-3">
-        <div className="whitespace-pre-wrap text-sm leading-relaxed">{c.text}</div>
+        <div className="prose prose-sm max-w-none font-sans prose-headings:font-serif prose-p:my-2 prose-strong:text-primary">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{clean}</ReactMarkdown>
+        </div>
         <div className="flex justify-end">
           <SaveToLibraryButton
             kind="study_pack"
             defaultTitle={`${material.title} — Summary`}
             defaultFolder="Study Packs"
-            textContent={c.text}
+            textContent={clean}
             meta={{ material_id: material.id, source: "summary" }}
           />
         </div>

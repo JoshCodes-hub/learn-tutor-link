@@ -60,6 +60,43 @@ export async function listCachedMaterialIds(): Promise<string[]> {
   });
 }
 
+/** Full metadata for every cached blob — used by the Offline Downloads manager. */
+export interface CachedSummary {
+  id: string;
+  title: string;
+  mime: string;
+  ext?: string;
+  size: number;
+  cached_at: number;
+}
+
+export async function listCachedMaterials(): Promise<CachedSummary[]> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => {
+      db.close();
+      const rows = (req.result as CachedMaterial[]) || [];
+      resolve(rows.map((r) => ({
+        id: r.id, title: r.title, mime: r.mime, ext: r.ext,
+        size: r.blob?.size ?? 0, cached_at: r.cached_at,
+      })));
+    };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+
+export async function clearAllCachedMaterials(): Promise<void> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).clear();
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
 export async function removeCachedMaterial(id: string): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {

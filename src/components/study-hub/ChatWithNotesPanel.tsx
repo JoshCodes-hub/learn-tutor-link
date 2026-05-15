@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Send, Bot, User as UserIcon, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { sanitizeAIText } from "@/lib/sanitizeAI";
 
 interface Message { role: "user" | "assistant"; content: string }
 
@@ -109,11 +112,23 @@ export const ChatWithNotesPanel = ({ materialTitle, materialText }: Props) => {
               </div>
             )}
             <div
-              className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed ${
-                m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+              className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-[13.5px] leading-relaxed ${
+                m.role === "user"
+                  ? "bg-primary text-primary-foreground whitespace-pre-wrap"
+                  : "bg-muted text-foreground"
               }`}
             >
-              {m.content || <Sparkles className="w-3.5 h-3.5 animate-pulse" />}
+              {m.role === "assistant" ? (
+                m.content ? (
+                  <div className="prose prose-sm max-w-none font-sans prose-headings:font-serif prose-p:my-1.5 prose-strong:text-primary">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{sanitizeAIText(m.content)}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                )
+              ) : (
+                m.content
+              )}
             </div>
             {m.role === "user" && (
               <div className="w-7 h-7 rounded-full bg-muted grid place-items-center shrink-0">

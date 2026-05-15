@@ -27,6 +27,7 @@ import ReportQuestionDialog from "@/components/student/ReportQuestionDialog";
 import { ImageZoomModal, ClickableQuestionImage } from "@/components/quiz/ImageZoomModal";
 import { SpeakButton } from "@/components/audio/SpeakButton";
 import { haptic } from "@/lib/native";
+import PreQuizTimerDialog from "@/components/quiz/PreQuizTimerDialog";
 
 interface Question {
   id: string;
@@ -82,6 +83,30 @@ const QuizPractice = () => {
   const [answersMap, setAnswersMap] = useState<Record<string, string>>({});
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [savedData, setSavedData] = useState<ReturnType<typeof loadState>>(null);
+  // Pre-quiz timer
+  const [showTimerPicker, setShowTimerPicker] = useState(false);
+  const [chosenMinutes, setChosenMinutes] = useState<number | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+
+  // Show timer picker once the quiz is loaded (and not resuming)
+  useEffect(() => {
+    if (!quiz) return;
+    if (showResumePrompt) return;
+    if (chosenMinutes !== null) return;
+    setShowTimerPicker(true);
+  }, [quiz, showResumePrompt, chosenMinutes]);
+
+  // Countdown
+  useEffect(() => {
+    if (secondsLeft === null) return;
+    if (secondsLeft <= 0) {
+      void handleFinishQuiz();
+      return;
+    }
+    const t = setInterval(() => setSecondsLeft((s) => (s === null ? null : s - 1)), 1000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsLeft]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -424,6 +449,15 @@ const QuizPractice = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              {secondsLeft !== null && (
+                <div className={`flex items-center gap-1.5 text-sm font-mono px-2 py-1 rounded-md ${
+                  secondsLeft < 60 ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+                }`}>
+                  <Clock className="w-4 h-4" />
+                  {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:
+                  {String(secondsLeft % 60).padStart(2, "0")}
+                </div>
+              )}
               <div className="flex items-center gap-2 text-sm">
                 <CheckCircle2 className="w-4 h-4 text-success" />
                 <span className="text-foreground font-medium">{score.correct}</span>
@@ -433,6 +467,17 @@ const QuizPractice = () => {
           </div>
         </div>
       </header>
+
+      <PreQuizTimerDialog
+        open={showTimerPicker}
+        onOpenChange={setShowTimerPicker}
+        tutorMinutes={quiz?.duration_minutes ?? 0}
+        onConfirm={(mins) => {
+          setChosenMinutes(mins);
+          setSecondsLeft(mins > 0 ? mins * 60 : null);
+          setShowTimerPicker(false);
+        }}
+      />
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Progress */}

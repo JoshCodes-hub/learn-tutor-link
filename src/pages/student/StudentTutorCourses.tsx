@@ -45,7 +45,8 @@ import {
   setAutoSaveEnabled,
 } from "@/lib/offlineLibraryCache";
 import { Switch } from "@/components/ui/switch";
-import { CloudDownload } from "lucide-react";
+import { CloudDownload, CheckCircle2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface TutorMini {
   id: string;
@@ -72,6 +73,9 @@ const StudentTutorCourses = () => {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [autoSave, setAutoSaveState] = useState<boolean>(getAutoSaveEnabled());
   const [cachedIds, setCachedIds] = useState<Set<string>>(new Set());
+  const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
+  const [bulkCachingCourse, setBulkCachingCourse] = useState<string | null>(null);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
 
   const studentLevel = (profile as any)?.level as string | undefined;
 
@@ -203,9 +207,10 @@ const StudentTutorCourses = () => {
     window.open(url, "_blank", "noopener");
     if (user) recordDownload({ userId: user.id, resourceType: "material", resourceId: m.id, title: m.title, level: studentLevel ?? null });
     try {
-      const res = await fetch(url);
-      if (res.ok) {
-        const blob = await res.blob();
+      const blob = await fetchWithProgress(url, (p) => {
+        setDownloadProgress((prev) => ({ ...prev, [m.id]: p }));
+      });
+      if (blob) {
         const ext = m.storage_path.split(".").pop() || undefined;
         await cacheMaterialOffline({
           id: m.id, title: m.title, mime: blob.type || "application/octet-stream",
@@ -214,7 +219,83 @@ const StudentTutorCourses = () => {
         setCachedIds((prev) => new Set(prev).add(m.id));
       }
     } catch { /* ignore */ }
+    setDownloadProgress((prev) => { const n = { ...prev }; delete n[m.id]; return n; });
     setDownloading(null);
+  };
+
+  /** Stream a fetch and report 0–100 progress (best-effort: falls back to 50 then 100 when length unknown). */
+  const fetchWithProgress = async (url: string, onProgress: (pct: number) => void): Promise<Blob | null> => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok || !res.body) return null;
+      const total = Number(res.headers.get("content-length") || 0);
+      if (!total) {
+        onProgress(50);
+        const blob = await res.blob();
+        onProgress(100);
+        return blob;
+      }
+      const reader = res.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.length;
+          onProgress(Math.min(99, Math.round((received / total) * 100)));
+        }
+      }
+      onProgress(100);
+      return new Blob(chunks as BlobPart[]);
+    } catch {
+      return null;
+    }
+  };
+
+  /** Cache every downloadable material in a course for offline use. */
+  const cacheCourseOffline = async (curriculumId: string) => {
+    const topics = topicsByCurriculum[curriculumId] || [];
+    const all: TutorMaterial[] = topics.flatMap((t) => materialsByTopic[t.id] || []);
+    const queue = all.filter((m) => m.storage_path && !cachedIds.has(m.id));
+    if (queue.length === 0) {
+      toast.success("Everything is already saved offline ✨");
+      return;
+    }
+    setBulkCachingCourse(curriculumId);
+    setBulkProgress({ done: 0, total: queue.length });
+    for (let i = 0; i < queue.length; i++) {
+      const m = queue[i];
+      try {
+        const url = await getTutorMaterialSignedUrl(m.storage_path!, 600);
+        if (!url) continue;
+        const blob = await fetchWithProgress(url, (p) => {
+          setDownloadProgress((prev) => ({ ...prev, [m.id]: p }));
+        });
+        if (blob) {
+          const ext = m.storage_path!.split(".").pop() || undefined;
+          await cacheMaterialOffline({
+            id: m.id, title: m.title, mime: blob.type || "application/octet-stream",
+            ext, blob, cached_at: Date.now(),
+          });
+          setCachedIds((prev) => new Set(prev).add(m.id));
+        }
+      } catch { /* skip */ }
+      setDownloadProgress((prev) => { const n = { ...prev }; delete n[m.id]; return n; });
+      setBulkProgress({ done: i + 1, total: queue.length });
+    }
+    setBulkCachingCourse(null);
+    toast.success("Course saved for offline ✓");
+  };
+
+  /** Helpers for course-level readiness signal (cacheable count vs cached count). */
+  const courseCachedCount = (curriculumId: string) => {
+    const topics = topicsByCurriculum[curriculumId] || [];
+    const all: TutorMaterial[] = topics.flatMap((t) => materialsByTopic[t.id] || []);
+    const cacheable = all.filter((m) => !!m.storage_path);
+    const cached = cacheable.filter((m) => cachedIds.has(m.id));
+    return { cached: cached.length, total: cacheable.length };
   };
 
   const handleToggleBookmark = async (m: TutorMaterial) => {
@@ -403,6 +484,14 @@ const StudentTutorCourses = () => {
               aria-label="Auto-save tutor materials"
             />
           </div>
+          <div className="relative mt-2 flex justify-end">
+            <Link
+              to="/library/offline-downloads"
+              className="text-[11px] font-semibold text-white/95 underline-offset-2 hover:underline inline-flex items-center gap-1"
+            >
+              Manage offline downloads →
+            </Link>
+          </div>
         </motion.section>
 
         <div className="relative max-w-md mb-6">
@@ -433,6 +522,7 @@ const StudentTutorCourses = () => {
               const tutor = tutors[c.tutor_id];
               const isOpen = expanded.has(c.id);
               const topics = topicsByCurriculum[c.id] || [];
+              const ready = isOpen ? courseCachedCount(c.id) : { cached: 0, total: 0 };
               return (
                 <motion.div
                   key={c.id}
@@ -505,6 +595,38 @@ const StudentTutorCourses = () => {
 
                       {isOpen && (
                         <div className="mt-4 space-y-3">
+                          {ready.total > 0 && (
+                            <div className="flex items-center justify-between gap-2 rounded-xl border border-emerald-100 bg-emerald-50/40 px-3 py-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <CheckCircle2 className={`w-4 h-4 shrink-0 ${ready.cached === ready.total ? "text-emerald-600" : "text-amber-500"}`} />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-foreground">
+                                    {ready.cached === ready.total
+                                      ? "Fully ready offline"
+                                      : `${ready.cached} of ${ready.total} ready offline`}
+                                  </p>
+                                  {bulkCachingCourse === c.id && (
+                                    <Progress
+                                      value={Math.round((bulkProgress.done / Math.max(1, bulkProgress.total)) * 100)}
+                                      className="h-1.5 mt-1 w-44"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                              {ready.cached < ready.total && bulkCachingCourse !== c.id && (
+                                <Button
+                                  size="sm" variant="ghost"
+                                  className="h-7 px-2 text-emerald-700 hover:bg-emerald-100"
+                                  onClick={() => cacheCourseOffline(c.id)}
+                                >
+                                  <CloudDownload className="w-3.5 h-3.5 mr-1" /> Save all
+                                </Button>
+                              )}
+                              {bulkCachingCourse === c.id && (
+                                <span className="text-[11px] text-muted-foreground">{bulkProgress.done}/{bulkProgress.total}</span>
+                              )}
+                            </div>
+                          )}
                           {topics.length === 0 ? (
                             <p className="text-xs text-muted-foreground italic px-2">
                               No topics yet — the tutor is still building this course.
@@ -526,13 +648,14 @@ const StudentTutorCourses = () => {
                                   {mats.length > 0 && (
                                     <ul className="mt-2 space-y-1.5">
                                       {mats.map((m) => (
-                                        <li key={m.id} className="flex items-center justify-between gap-2 text-xs">
+                                        <li key={m.id} className="text-xs">
+                                          <div className="flex items-center justify-between gap-2">
                                           <span className="flex items-center gap-1.5 min-w-0">
                                             <FileText className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                                             <span className="truncate">{m.title}</span>
                                             {cachedIds.has(m.id) && (
                                               <Badge variant="outline" className="ml-1 px-1.5 py-0 h-4 text-[9px] border-emerald-200 bg-emerald-50 text-emerald-700">
-                                                Offline
+                                                <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" /> Ready
                                               </Badge>
                                             )}
                                           </span>
@@ -581,6 +704,15 @@ const StudentTutorCourses = () => {
                                             )}
                                           </Button>
                                           </div>
+                                          </div>
+                                          {downloadProgress[m.id] !== undefined && (
+                                            <div className="mt-1 flex items-center gap-2">
+                                              <Progress value={downloadProgress[m.id]} className="h-1 flex-1" />
+                                              <span className="text-[10px] text-muted-foreground tabular-nums w-8 text-right">
+                                                {downloadProgress[m.id]}%
+                                              </span>
+                                            </div>
+                                          )}
                                         </li>
                                       ))}
                                     </ul>

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Library as LibraryIcon, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones, Upload, Sparkles, BarChart3,
+  CloudDownload,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ import { format } from "date-fns";
 import UploadResourceDialog from "@/components/student/library/UploadResourceDialog";
 import OutlineActionsMenu from "@/components/student/library/OutlineActionsMenu";
 import FlashcardStudyDialog, { type Flashcard } from "@/components/student/library/FlashcardStudyDialog";
+import { listCachedMaterialIds } from "@/lib/offlineLibraryCache";
 
 const ALL_KINDS: ResourceKind[] = ["pdf", "image", "note", "flashcard", "study_pack", "audio"];
 
@@ -43,6 +45,11 @@ const Library = () => {
   const [activeKinds, setActiveKinds] = useState<Set<ResourceKind>>(new Set());
   const [outlinesOnly, setOutlinesOnly] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [cachedIds, setCachedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    listCachedMaterialIds().then((ids) => setCachedIds(new Set(ids))).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (searchParams.get("upload") === "1") {
@@ -141,6 +148,9 @@ const Library = () => {
             <div className="flex items-center gap-2 shrink-0">
               <Button asChild variant="outline" size="icon" title="Upload analytics" aria-label="Upload analytics">
                 <Link to="/library/analytics"><BarChart3 className="w-4 h-4" /></Link>
+              </Button>
+              <Button asChild variant="outline" size="icon" title="Offline downloads" aria-label="Offline downloads">
+                <Link to="/library/offline-downloads"><CloudDownload className="w-4 h-4" /></Link>
               </Button>
               <Button
                 onClick={() => setUploadOpen(true)}
@@ -254,6 +264,8 @@ const Library = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filtered.map((r) => {
                     const isOutline = (r.meta as any)?.material_type === "outline";
+                    const matId = (r.meta as any)?.material_id as string | undefined;
+                    const isOffline = !!matId && cachedIds.has(matId);
                     return (
                     <Card
                       key={r.id}
@@ -267,7 +279,7 @@ const Library = () => {
                           <PreviewIcon kind={r.kind} />
                         </div>
                         <div className="flex items-center gap-1">
-                          {(r.kind === "pdf" || r.kind === "note" || isOutline) && (
+                          {(r.kind === "pdf" || r.kind === "note" || r.kind === "study_pack" || isOutline) && (
                             <OutlineActionsMenu resource={r} />
                           )}
                           <button
@@ -283,6 +295,11 @@ const Library = () => {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {isOutline && (
                           <Badge className="text-[10px] bg-amber-500 hover:bg-amber-500 text-white">📑 Outline</Badge>
+                        )}
+                        {isOffline && (
+                          <Badge className="text-[10px] bg-emerald-500 hover:bg-emerald-500 text-white gap-0.5">
+                            <CloudDownload className="w-2.5 h-2.5" /> Offline
+                          </Badge>
                         )}
                         <Badge variant="secondary" className="text-[10px] capitalize">
                           {KIND_META[r.kind].emoji} {r.kind.replace("_", " ")}
