@@ -641,13 +641,14 @@ const StudentTutorCourses = () => {
                                   {mats.length > 0 && (
                                     <ul className="mt-2 space-y-1.5">
                                       {mats.map((m) => (
-                                        <li key={m.id} className="flex items-center justify-between gap-2 text-xs">
+                                        <li key={m.id} className="text-xs">
+                                          <div className="flex items-center justify-between gap-2">
                                           <span className="flex items-center gap-1.5 min-w-0">
                                             <FileText className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                                             <span className="truncate">{m.title}</span>
                                             {cachedIds.has(m.id) && (
                                               <Badge variant="outline" className="ml-1 px-1.5 py-0 h-4 text-[9px] border-emerald-200 bg-emerald-50 text-emerald-700">
-                                                Offline
+                                                <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" /> Ready
                                               </Badge>
                                             )}
                                           </span>
@@ -696,6 +697,15 @@ const StudentTutorCourses = () => {
                                             )}
                                           </Button>
                                           </div>
+                                          </div>
+                                          {downloadProgress[m.id] !== undefined && (
+                                            <div className="mt-1 flex items-center gap-2">
+                                              <Progress value={downloadProgress[m.id]} className="h-1 flex-1" />
+                                              <span className="text-[10px] text-muted-foreground tabular-nums w-8 text-right">
+                                                {downloadProgress[m.id]}%
+                                              </span>
+                                            </div>
+                                          )}
                                         </li>
                                       ))}
                                     </ul>
