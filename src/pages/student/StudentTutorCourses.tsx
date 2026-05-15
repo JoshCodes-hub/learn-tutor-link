@@ -249,7 +249,7 @@ const StudentTutorCourses = () => {
         }
       }
       onProgress(100);
-      return new Blob(chunks);
+      return new Blob(chunks as BlobPart[]);
     } catch {
       return null;
     }
