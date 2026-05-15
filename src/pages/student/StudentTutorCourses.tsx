@@ -47,7 +47,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { CloudDownload, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Link as RLink } from "react-router-dom";
 
 interface TutorMini {
   id: string;
