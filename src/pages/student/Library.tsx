@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Library as LibraryIcon, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones, Upload, Sparkles, BarChart3,
+  CloudDownload,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ import { format } from "date-fns";
 import UploadResourceDialog from "@/components/student/library/UploadResourceDialog";
 import OutlineActionsMenu from "@/components/student/library/OutlineActionsMenu";
 import FlashcardStudyDialog, { type Flashcard } from "@/components/student/library/FlashcardStudyDialog";
+import { listCachedMaterialIds } from "@/lib/offlineLibraryCache";
 
 const ALL_KINDS: ResourceKind[] = ["pdf", "image", "note", "flashcard", "study_pack", "audio"];
 
@@ -43,6 +45,11 @@ const Library = () => {
   const [activeKinds, setActiveKinds] = useState<Set<ResourceKind>>(new Set());
   const [outlinesOnly, setOutlinesOnly] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [cachedIds, setCachedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    listCachedMaterialIds().then((ids) => setCachedIds(new Set(ids))).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (searchParams.get("upload") === "1") {
@@ -141,6 +148,9 @@ const Library = () => {
             <div className="flex items-center gap-2 shrink-0">
               <Button asChild variant="outline" size="icon" title="Upload analytics" aria-label="Upload analytics">
                 <Link to="/library/analytics"><BarChart3 className="w-4 h-4" /></Link>
+              </Button>
+              <Button asChild variant="outline" size="icon" title="Offline downloads" aria-label="Offline downloads">
+                <Link to="/library/offline-downloads"><CloudDownload className="w-4 h-4" /></Link>
               </Button>
               <Button
                 onClick={() => setUploadOpen(true)}
