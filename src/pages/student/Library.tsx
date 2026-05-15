@@ -279,7 +279,7 @@ const Library = () => {
                           <PreviewIcon kind={r.kind} />
                         </div>
                         <div className="flex items-center gap-1">
-                          {(r.kind === "pdf" || r.kind === "note" || isOutline) && (
+                          {(r.kind === "pdf" || r.kind === "note" || r.kind === "study_pack" || isOutline) && (
                             <OutlineActionsMenu resource={r} />
                           )}
                           <button
