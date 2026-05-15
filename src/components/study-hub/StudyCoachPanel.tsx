@@ -347,8 +347,8 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
                 )}>
                   {m.role === "assistant" ? (
                     <>
-                      <div className="prose prose-sm max-w-none prose-headings:font-serif prose-headings:font-semibold prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0.5 prose-strong:text-amber-800">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content || "…"}</ReactMarkdown>
+                      <div className="prose prose-sm max-w-none font-sans prose-headings:font-serif prose-headings:font-semibold prose-headings:text-amber-900 prose-p:my-1.5 prose-p:text-foreground/90 prose-ul:my-1.5 prose-li:my-0.5 prose-strong:text-amber-800 prose-code:text-amber-700 prose-code:before:content-none prose-code:after:content-none prose-code:bg-amber-50 prose-code:px-1 prose-code:rounded">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{sanitizeAIText(m.content) || "…"}</ReactMarkdown>
                       </div>
                       {m.sources && m.sources.length > 0 && (() => {
                         const cited = m.sources.map(n => ({ n, mat: materials[n - 1] })).filter(x => x.mat);
