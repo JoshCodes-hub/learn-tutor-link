@@ -264,6 +264,8 @@ const Library = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filtered.map((r) => {
                     const isOutline = (r.meta as any)?.material_type === "outline";
+                    const matId = (r.meta as any)?.material_id as string | undefined;
+                    const isOffline = !!matId && cachedIds.has(matId);
                     return (
                     <Card
                       key={r.id}
@@ -293,6 +295,11 @@ const Library = () => {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {isOutline && (
                           <Badge className="text-[10px] bg-amber-500 hover:bg-amber-500 text-white">📑 Outline</Badge>
+                        )}
+                        {isOffline && (
+                          <Badge className="text-[10px] bg-emerald-500 hover:bg-emerald-500 text-white gap-0.5">
+                            <CloudDownload className="w-2.5 h-2.5" /> Offline
+                          </Badge>
                         )}
                         <Badge variant="secondary" className="text-[10px] capitalize">
                           {KIND_META[r.kind].emoji} {r.kind.replace("_", " ")}
