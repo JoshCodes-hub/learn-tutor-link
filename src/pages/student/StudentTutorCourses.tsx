@@ -484,6 +484,14 @@ const StudentTutorCourses = () => {
               aria-label="Auto-save tutor materials"
             />
           </div>
+          <div className="relative mt-2 flex justify-end">
+            <Link
+              to="/library/offline-downloads"
+              className="text-[11px] font-semibold text-white/95 underline-offset-2 hover:underline inline-flex items-center gap-1"
+            >
+              Manage offline downloads →
+            </Link>
+          </div>
         </motion.section>
 
         <div className="relative max-w-md mb-6">
