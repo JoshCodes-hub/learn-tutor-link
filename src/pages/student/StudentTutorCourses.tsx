@@ -45,7 +45,9 @@ import {
   setAutoSaveEnabled,
 } from "@/lib/offlineLibraryCache";
 import { Switch } from "@/components/ui/switch";
-import { CloudDownload } from "lucide-react";
+import { CloudDownload, CheckCircle2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Link as RLink } from "react-router-dom";
 
 interface TutorMini {
   id: string;
@@ -72,6 +74,9 @@ const StudentTutorCourses = () => {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [autoSave, setAutoSaveState] = useState<boolean>(getAutoSaveEnabled());
   const [cachedIds, setCachedIds] = useState<Set<string>>(new Set());
+  const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
+  const [bulkCachingCourse, setBulkCachingCourse] = useState<string | null>(null);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
 
   const studentLevel = (profile as any)?.level as string | undefined;
 
@@ -203,9 +208,10 @@ const StudentTutorCourses = () => {
     window.open(url, "_blank", "noopener");
     if (user) recordDownload({ userId: user.id, resourceType: "material", resourceId: m.id, title: m.title, level: studentLevel ?? null });
     try {
-      const res = await fetch(url);
-      if (res.ok) {
-        const blob = await res.blob();
+      const blob = await fetchWithProgress(url, (p) => {
+        setDownloadProgress((prev) => ({ ...prev, [m.id]: p }));
+      });
+      if (blob) {
         const ext = m.storage_path.split(".").pop() || undefined;
         await cacheMaterialOffline({
           id: m.id, title: m.title, mime: blob.type || "application/octet-stream",
@@ -214,7 +220,83 @@ const StudentTutorCourses = () => {
         setCachedIds((prev) => new Set(prev).add(m.id));
       }
     } catch { /* ignore */ }
+    setDownloadProgress((prev) => { const n = { ...prev }; delete n[m.id]; return n; });
     setDownloading(null);
+  };
+
+  /** Stream a fetch and report 0–100 progress (best-effort: falls back to 50 then 100 when length unknown). */
+  const fetchWithProgress = async (url: string, onProgress: (pct: number) => void): Promise<Blob | null> => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok || !res.body) return null;
+      const total = Number(res.headers.get("content-length") || 0);
+      if (!total) {
+        onProgress(50);
+        const blob = await res.blob();
+        onProgress(100);
+        return blob;
+      }
+      const reader = res.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          chunks.push(value);
+          received += value.length;
+          onProgress(Math.min(99, Math.round((received / total) * 100)));
+        }
+      }
+      onProgress(100);
+      return new Blob(chunks);
+    } catch {
+      return null;
+    }
+  };
+
+  /** Cache every downloadable material in a course for offline use. */
+  const cacheCourseOffline = async (curriculumId: string) => {
+    const topics = topicsByCurriculum[curriculumId] || [];
+    const all: TutorMaterial[] = topics.flatMap((t) => materialsByTopic[t.id] || []);
+    const queue = all.filter((m) => m.storage_path && !cachedIds.has(m.id));
+    if (queue.length === 0) {
+      toast.success("Everything is already saved offline ✨");
+      return;
+    }
+    setBulkCachingCourse(curriculumId);
+    setBulkProgress({ done: 0, total: queue.length });
+    for (let i = 0; i < queue.length; i++) {
+      const m = queue[i];
+      try {
+        const url = await getTutorMaterialSignedUrl(m.storage_path!, 600);
+        if (!url) continue;
+        const blob = await fetchWithProgress(url, (p) => {
+          setDownloadProgress((prev) => ({ ...prev, [m.id]: p }));
+        });
+        if (blob) {
+          const ext = m.storage_path!.split(".").pop() || undefined;
+          await cacheMaterialOffline({
+            id: m.id, title: m.title, mime: blob.type || "application/octet-stream",
+            ext, blob, cached_at: Date.now(),
+          });
+          setCachedIds((prev) => new Set(prev).add(m.id));
+        }
+      } catch { /* skip */ }
+      setDownloadProgress((prev) => { const n = { ...prev }; delete n[m.id]; return n; });
+      setBulkProgress({ done: i + 1, total: queue.length });
+    }
+    setBulkCachingCourse(null);
+    toast.success("Course saved for offline ✓");
+  };
+
+  /** Helpers for course-level readiness signal (cacheable count vs cached count). */
+  const courseCachedCount = (curriculumId: string) => {
+    const topics = topicsByCurriculum[curriculumId] || [];
+    const all: TutorMaterial[] = topics.flatMap((t) => materialsByTopic[t.id] || []);
+    const cacheable = all.filter((m) => !!m.storage_path);
+    const cached = cacheable.filter((m) => cachedIds.has(m.id));
+    return { cached: cached.length, total: cacheable.length };
   };
 
   const handleToggleBookmark = async (m: TutorMaterial) => {
