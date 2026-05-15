@@ -515,6 +515,7 @@ const StudentTutorCourses = () => {
               const tutor = tutors[c.tutor_id];
               const isOpen = expanded.has(c.id);
               const topics = topicsByCurriculum[c.id] || [];
+              const ready = isOpen ? courseCachedCount(c.id) : { cached: 0, total: 0 };
               return (
                 <motion.div
                   key={c.id}
