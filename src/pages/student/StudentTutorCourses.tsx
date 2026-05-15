@@ -588,6 +588,38 @@ const StudentTutorCourses = () => {
 
                       {isOpen && (
                         <div className="mt-4 space-y-3">
+                          {ready.total > 0 && (
+                            <div className="flex items-center justify-between gap-2 rounded-xl border border-emerald-100 bg-emerald-50/40 px-3 py-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <CheckCircle2 className={`w-4 h-4 shrink-0 ${ready.cached === ready.total ? "text-emerald-600" : "text-amber-500"}`} />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-foreground">
+                                    {ready.cached === ready.total
+                                      ? "Fully ready offline"
+                                      : `${ready.cached} of ${ready.total} ready offline`}
+                                  </p>
+                                  {bulkCachingCourse === c.id && (
+                                    <Progress
+                                      value={Math.round((bulkProgress.done / Math.max(1, bulkProgress.total)) * 100)}
+                                      className="h-1.5 mt-1 w-44"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                              {ready.cached < ready.total && bulkCachingCourse !== c.id && (
+                                <Button
+                                  size="sm" variant="ghost"
+                                  className="h-7 px-2 text-emerald-700 hover:bg-emerald-100"
+                                  onClick={() => cacheCourseOffline(c.id)}
+                                >
+                                  <CloudDownload className="w-3.5 h-3.5 mr-1" /> Save all
+                                </Button>
+                              )}
+                              {bulkCachingCourse === c.id && (
+                                <span className="text-[11px] text-muted-foreground">{bulkProgress.done}/{bulkProgress.total}</span>
+                              )}
+                            </div>
+                          )}
                           {topics.length === 0 ? (
                             <p className="text-xs text-muted-foreground italic px-2">
                               No topics yet — the tutor is still building this course.
