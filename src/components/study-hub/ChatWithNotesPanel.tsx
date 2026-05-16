@@ -120,7 +120,7 @@ export const ChatWithNotesPanel = ({ materialTitle, materialText }: Props) => {
             >
               {m.role === "assistant" ? (
                 m.content ? (
-                  <div className="prose prose-sm max-w-none font-sans prose-headings:font-serif prose-p:my-1.5 prose-strong:text-primary">
+                  <div className="ai-prose max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{sanitizeAIText(m.content)}</ReactMarkdown>
                   </div>
                 ) : (

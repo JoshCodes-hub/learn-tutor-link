@@ -27,7 +27,7 @@ export default function MessageBubble({ message, isOwn, author, showAuthor }: Pr
             <span className="text-xs font-semibold text-primary">OverraPrep AI</span>
             <span className="text-[10px] text-muted-foreground">{format(new Date(message.created_at), "p")}</span>
           </div>
-          <div className="prose prose-sm dark:prose-invert max-w-none font-sans text-[13.5px] leading-relaxed text-foreground prose-headings:font-serif prose-p:my-1.5 prose-strong:text-primary prose-code:bg-primary/5 prose-code:text-primary prose-code:before:content-none prose-code:after:content-none prose-code:px-1 prose-code:rounded">
+          <div className="ai-prose max-w-none">
             <ReactMarkdown>{sanitizeAIText(message.content)}</ReactMarkdown>
           </div>
         </div>
