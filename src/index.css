@@ -357,3 +357,72 @@
   background: hsl(var(--primary) / 0.25);
   color: hsl(var(--foreground));
 }
+
+/* ============================================================
+   AI Response Typography — refined, editorial, easy to read
+   Use: <div class="ai-prose"><ReactMarkdown>…</ReactMarkdown></div>
+   ============================================================ */
+.ai-prose {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.72;
+  letter-spacing: -0.005em;
+  color: hsl(var(--foreground));
+  font-feature-settings: "ss01", "cv11", "kern", "liga";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  word-break: break-word;
+}
+.ai-prose > * + * { margin-top: 0.85em; }
+.ai-prose p { margin: 0.5em 0; }
+.ai-prose h1, .ai-prose h2, .ai-prose h3, .ai-prose h4 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: hsl(var(--accent));
+  margin: 1.1em 0 0.4em;
+  line-height: 1.25;
+}
+.ai-prose h1 { font-size: 1.35em; }
+.ai-prose h2 { font-size: 1.18em; }
+.ai-prose h3 { font-size: 1.05em; }
+.ai-prose h4 { font-size: 0.98em; text-transform: uppercase; letter-spacing: 0.04em; color: hsl(var(--muted-foreground)); }
+.ai-prose strong { color: hsl(var(--accent)); font-weight: 600; }
+.ai-prose em { color: hsl(var(--foreground) / 0.85); font-style: italic; }
+.ai-prose a { color: hsl(var(--primary)); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.ai-prose a:hover { color: hsl(var(--accent)); }
+.ai-prose ul, .ai-prose ol { padding-left: 1.15em; margin: 0.4em 0; }
+.ai-prose li { margin: 0.18em 0; padding-left: 0.15em; }
+.ai-prose ul > li::marker { color: hsl(var(--primary)); }
+.ai-prose ol > li::marker { color: hsl(var(--primary)); font-weight: 600; }
+.ai-prose blockquote {
+  margin: 0.8em 0;
+  padding: 0.5em 0.9em;
+  border-left: 3px solid hsl(var(--primary));
+  background: hsl(var(--primary) / 0.05);
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: hsl(var(--foreground) / 0.85);
+  font-style: italic;
+}
+.ai-prose code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+  font-size: 0.88em;
+  padding: 0.12em 0.4em;
+  background: hsl(var(--primary) / 0.08);
+  color: hsl(var(--accent));
+  border-radius: 0.3rem;
+}
+.ai-prose pre {
+  background: hsl(var(--accent) / 0.04);
+  border: 1px solid hsl(var(--border));
+  padding: 0.85em 1em;
+  border-radius: 0.6rem;
+  overflow-x: auto;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+.ai-prose pre code { background: transparent; padding: 0; color: hsl(var(--foreground)); }
+.ai-prose hr { border: none; border-top: 1px solid hsl(var(--border)); margin: 1.2em 0; }
+.ai-prose table { width: 100%; border-collapse: collapse; font-size: 0.92em; margin: 0.6em 0; }
+.ai-prose th, .ai-prose td { padding: 0.45em 0.7em; border: 1px solid hsl(var(--border)); text-align: left; }
+.ai-prose th { background: hsl(var(--muted)); font-weight: 600; }
