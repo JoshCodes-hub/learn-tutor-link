@@ -107,7 +107,7 @@ const AITutor = () => {
                   <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-[13.5px] leading-relaxed ${m.role === "user" ? "bg-primary text-primary-foreground whitespace-pre-wrap" : "bg-muted text-foreground"}`}>
                     {m.role === "assistant" ? (
                       m.content ? (
-                        <div className="prose prose-sm max-w-none font-sans prose-headings:font-serif prose-p:my-1.5 prose-strong:text-primary">
+                        <div className="ai-prose max-w-none">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>{sanitizeAIText(m.content)}</ReactMarkdown>
                         </div>
                       ) : (loading && i === messages.length - 1 ? <Sparkles className="w-4 h-4 animate-pulse" /> : "")

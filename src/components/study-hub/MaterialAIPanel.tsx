@@ -84,7 +84,7 @@ export const MaterialAIPanel = ({ material, open, onOpenChange }: Props) => {
     const clean = sanitizeAIText(c.text);
     return (
       <div className="space-y-3">
-        <div className="prose prose-sm max-w-none font-sans prose-headings:font-serif prose-p:my-2 prose-strong:text-primary">
+        <div className="ai-prose max-w-none">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{clean}</ReactMarkdown>
         </div>
         <div className="flex justify-end">

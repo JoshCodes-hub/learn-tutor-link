@@ -348,7 +348,7 @@ export const StudyCoachPanel = ({ course, materials = [], mode = "study_hub", cl
                 )}>
                   {m.role === "assistant" ? (
                     <>
-                      <div className="prose prose-sm max-w-none font-sans prose-headings:font-serif prose-headings:font-semibold prose-headings:text-amber-900 prose-p:my-1.5 prose-p:text-foreground/90 prose-ul:my-1.5 prose-li:my-0.5 prose-strong:text-amber-800 prose-code:text-amber-700 prose-code:before:content-none prose-code:after:content-none prose-code:bg-amber-50 prose-code:px-1 prose-code:rounded">
+                      <div className="ai-prose max-w-none">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{sanitizeAIText(m.content) || "…"}</ReactMarkdown>
                       </div>
                       {m.sources && m.sources.length > 0 && (() => {
