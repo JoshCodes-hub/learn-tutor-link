@@ -15,6 +15,7 @@ import {
   Mic,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { playGlobal } from "@/lib/globalAudio";
 
 /**
  * Royalty-free soft piano loops (CC0/Pixabay-hosted).
@@ -624,7 +625,16 @@ export const AudioPlayerCard = ({
       </div>
 
       {/* Footer actions */}
-      <div className="px-5 sm:px-6 pb-5 pt-1 grid grid-cols-2 gap-3">
+      <div className="px-5 sm:px-6 pb-5 pt-1 space-y-2.5">
+        <button
+          type="button"
+          onClick={() => playGlobal({ src, title, subtitle })}
+          className="w-full h-11 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 font-semibold text-sm inline-flex items-center justify-center gap-2 hover:bg-amber-100 active:scale-[0.98] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+          title="Keep playing in the background while you move around the app"
+        >
+          <Headphones className="h-4 w-4" /> Play in background
+        </button>
+        <div className="grid grid-cols-2 gap-3">
         <a
           href={src}
           download={downloadName}
@@ -645,6 +655,7 @@ export const AudioPlayerCard = ({
         >
           <BookmarkPlus className="h-4 w-4" /> Save to Library
         </button>
+        </div>
       </div>
     </div>
   );
