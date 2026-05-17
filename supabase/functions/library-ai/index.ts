@@ -57,11 +57,28 @@ function buildToolForAction(action: Action, count: number) {
         type: "object",
         properties: {
           title: { type: "string" },
-          overview: { type: "string", description: "2-3 sentence overview" },
+          overview: { type: "string", description: "2-3 sentence overview written in clear plain English" },
+          sections: {
+            type: "array",
+            minItems: 2,
+            maxItems: 6,
+            description: "Topic-grouped breakdown of the material",
+            items: {
+              type: "object",
+              properties: {
+                heading: { type: "string" },
+                bullets: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 8 },
+              },
+              required: ["heading", "bullets"],
+              additionalProperties: false,
+            },
+          },
           key_points: { type: "array", items: { type: "string" }, minItems: 5, maxItems: 12 },
+          formulas_or_definitions: { type: "array", items: { type: "string" }, maxItems: 10 },
           must_know: { type: "array", items: { type: "string" }, minItems: 3, maxItems: 10 },
+          exam_tips: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 },
         },
-        required: ["title", "overview", "key_points", "must_know"],
+        required: ["title", "overview", "sections", "key_points", "must_know", "exam_tips"],
         additionalProperties: false,
       },
     };
@@ -101,7 +118,7 @@ function systemPromptFor(action: Action, difficulty: string, count: number) {
     return `You are an expert study coach. Create ${count} high-quality ${difficulty} flashcards from the user's course material. Cover the most important concepts evenly. Keep front under 120 chars, back under 240 chars. Use plain text, no markdown.`;
   }
   if (action === "summary") {
-    return "You are a study coach. Produce a tight, exam-ready brief: a short overview, the key points, and a 'must-know' list a student would memorize the night before. Plain text only.";
+    return "You are an elite university study coach. Produce a tight, exam-ready brief that is STRUCTURED, not a wall of text. Group the material into 2–6 topic sections with concise bullet points (max 18 words each). Pull out key definitions and any formulas verbatim. End with a short list of practical exam tips. Use clean plain English — no markdown symbols, no asterisks, no emojis.";
   }
   return `You are an exam writer. Create ${count} ${difficulty} multiple-choice questions from the course material. Each question must have exactly 4 options with one correct answer. Provide a brief explanation. Plain text only.`;
 }

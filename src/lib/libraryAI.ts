@@ -84,18 +84,35 @@ export async function runLibraryAI(
     });
     cards = list;
   } else if (action === "summary") {
-    const lines = [
+    const parts: string[] = [
       `# ${result.title || resource.title}`,
       ``,
       `## Overview`,
       result.overview || "",
-      ``,
-      `## Key points`,
-      ...(result.key_points || []).map((k: string) => `• ${k}`),
-      ``,
-      `## Must know`,
-      ...(result.must_know || []).map((k: string) => `★ ${k}`),
-    ].join("\n");
+    ];
+    if (Array.isArray(result.sections) && result.sections.length) {
+      for (const sec of result.sections) {
+        parts.push("", `## ${sec.heading}`);
+        for (const b of sec.bullets || []) parts.push(`- ${b}`);
+      }
+    }
+    if (Array.isArray(result.key_points) && result.key_points.length) {
+      parts.push("", "## Key points");
+      for (const k of result.key_points) parts.push(`- ${k}`);
+    }
+    if (Array.isArray(result.formulas_or_definitions) && result.formulas_or_definitions.length) {
+      parts.push("", "## Formulas & definitions");
+      for (const k of result.formulas_or_definitions) parts.push(`- ${k}`);
+    }
+    if (Array.isArray(result.must_know) && result.must_know.length) {
+      parts.push("", "## Must know");
+      for (const k of result.must_know) parts.push(`- ${k}`);
+    }
+    if (Array.isArray(result.exam_tips) && result.exam_tips.length) {
+      parts.push("", "## Exam tips");
+      for (const k of result.exam_tips) parts.push(`- ${k}`);
+    }
+    const lines = parts.join("\n");
     saved = await saveTextNote({
       userId,
       title: `Summary — ${resource.title}`,
