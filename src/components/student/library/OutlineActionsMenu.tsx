@@ -1,49 +1,82 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Layers, FileText, ClipboardList, Loader2 } from "lucide-react";
+import { Sparkles, Layers, FileText, ClipboardList, Loader2, AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { type UserResource } from "@/lib/userResources";
 import { runLibraryAI, type LibraryAIAction } from "@/lib/libraryAI";
 import { FlashcardStudyDialog, type Flashcard } from "./FlashcardStudyDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
 interface Props {
   resource: UserResource;
 }
 
+const STAGES: Record<LibraryAIAction, string[]> = {
+  flashcards: ["Opening your file", "Extracting text", "Asking AI for flashcards", "Saving to your Library"],
+  summary:    ["Opening your file", "Extracting text", "Building a structured summary", "Saving to your Library"],
+  quiz:       ["Opening your file", "Extracting text", "Writing practice questions", "Saving to your Library"],
+};
+
+const LABELS: Record<LibraryAIAction, string> = {
+  flashcards: "Flashcards",
+  summary: "Study summary",
+  quiz: "Practice quiz",
+};
+
 export const OutlineActionsMenu = ({ resource }: Props) => {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [busy, setBusy] = useState<null | LibraryAIAction>(null);
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [studyOpen, setStudyOpen] = useState(false);
+  const [action, setAction] = useState<LibraryAIAction | null>(null);
+  const [stage, setStage] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
 
-  const run = async (action: LibraryAIAction) => {
+  const busy = !!action && !done && !error;
+
+  useEffect(() => {
+    if (!busy) return;
+    const targets = [25, 55, 85, 95];
+    const target = targets[stage] ?? 95;
+    const id = setInterval(() => {
+      setProgress((p) => (p < target ? Math.min(target, p + 2) : p));
+    }, 120);
+    return () => clearInterval(id);
+  }, [busy, stage]);
+
+  const run = async (a: LibraryAIAction) => {
     if (!user?.id) return;
-    setBusy(action);
+    setAction(a); setStage(0); setProgress(8); setError(null); setDone(false);
     try {
-      toast.loading("Reading your file…", { id: "lib-ai" });
-      const out = await runLibraryAI(resource, action, user.id);
-      toast.dismiss("lib-ai");
+      setStage(1);
+      setTimeout(() => setStage((s) => Math.max(s, 2)), 600);
+      const out = await runLibraryAI(resource, a, user.id);
+      setStage(3); setProgress(100); setDone(true);
       qc.invalidateQueries({ queryKey: ["user-resources", user.id] });
-      if (action === "flashcards" && out.cards?.length) {
+      if (a === "flashcards" && out.cards?.length) {
         setCards(out.cards as Flashcard[]);
-        setStudyOpen(true);
-        toast.success(`${out.cards.length} flashcards ready 🎉`);
-      } else if (action === "summary") {
-        toast.success("Summary saved to your Library 📝");
-      } else if (action === "quiz") {
+        toast.success(`${out.cards.length} flashcards ready`);
+      } else if (a === "summary") {
+        toast.success("Summary saved to your Library");
+      } else if (a === "quiz") {
         toast.success("Practice quiz saved to Library");
       }
     } catch (e) {
-      toast.dismiss("lib-ai");
       console.error(e);
-      toast.error(e instanceof Error ? e.message : "Action failed");
-    } finally {
-      setBusy(null);
+      setError(e instanceof Error ? e.message : "Generation failed");
     }
+  };
+
+  const closeDialog = () => {
+    const wasFlash = action === "flashcards" && cards.length > 0 && done;
+    setAction(null); setProgress(0); setStage(0); setError(null); setDone(false);
+    if (wasFlash) setStudyOpen(true);
   };
 
   return (
@@ -55,7 +88,7 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
             variant="default"
             className="h-8 gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-sm"
             onClick={(e) => e.stopPropagation()}
-            disabled={!!busy}
+            disabled={busy}
           >
             {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
             <span className="text-xs font-semibold">AI</span>
@@ -64,17 +97,78 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
         <DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
           <DropdownMenuLabel className="text-xs">Generate from this material</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => run("flashcards")} disabled={!!busy}>
+          <DropdownMenuItem onClick={() => run("flashcards")} disabled={busy}>
             <Layers className="w-4 h-4 mr-2 text-orange-600" /> Flashcards
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => run("summary")} disabled={!!busy}>
+          <DropdownMenuItem onClick={() => run("summary")} disabled={busy}>
             <FileText className="w-4 h-4 mr-2 text-sky-600" /> Study summary
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => run("quiz")} disabled={!!busy}>
+          <DropdownMenuItem onClick={() => run("quiz")} disabled={busy}>
             <ClipboardList className="w-4 h-4 mr-2 text-violet-600" /> Practice quiz
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Dialog open={!!action} onOpenChange={(o) => { if (!o && !busy) closeDialog(); }}>
+        <DialogContent className="max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-display">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              {action ? LABELS[action] : "Generating"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {!error && !done && action && (
+            <div className="space-y-3">
+              <Progress value={progress} className="h-2" />
+              <ul className="space-y-1.5">
+                {STAGES[action].map((label, i) => (
+                  <li key={label} className="flex items-center gap-2 text-xs">
+                    {i < stage ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    ) : i === stage ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500 shrink-0" />
+                    ) : (
+                      <span className="w-3.5 h-3.5 rounded-full border border-muted-foreground/30 shrink-0" />
+                    )}
+                    <span className={i <= stage ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-[11px] text-muted-foreground">You can leave this dialog open while AI works — usually 5–15s.</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 text-sm text-destructive">
+                <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span className="leading-snug">{error}</span>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={closeDialog}>Close</Button>
+                <Button size="sm" onClick={() => action && run(action)} className="gap-1.5 bg-amber-500 hover:bg-amber-600 text-white">
+                  <RefreshCw className="w-3.5 h-3.5" /> Retry
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {done && !error && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-emerald-600">
+                <CheckCircle2 className="w-4 h-4" /> Saved to your Library.
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button size="sm" onClick={closeDialog} className="bg-amber-500 hover:bg-amber-600 text-white">
+                  {action === "flashcards" && cards.length ? "Start studying" : "Done"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <FlashcardStudyDialog
         open={studyOpen}
         onOpenChange={setStudyOpen}
