@@ -12,6 +12,7 @@ import BiometricUnlock from "@/components/native/BiometricUnlock";
 import OfflineBanner from "@/components/native/OfflineBanner";
 import BottomTabBar from "@/components/app-shell/BottomTabBar";
 import NewStudyPackFAB from "@/components/student/NewStudyPackFAB";
+import MiniPlayerBar from "@/components/audio/MiniPlayerBar";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import RoleBadge from "@/components/auth/RoleBadge";
 import { NetworkStatus } from "@/components/system/NetworkStatus";
@@ -62,6 +63,7 @@ const App = () => {
                 </div>
                 <BottomTabBar />
                 <NewStudyPackFAB />
+                <MiniPlayerBar />
                 <RoleBadge />
               </BiometricUnlock>
             </AuthProvider>
