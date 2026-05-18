@@ -107,6 +107,7 @@ const StudyPacks = lazy(() => import("@/pages/student/StudyPacks"));
 const Library = lazy(() => import("@/pages/student/Library"));
 const UploadAnalytics = lazy(() => import("@/pages/student/UploadAnalytics"));
 const OfflineDownloads = lazy(() => import("@/pages/student/OfflineDownloads"));
+const AIHistory = lazy(() => import("@/pages/student/AIHistory"));
 const ChatInbox = lazy(() => import("@/pages/chat/Inbox"));
 const ChatThread = lazy(() => import("@/pages/chat/ThreadView"));
 const ChatJoin = lazy(() => import("@/pages/chat/ChatJoin"));
