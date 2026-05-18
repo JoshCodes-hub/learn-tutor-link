@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Layers, FileText, ClipboardList, Loader2, AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import { Sparkles, Layers, FileText, ClipboardList, Loader2, AlertTriangle, CheckCircle2, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
@@ -37,8 +37,10 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [cancelled, setCancelled] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const busy = !!action && !done && !error;
+  const busy = !!action && !done && !error && !cancelled;
 
   useEffect(() => {
     if (!busy) return;
@@ -52,11 +54,14 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
 
   const run = async (a: LibraryAIAction) => {
     if (!user?.id) return;
-    setAction(a); setStage(0); setProgress(8); setError(null); setDone(false);
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+    setAction(a); setStage(0); setProgress(8); setError(null); setDone(false); setCancelled(false);
     try {
       setStage(1);
       setTimeout(() => setStage((s) => Math.max(s, 2)), 600);
-      const out = await runLibraryAI(resource, a, user.id);
+      const out = await runLibraryAI(resource, a, user.id, { signal: ac.signal });
       setStage(3); setProgress(100); setDone(true);
       qc.invalidateQueries({ queryKey: ["user-resources", user.id] });
       if (a === "flashcards" && out.cards?.length) {
@@ -69,13 +74,20 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
       }
     } catch (e) {
       console.error(e);
-      setError(e instanceof Error ? e.message : "Generation failed");
+      if ((e as any)?.name === "AbortError") {
+        setCancelled(true);
+        toast.info("Generation cancelled");
+      } else {
+        setError(e instanceof Error ? e.message : "Generation failed");
+      }
     }
   };
 
+  const cancel = () => { abortRef.current?.abort(); };
+
   const closeDialog = () => {
     const wasFlash = action === "flashcards" && cards.length > 0 && done;
-    setAction(null); setProgress(0); setStage(0); setError(null); setDone(false);
+    setAction(null); setProgress(0); setStage(0); setError(null); setDone(false); setCancelled(false);
     if (wasFlash) setStudyOpen(true);
   };
 
@@ -136,6 +148,26 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
                 ))}
               </ul>
               <p className="text-[11px] text-muted-foreground">You can leave this dialog open while AI works — usually 5–15s.</p>
+              <div className="flex justify-end">
+                <Button variant="ghost" size="sm" onClick={cancel} className="gap-1.5 text-muted-foreground hover:text-destructive">
+                  <X className="w-3.5 h-3.5" /> Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {cancelled && !error && !done && (
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                <X className="w-4 h-4 mt-0.5 shrink-0" />
+                <span className="leading-snug">Generation cancelled.</span>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={closeDialog}>Close</Button>
+                <Button size="sm" onClick={() => action && run(action)} className="gap-1.5 bg-amber-500 hover:bg-amber-600 text-white">
+                  <RefreshCw className="w-3.5 h-3.5" /> Retry
+                </Button>
+              </div>
             </div>
           )}
 
