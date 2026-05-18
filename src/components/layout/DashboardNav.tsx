@@ -41,6 +41,7 @@ interface DashboardNavProps {
 const linksByRole: Record<Role, NavLink[]> = {
   student: [
     { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/courses", label: "Courses", icon: BookOpen },
     { to: "/subjects", label: "Subjects", icon: Layers, paths: ["secondary", "jamb"] },
     // JAMB Intel paused — focus on University + School
     // { to: "/jamb-intelligence", label: "JAMB Intel", icon: Flame, paths: ["jamb"] },
@@ -58,6 +59,7 @@ const linksByRole: Record<Role, NavLink[]> = {
   ],
   tutor: [
     { to: "/tutor/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/courses", label: "Courses", icon: BookOpen },
     { to: "/tutor/question-cards", label: "Question Cards", icon: ImageIcon },
     { to: "/study-hub", label: "Study Hub", icon: Library },
     { to: "/theory", label: "Theory Prep", icon: BookOpen },
@@ -68,6 +70,7 @@ const linksByRole: Record<Role, NavLink[]> = {
   ],
   admin: [
     { to: "/admin/dashboard", label: "Dashboard", icon: Shield },
+    { to: "/courses", label: "Courses", icon: BookOpen },
     { to: "/admin/applications", label: "Tutors", icon: ClipboardCheck },
     { to: "/admin/schools", label: "Schools", icon: School },
     { to: "/admin/startup-checklist", label: "Startup Check", icon: CheckCircle2 },
