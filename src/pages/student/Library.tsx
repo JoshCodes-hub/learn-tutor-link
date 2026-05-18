@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Library as LibraryIcon, Search, Folder, Trash2, ExternalLink, Loader2, Image as ImageIcon, FileText, Headphones, Upload, Sparkles, BarChart3,
-  CloudDownload,
+  CloudDownload, History,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -151,6 +151,9 @@ const Library = () => {
               </Button>
               <Button asChild variant="outline" size="icon" title="Offline downloads" aria-label="Offline downloads">
                 <Link to="/library/offline-downloads"><CloudDownload className="w-4 h-4" /></Link>
+              </Button>
+              <Button asChild variant="outline" size="icon" title="AI generation history" aria-label="AI generation history">
+                <Link to="/ai-history"><History className="w-4 h-4" /></Link>
               </Button>
               <Button
                 onClick={() => setUploadOpen(true)}
