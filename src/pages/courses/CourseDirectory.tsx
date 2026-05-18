@@ -51,7 +51,7 @@ const CourseDirectory = () => {
       <SEO title="Courses — OverraPrep" description="Browse academic courses and open dedicated hubs for materials, quizzes, flashcards, and AI study packs." />
       <DashboardNav role={navRole} />
       <div className="max-w-6xl mx-auto px-4 py-6 pb-24">
-        <DashboardBreadcrumb items={[{ label: "Courses" }]} />
+        <DashboardBreadcrumb role={navRole} />
         <header className="mt-2 mb-5 flex items-end justify-between gap-3 flex-wrap">
           <div>
             <h1 className="font-display text-2xl md:text-3xl flex items-center gap-2">
