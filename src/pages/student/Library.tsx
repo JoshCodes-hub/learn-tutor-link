@@ -298,7 +298,7 @@ const Library = () => {
                         )}
                         {isOffline && (
                           <Badge className="text-[10px] bg-emerald-500 hover:bg-emerald-500 text-white gap-0.5">
-                            <CloudDownload className="w-2.5 h-2.5" /> Offline
+                            <CloudDownload className="w-2.5 h-2.5" /> Offline Ready
                           </Badge>
                         )}
                         <Badge variant="secondary" className="text-[10px] capitalize">
