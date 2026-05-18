@@ -14,6 +14,10 @@ export interface CachedMaterial {
   ext?: string;
   blob: Blob;
   cached_at: number;
+  /** Optional course id this material belongs to — used by the offline manager to group per course. */
+  course_id?: string | null;
+  course_code?: string | null;
+  source_url?: string | null;
 }
 
 function openDb(): Promise<IDBDatabase> {
@@ -68,6 +72,8 @@ export interface CachedSummary {
   ext?: string;
   size: number;
   cached_at: number;
+  course_id?: string | null;
+  course_code?: string | null;
 }
 
 export async function listCachedMaterials(): Promise<CachedSummary[]> {
@@ -81,9 +87,52 @@ export async function listCachedMaterials(): Promise<CachedSummary[]> {
       resolve(rows.map((r) => ({
         id: r.id, title: r.title, mime: r.mime, ext: r.ext,
         size: r.blob?.size ?? 0, cached_at: r.cached_at,
+        course_id: r.course_id ?? null, course_code: r.course_code ?? null,
       })));
     };
     req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+
+/** Returns cached materials filtered to a single course. */
+export async function listCachedMaterialsByCourse(courseId: string): Promise<CachedSummary[]> {
+  const all = await listCachedMaterials();
+  return all.filter((m) => m.course_id === courseId);
+}
+
+/** Convenience: cache a file by fetching it from a URL. */
+export async function cacheMaterialFromUrl(input: {
+  id: string; title: string; url: string;
+  course_id?: string | null; course_code?: string | null;
+  onProgress?: (loaded: number, total: number | null) => void;
+}): Promise<void> {
+  const res = await fetch(input.url);
+  if (!res.ok) throw new Error(`Download failed (${res.status})`);
+  const total = Number(res.headers.get("Content-Length")) || null;
+  // Stream so we can report progress.
+  const reader = res.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let loaded = 0;
+  if (reader) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) { chunks.push(value); loaded += value.length; input.onProgress?.(loaded, total); }
+    }
+  }
+  const blob = reader ? new Blob(chunks as BlobPart[], { type: res.headers.get("Content-Type") || "application/octet-stream" }) : await res.blob();
+  const ext = (input.url.split(".").pop() || "").split("?")[0].toLowerCase() || undefined;
+  await cacheMaterialOffline({
+    id: input.id,
+    title: input.title,
+    mime: blob.type || "application/octet-stream",
+    ext,
+    blob,
+    cached_at: Date.now(),
+    course_id: input.course_id ?? null,
+    course_code: input.course_code ?? null,
+    source_url: input.url,
   });
 }
 
