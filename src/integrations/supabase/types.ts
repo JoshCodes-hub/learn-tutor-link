@@ -77,6 +77,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generation_history: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          output_ref: string | null
+          params: Json
+          resource_id: string | null
+          resource_label: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          output_ref?: string | null
+          params?: Json
+          resource_id?: string | null
+          resource_label?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          output_ref?: string | null
+          params?: Json
+          resource_id?: string | null
+          resource_label?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -952,6 +988,51 @@ export type Database = {
           },
         ]
       }
+      course_images: {
+        Row: {
+          caption: string | null
+          course_id: string
+          created_at: string
+          id: string
+          topic_id: string | null
+          uploaded_by: string
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          topic_id?: string | null
+          uploaded_by: string
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          topic_id?: string | null
+          uploaded_by?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_images_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_images_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_modes: {
         Row: {
           course_id: string
@@ -1428,40 +1509,61 @@ export type Database = {
         Row: {
           academic_path: Database["public"]["Enums"]["academic_path"] | null
           back: string
+          course_id: string | null
           created_at: string
           front: string
           id: string
           is_public: boolean
           subject: string | null
           topic: string | null
+          topic_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           academic_path?: Database["public"]["Enums"]["academic_path"] | null
           back: string
+          course_id?: string | null
           created_at?: string
           front: string
           id?: string
           is_public?: boolean
           subject?: string | null
           topic?: string | null
+          topic_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           academic_path?: Database["public"]["Enums"]["academic_path"] | null
           back?: string
+          course_id?: string | null
           created_at?: string
           front?: string
           id?: string
           is_public?: boolean
           subject?: string | null
           topic?: string | null
+          topic_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flashcards_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       learning_goals: {
         Row: {

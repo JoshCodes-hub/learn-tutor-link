@@ -1,87 +1,79 @@
 ## Goal
-Phase-by-phase upgrade of the student dashboard, notifications hub, level-aware course access, and persistent profile identity, plus a tutor-side level picker for content creation.
+Extend OverraPrep with a course-centric content architecture, improve the Library, upgrade AI generation UX, and add generation history + cancellation — without rebuilding existing features.
 
----
+## 1. Course-Centric Architecture
 
-## Phase 1 — Notifications Hub `/notifications`
-**Files:** edit `src/pages/NotificationsPage.tsx`, edit `src/components/student/DashboardNotificationCard.tsx`
+### Data model (migration)
+Reuse existing `courses` and `topics`. Add light linkage so content can be filtered per course:
+- `courses`: add `code` (e.g. GNS101), `cover_url`, `created_by` (tutor), `is_published` (already exists if present — verify).
+- `topics`: ensure `course_id` FK exists.
+- `lecture_notes` / tutor materials: ensure `course_id` and optional `topic_id`.
+- `flashcard_decks` (new if missing): `id, course_id, topic_id?, title, owner_id, visibility`.
+- `flashcards`: `deck_id, front, back, order_index`.
+- `quizzes`: already has `course_id` — confirm + add `topic_id` nullable.
+- `course_images` (new): `course_id, topic_id?, url, caption, uploaded_by`.
+- RLS: tutors manage their own; students read published/approved.
 
-- Add filter chips: **All / Unread / Mentions / System** (client-side filter on `useNotifications` data).
-- Add per-row "Mark read" button alongside existing "Mark all read".
-- Smooth navigation: card "See more" already routes to `/notifications`; add `framer-motion` page transition + restore scroll position on back.
-- Keep existing realtime subscription.
+### Routes
+- `/courses` — searchable course directory (students + tutors).
+- `/courses/:courseId` — Course Hub with tabs:
+  - Overview, Documents/PDFs, Flashcards, Quizzes, Images/Materials, AI Study Packs.
+- `/tutor/courses` — tutor's courses list with "New Course" CTA.
+- `/tutor/courses/:courseId/manage` — manage topics + upload tabs (documents, flashcards, quizzes, images).
 
----
+### Components
+- `CourseHubLayout` (tab nav, header with code/title/cover).
+- `CourseDocumentsTab`, `CourseFlashcardsTab`, `CourseQuizzesTab`, `CourseImagesTab`, `CourseStudyPacksTab`.
+- `TutorCourseEditor` (create course, add topics, upload to each tab).
+- Keep existing pages working; add deep-links from old listings to the new hub.
 
-## Phase 2 — Unified "Updates" Tray (Announcements + Notifications together)
-**Files:** new `src/components/student/UpdatesCenter.tsx`, edit `StudentDashboard.tsx` (replace separate `DashboardNotificationCard` + `PlatformAnnouncements` placement with a single tabbed card).
+## 2. Library Improvements
+- Tutor materials surfaced inside Library with Open/View/Download actions (reuse existing viewer).
+- "Offline Ready" badge driven by `offlineLibraryCache.isCached(resourceId)` after cache completes.
+- Persistent saved items: already in `saved_resources`; ensure tutor materials auto-link when saved.
 
-- Two tabs: **Notifications** (personal) and **Announcements** (platform).
-- Unread badge sums both. Top-right action: "Open all" → `/notifications`.
+## 3. AI Generation Upgrades
 
----
+### Structured quiz output
+- Update `library-ai` / quiz generation prompt + JSON schema to enforce:
+  `{ question, options[4], correct_index, explanation, difficulty }`.
+- Render in a clean card with Question → Options → Correct Answer → Explanation.
+- After generation, open a **Review Mode** screen showing all Q/A before saving or starting practice.
 
-## Phase 3 — Premium Quick Actions
-**Files:** new `src/components/student/PremiumQuickActions.tsx`, mount above the existing tile grid in `StudentDashboard.tsx`.
+### Generation history
+- New table `ai_generation_history`:
+  `id, user_id, resource_id, kind (quiz|flashcards|summary|audio), output_ref, status, created_at, params jsonb`.
+- UI panel on Library item + Study Packs: list past generations with **Quick Open**, **Re-run**, timestamp.
 
-Cards (with framer-motion `whileHover`/`whileTap`, gold-gradient icon chips):
-- **Resume last quiz** → reads latest `quiz_attempts` where `completed_at IS NULL`, deep-links to `/quiz/:id`.
-- **Start CBT simulation** → `/exams` (mock CBT).
-- **Buy tutor quiz** → `/tutor-marketplace` (or storefront list).
-- **Practice weak topic** → `/student/weak-area-drill`.
+### Cancel generation
+- Wire `AbortController` through `OutlineActionsMenu` + `libraryAI` calls.
+- Progress dialog gains a **Cancel** button that aborts the fetch and marks history row `cancelled`.
 
-Each card shows a one-line dynamic subtitle (e.g. "Biology • 12 left") with skeleton while loading.
+## 4. UI/UX
+- White + gold tokens (existing). Use `.ai-prose` for AI output.
+- Mobile-first: tab bar scrolls horizontally on `/courses/:id`.
+- Large icon cards on Course Hub tabs.
+- No global restyle — only new screens + small badge/button additions.
 
----
+## Technical sections
 
-## Phase 4 — Exam Readiness Widget
-**Files:** new `src/components/student/ExamReadinessWidget.tsx`, mount on dashboard.
+### Files to add
+- `supabase/migrations/<ts>_course_architecture.sql`
+- `src/pages/courses/CourseDirectory.tsx`
+- `src/pages/courses/CourseHub.tsx` + tab components in `src/components/courses/`
+- `src/pages/tutor/TutorCourseEditor.tsx`
+- `src/pages/quiz/QuizReviewMode.tsx`
+- `src/components/ai/GenerationHistoryPanel.tsx`
+- `src/lib/aiGenerationHistory.ts`
 
-- Reuse logic from `ReadinessRing` for the score.
-- Add **Top 3 weak topics** as chips → each chip links to `/student/weak-area-drill?topic=...`.
-- "Full breakdown" link → `/student/mastery-breakdown`.
+### Files to edit
+- `src/components/layout/AnimatedRoutes.tsx` — new routes
+- `src/components/student/library/OutlineActionsMenu.tsx` — abort + history logging
+- `src/lib/libraryAI.ts` — AbortSignal support, structured quiz schema
+- `supabase/functions/library-ai/index.ts` — schema enforcement, abort-friendly
+- `src/pages/student/Library.tsx` — Offline Ready badge, tutor-material actions
+- Tutor dashboard nav — link to `/tutor/courses`
 
----
-
-## Phase 5 — Smarter Greeting + Persistent Avatar
-**Files:** edit `src/components/student/MobileGreetingHeader.tsx`, edit `src/hooks/useAuth.tsx` (avatar cache only).
-
-- Greeting already time-based; refine to also show day-name on first visit per session ("Happy Monday, Tunde").
-- **Persistent avatar across sessions/logout:** cache `profile.avatar_url` in `localStorage` (`overra.avatar.<userId>`) on profile load, and hydrate `localAvatar` from cache before network fetch resolves so it appears instantly after re-login. Already saved server-side to `profiles.avatar_url` + `profile_image_url` so it survives logout — fix any case where one of the two is null by always writing both.
-- Add a **logout button** in the header (small ghost icon with confirm) and merge the bell so the right-side cluster is `[Updates bell] [Logout]`. The bell already opens `/notifications`, which now contains both notifications + announcements (Phase 2 makes them one screen).
-
----
-
-## Phase 6 — Student Level Switcher + Level-Gated Courses
-**DB migration:** none needed — `profiles.academic_metadata.level` and `courses.level` already exist.
-
-**Files:**
-- new `src/components/student/LevelSwitcherDialog.tsx` (dialog with `100L … 500L` + "JAMB" + "Secondary").
-- new `src/hooks/useStudentLevel.ts` (read/write `academic_metadata.level`, invalidate course queries).
-- edit `src/pages/student/MyCourses.tsx`, course browse pages, and `FreshCourses` to filter `WHERE courses.level = currentLevel OR courses.level IS NULL` and show a soft empty state "No courses for 200L yet — switch level".
-- Add a **Level pill** in `MobileGreetingHeader` next to the streak chip; tap opens `LevelSwitcherDialog`.
-- Gate detail routes: if a student opens a course of a different level, show a "Switch to {level} to access" CTA instead of content.
-
----
-
-## Phase 7 — Tutor Level Picker for Content
-**Files:**
-- edit `src/components/tutor/CreateCourseDialog.tsx`, `CreateQuizDialog.tsx`, `UnifiedQuizCreator.tsx`, `BulkQuizImport.tsx`: add a required **Level** select (100L–500L, JAMB, Secondary, "All levels") that writes to `courses.level` / quiz tags.
-- edit `src/components/tutor/QuizManagement.tsx` to show a Level filter chip row.
-- For resources/materials (`tutor_curricula`, `lecture_notes`): add same level field via small migration only if missing (verify, then add `level TEXT` column; otherwise reuse).
-
----
-
-## Technical notes
-- All new UI uses existing semantic tokens (gold/amber + white) and `framer-motion`. No new deps.
-- Notifications data flows through existing `useNotifications` hook — no schema changes.
-- Quick action "Resume last quiz" uses a single Supabase query bounded by `limit(1)` to keep dashboard fast.
-- Level filtering is enforced **client-side first** (fast UX) and re-checked on detail-page mount; we intentionally don't change RLS so admins / cross-level browsing keeps working from other surfaces.
-- Logout reuses `useAuth().signOut()`; no session changes.
-
----
-
-## Out of scope
-- Migrating roles or RLS.
-- Backend cron / push notifications.
-- Tutor payouts changes.
+### Out of scope (kept as-is)
+- Existing AI prose typography, splash, audio mini player, payments.
+- Existing global pages (Study Packs, AI Tutor) — only add deep links into course hub.
