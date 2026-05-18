@@ -60,3 +60,43 @@ export async function listAIGenerationsForResource(resourceId: string): Promise<
   if (error) return [];
   return (data ?? []) as unknown as AIGenRow[];
 }
+
+export interface AIGenFilter {
+  userId: string;
+  kind?: AIGenKind | "all";
+  status?: AIGenStatus | "all";
+  search?: string; // matches resource_label
+  since?: string; // ISO date
+  until?: string;
+  limit?: number;
+}
+
+export async function listAIGenerations(f: AIGenFilter): Promise<AIGenRow[]> {
+  let q = supabase
+    .from("ai_generation_history")
+    .select("*")
+    .eq("user_id", f.userId)
+    .order("created_at", { ascending: false })
+    .limit(f.limit ?? 200);
+  if (f.kind && f.kind !== "all") q = q.eq("kind", f.kind);
+  if (f.status && f.status !== "all") q = q.eq("status", f.status);
+  if (f.search?.trim()) q = q.ilike("resource_label", `%${f.search.trim()}%`);
+  if (f.since) q = q.gte("created_at", f.since);
+  if (f.until) q = q.lte("created_at", f.until);
+  const { data, error } = await q;
+  if (error) return [];
+  return (data ?? []) as unknown as AIGenRow[];
+}
+
+export function exportAIGenerationsToCsv(rows: AIGenRow[]): string {
+  const head = ["created_at", "kind", "status", "resource_label", "resource_id", "output_ref"];
+  const esc = (v: unknown) => {
+    const s = v == null ? "" : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const lines = [head.join(",")];
+  for (const r of rows) {
+    lines.push([r.created_at, r.kind, r.status, r.resource_label ?? "", r.resource_id ?? "", r.output_ref ?? ""].map(esc).join(","));
+  }
+  return lines.join("\n");
+}
