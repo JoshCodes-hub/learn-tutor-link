@@ -345,6 +345,7 @@ export const AnimatedRoutes = () => {
           <Route path="/library" element={<PageTransition><Library /></PageTransition>} />
           <Route path="/library/analytics" element={<PageTransition><UploadAnalytics /></PageTransition>} />
           <Route path="/library/offline-downloads" element={<PageTransition><OfflineDownloads /></PageTransition>} />
+          <Route path="/ai-history" element={<PageTransition><AIHistory /></PageTransition>} />
           <Route path="/courses" element={<PageTransition><CourseDirectory /></PageTransition>} />
           <Route path="/courses/:courseId" element={<PageTransition><CourseHub /></PageTransition>} />
           <Route path="/tutor/courses/new" element={<PageTransition><TutorCourseEditor /></PageTransition>} />
