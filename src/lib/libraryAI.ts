@@ -4,6 +4,7 @@ import {
 } from "@/lib/userResources";
 import { extractTextFromFile } from "@/lib/extractText";
 import { track } from "@/lib/analytics";
+import { logAIGeneration, updateAIGeneration } from "@/lib/aiGenerationHistory";
 
 export type LibraryAIAction = "flashcards" | "summary" | "quiz";
 
@@ -27,10 +28,10 @@ export function suggestedActionForMaterial(materialType?: string | null): Librar
 }
 
 /** Fetch the resource's bytes via signed URL and run client-side extraction. */
-async function getTextForResource(r: UserResource): Promise<string> {
+async function getTextForResource(r: UserResource, signal?: AbortSignal): Promise<string> {
   const url = await getResourceSignedUrl(r.storage_path, 600);
   if (!url) throw new Error("Could not open file");
-  const blob = await (await fetch(url)).blob();
+  const blob = await (await fetch(url, { signal })).blob();
   const file = new File([blob], r.title || "material", { type: r.mime || blob.type });
   if (file.type.startsWith("text/") || /\.(txt|md)$/i.test(r.title)) return await file.text();
   const text = await extractTextFromFile(file);
@@ -48,23 +49,35 @@ export async function runLibraryAI(
   resource: UserResource,
   action: LibraryAIAction,
   userId: string,
+  opts: { signal?: AbortSignal } = {},
 ): Promise<LibraryAIResult> {
   const startedAt = Date.now();
   void track("library_ai_started", { action, resource_id: resource.id });
-
-  const text = await getTextForResource(resource);
-  const { data, error } = await supabase.functions.invoke("library-ai", {
-    body: {
-      action,
-      text,
-      title: resource.title,
-      count: action === "flashcards" ? 15 : action === "quiz" ? 10 : undefined,
-      difficulty: "medium",
-    },
+  const historyId = await logAIGeneration({
+    userId,
+    kind: action,
+    resourceId: resource.id,
+    resourceLabel: resource.title,
+    status: "processing",
   });
-  if (error) throw new Error(error.message);
-  if ((data as any)?.error) throw new Error((data as any).error);
-  const result = (data as any)?.result;
+
+  try {
+    if (opts.signal?.aborted) throw new DOMException("Cancelled", "AbortError");
+    const text = await getTextForResource(resource, opts.signal);
+    if (opts.signal?.aborted) throw new DOMException("Cancelled", "AbortError");
+    const { data, error } = await supabase.functions.invoke("library-ai", {
+      body: {
+        action,
+        text,
+        title: resource.title,
+        count: action === "flashcards" ? 15 : action === "quiz" ? 10 : undefined,
+        difficulty: "medium",
+      },
+    });
+    if (opts.signal?.aborted) throw new DOMException("Cancelled", "AbortError");
+    if (error) throw new Error(error.message);
+    if ((data as any)?.error) throw new Error((data as any).error);
+    const result = (data as any)?.result;
 
   let saved: UserResource | undefined;
   let cards: LibraryAIResult["cards"];
@@ -135,11 +148,20 @@ export async function runLibraryAI(
     });
   }
 
-  void track("library_ai_completed", {
-    action,
-    resource_id: resource.id,
-    duration_ms: Date.now() - startedAt,
-  });
-
-  return { action, cards, saved };
+    void track("library_ai_completed", {
+      action,
+      resource_id: resource.id,
+      duration_ms: Date.now() - startedAt,
+    });
+    if (historyId) {
+      void updateAIGeneration(historyId, { status: "completed", output_ref: saved?.id ?? null });
+    }
+    return { action, cards, saved };
+  } catch (err) {
+    const cancelled = (err as any)?.name === "AbortError";
+    if (historyId) {
+      void updateAIGeneration(historyId, { status: cancelled ? "cancelled" : "failed" });
+    }
+    throw err;
+  }
 }
