@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  CloudDownload, Trash2, HardDrive, Loader2, FileText, ExternalLink, ChevronLeft,
+  CloudDownload, Trash2, HardDrive, Loader2, FileText, ExternalLink, ChevronLeft, BookOpen,
 } from "lucide-react";
 import {
   listCachedMaterials, removeCachedMaterial, clearAllCachedMaterials,
@@ -48,6 +48,17 @@ const OfflineDownloads = () => {
   useEffect(() => { void refresh(); }, []);
 
   const total = useMemo(() => items.reduce((s, i) => s + (i.size || 0), 0), [items]);
+
+  const grouped = useMemo(() => {
+    const m = new Map<string, { key: string; label: string; courseId: string | null; rows: CachedSummary[] }>();
+    for (const it of items) {
+      const key = it.course_id || "__none__";
+      const label = it.course_code || (it.course_id ? "Course material" : "Library & other");
+      if (!m.has(key)) m.set(key, { key, label, courseId: it.course_id ?? null, rows: [] });
+      m.get(key)!.rows.push(it);
+    }
+    return Array.from(m.values()).sort((a, b) => (a.key === "__none__" ? 1 : b.key === "__none__" ? -1 : a.label.localeCompare(b.label)));
+  }, [items]);
 
   const handleOpen = async (id: string) => {
     setBusy(id);
@@ -143,44 +154,54 @@ const OfflineDownloads = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-2">
-              {items.map((it) => (
-                <Card key={it.id} className="hover:border-amber-200 transition-colors">
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-700 grid place-items-center shrink-0">
-                      <FileText className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">{it.title}</p>
-                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <Badge variant="outline" className="text-[10px] border-emerald-200 bg-emerald-50 text-emerald-700">
-                          Ready offline
-                        </Badge>
-                        <span className="text-[11px] text-muted-foreground">{fmtBytes(it.size)}</span>
-                        <span className="text-[11px] text-muted-foreground">
-                          {format(new Date(it.cached_at), "MMM d")}
-                        </span>
+            <div className="space-y-5">
+              {grouped.map((g) => {
+                const groupTotal = g.rows.reduce((s, r) => s + (r.size || 0), 0);
+                return (
+                  <section key={g.key}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-amber-600" />
+                        <h2 className="text-sm font-semibold">{g.label}</h2>
+                        <Badge variant="outline" className="text-[10px]">{g.rows.length}</Badge>
                       </div>
+                      <span className="text-[11px] text-muted-foreground">{fmtBytes(groupTotal)}</span>
                     </div>
-                    <Button
-                      size="sm" variant="ghost"
-                      onClick={() => handleOpen(it.id)}
-                      disabled={busy === it.id}
-                      className="h-8 px-2"
-                    >
-                      {busy === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
-                    </Button>
-                    <Button
-                      size="sm" variant="ghost"
-                      onClick={() => handleRemove(it.id)}
-                      disabled={busy === it.id}
-                      className="h-8 px-2 text-rose-600 hover:bg-rose-50"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    <div className="space-y-2">
+                      {g.rows.map((it) => (
+                        <Card key={it.id} className="hover:border-amber-200 transition-colors">
+                          <CardContent className="p-3 flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-700 grid place-items-center shrink-0">
+                              <FileText className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm truncate">{it.title}</p>
+                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                <Badge variant="outline" className="text-[10px] border-emerald-200 bg-emerald-50 text-emerald-700">
+                                  Ready offline
+                                </Badge>
+                                <span className="text-[11px] text-muted-foreground">{fmtBytes(it.size)}</span>
+                                <span className="text-[11px] text-muted-foreground">{format(new Date(it.cached_at), "MMM d")}</span>
+                              </div>
+                            </div>
+                            <Button size="sm" variant="ghost" onClick={() => handleOpen(it.id)} disabled={busy === it.id} className="h-8 px-2">
+                              {busy === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => handleRemove(it.id)} disabled={busy === it.id} className="h-8 px-2 text-rose-600 hover:bg-rose-50">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                            {g.courseId && (
+                              <Button asChild size="sm" variant="ghost" className="h-8 px-2">
+                                <Link to={`/courses/${g.courseId}`} aria-label="Open course"><BookOpen className="w-3.5 h-3.5" /></Link>
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
           )}
         </main>

@@ -14,6 +14,8 @@ import {
   BookOpen, FileText, Layers, ClipboardList, Image as ImageIcon, Sparkles,
   Download, ExternalLink, Settings,
 } from "lucide-react";
+import CourseProgressCard from "@/components/courses/CourseProgressCard";
+import CourseOfflineButton from "@/components/courses/CourseOfflineButton";
 
 const CourseHub = () => {
   const { courseId = "" } = useParams();
@@ -135,6 +137,14 @@ const CourseHub = () => {
           </div>
         </header>
 
+        <CourseProgressCard
+          courseId={course.id}
+          courseCode={course.code}
+          totalDocs={documents.length}
+          totalQuizzes={quizzes.length}
+          totalFlashcards={flashDecks.length}
+        />
+
         <Tabs defaultValue="documents" className="w-full">
           <TabsList className="w-full overflow-x-auto justify-start gap-1 h-auto p-1 bg-muted/50">
             <TabsTrigger value="documents" className="gap-1.5"><FileText className="w-3.5 h-3.5" /> Documents</TabsTrigger>
@@ -157,13 +167,20 @@ const CourseHub = () => {
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-sm leading-snug line-clamp-1">{d.title}</h3>
                       {d.description && <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{d.description}</p>}
-                      <div className="mt-2 flex gap-1.5">
+                      <div className="mt-2 flex gap-1.5 flex-wrap">
                         <Button asChild size="sm" variant="outline" className="h-7 px-2 text-xs">
                           <a href={d.file_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3 h-3 mr-1" /> Open</a>
                         </Button>
                         <Button asChild size="sm" variant="outline" className="h-7 px-2 text-xs">
                           <a href={d.file_url} download><Download className="w-3 h-3 mr-1" /> Save</a>
                         </Button>
+                        <CourseOfflineButton
+                          materialId={d.id}
+                          title={d.title}
+                          url={d.file_url}
+                          courseId={course.id}
+                          courseCode={course.code}
+                        />
                       </div>
                     </div>
                   </Card>

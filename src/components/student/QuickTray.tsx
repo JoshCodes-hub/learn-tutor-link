@@ -8,6 +8,7 @@ import {
   UserSearch, Star, Hash, BookOpenCheck,
   Coins, Share2, Send, Crown,
   Sparkles, Trophy, Bell, Compass,
+  CloudDownload,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -120,6 +121,8 @@ const CATEGORIES: Category[] = [
     tone: "rose",
     hint: "Tools & settings",
     items: [
+      { icon: CloudDownload,label: "Offline Files",  desc: "Manage cached materials", to: "/library/offline-downloads", tone: "emerald" },
+      { icon: History,      label: "AI History",     desc: "Search & export AI runs", to: "/ai-history",       tone: "violet" },
       { icon: Compass,      label: "Strategy",      desc: "Study smarter",           to: "/strategy",      tone: "emerald" },
       { icon: Trophy,       label: "Achievements",  desc: "Badges & XP",             to: "/student/dashboard#achievements", tone: "gold" },
       { icon: Bell,         label: "Announcements", desc: "Platform news",           to: "/announcements", tone: "rose" },

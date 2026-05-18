@@ -107,6 +107,7 @@ const StudyPacks = lazy(() => import("@/pages/student/StudyPacks"));
 const Library = lazy(() => import("@/pages/student/Library"));
 const UploadAnalytics = lazy(() => import("@/pages/student/UploadAnalytics"));
 const OfflineDownloads = lazy(() => import("@/pages/student/OfflineDownloads"));
+const AIHistory = lazy(() => import("@/pages/student/AIHistory"));
 const ChatInbox = lazy(() => import("@/pages/chat/Inbox"));
 const ChatThread = lazy(() => import("@/pages/chat/ThreadView"));
 const ChatJoin = lazy(() => import("@/pages/chat/ChatJoin"));
@@ -344,6 +345,7 @@ export const AnimatedRoutes = () => {
           <Route path="/library" element={<PageTransition><Library /></PageTransition>} />
           <Route path="/library/analytics" element={<PageTransition><UploadAnalytics /></PageTransition>} />
           <Route path="/library/offline-downloads" element={<PageTransition><OfflineDownloads /></PageTransition>} />
+          <Route path="/ai-history" element={<PageTransition><AIHistory /></PageTransition>} />
           <Route path="/courses" element={<PageTransition><CourseDirectory /></PageTransition>} />
           <Route path="/courses/:courseId" element={<PageTransition><CourseHub /></PageTransition>} />
           <Route path="/tutor/courses/new" element={<PageTransition><TutorCourseEditor /></PageTransition>} />
