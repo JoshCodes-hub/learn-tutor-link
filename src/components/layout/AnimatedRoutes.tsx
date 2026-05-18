@@ -137,6 +137,9 @@ const CopilotPage = lazy(() => import("@/pages/student/CopilotPage"));
 const TutorGrowthStudio = lazy(() => import("@/pages/tutor/TutorGrowthStudio"));
 const AffiliateRedirect = lazy(() => import("@/pages/AffiliateRedirect"));
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
+const CourseDirectory = lazy(() => import("@/pages/courses/CourseDirectory"));
+const CourseHub = lazy(() => import("@/pages/courses/CourseHub"));
+const TutorCourseEditor = lazy(() => import("@/pages/tutor/TutorCourseEditor"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
