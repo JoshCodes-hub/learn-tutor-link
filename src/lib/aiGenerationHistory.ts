@@ -100,3 +100,13 @@ export function exportAIGenerationsToCsv(rows: AIGenRow[]): string {
   }
   return lines.join("\n");
 }
+
+export async function deleteAIGeneration(id: string): Promise<void> {
+  const { error } = await supabase.from("ai_generation_history").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function clearAllAIGenerations(userId: string): Promise<void> {
+  const { error } = await supabase.from("ai_generation_history").delete().eq("user_id", userId);
+  if (error) throw error;
+}

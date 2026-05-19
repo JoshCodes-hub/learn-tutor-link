@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { ChevronLeft, Download, Filter, History, Loader2, RefreshCw, Search, Sparkles, X } from "lucide-react";
+import { ChevronLeft, Download, Filter, History, Loader2, RefreshCw, Search, Sparkles, Trash2, X } from "lucide-react";
 import DashboardNav from "@/components/layout/DashboardNav";
 import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
 import { SEO } from "@/components/seo/SEO";
@@ -15,10 +15,17 @@ import { toast } from "sonner";
 import {
   exportAIGenerationsToCsv,
   listAIGenerations,
+  deleteAIGeneration,
+  clearAllAIGenerations,
   type AIGenKind,
   type AIGenRow,
   type AIGenStatus,
 } from "@/lib/aiGenerationHistory";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const KIND_OPTS: { value: AIGenKind | "all"; label: string }[] = [
   { value: "all", label: "All types" },
@@ -102,6 +109,27 @@ const AIHistory = () => {
     setKind("all"); setStatus("all"); setSearch(""); setSince(""); setUntil("");
   };
 
+  const handleDeleteOne = async (id: string) => {
+    try {
+      await deleteAIGeneration(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Entry deleted");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed");
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!user) return;
+    try {
+      await clearAllAIGenerations(user.id);
+      setRows([]);
+      toast.success("History cleared");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Clear failed");
+    }
+  };
+
   return (
     <>
       <SEO title="AI Generation History" description="Search, filter and export every AI quiz, flashcard, summary and audio you've generated." />
@@ -130,6 +158,27 @@ const AIHistory = () => {
               <Button size="sm" onClick={exportCsv} className="bg-amber-500 hover:bg-amber-600 text-white">
                 <Download className="w-3.5 h-3.5 mr-1.5" /> Export CSV
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" disabled={rows.length === 0}>
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Clear all
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear all AI history?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently removes every AI generation record from your account. The generated quizzes, flashcards and summaries themselves stay in your Library.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Yes, clear everything
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
 
@@ -198,6 +247,32 @@ const AIHistory = () => {
                         </span>
                       </div>
                     </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                          aria-label="Delete entry"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Removes this single AI generation record. The generated content itself isn't deleted.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteOne(r.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </CardContent>
                 </Card>
               ))}

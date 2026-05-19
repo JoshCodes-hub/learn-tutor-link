@@ -57,13 +57,17 @@ export default function ChatInbox() {
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Join brainstorm room</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>Join a chat room</DialogTitle></DialogHeader>
               <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Paste the invite code your tutor shared (case-insensitive).
+                </p>
                 <Input
-                  placeholder="BR-XXXXXX"
+                  placeholder="Enter invite code…"
                   value={code}
                   onChange={e => setCode(e.target.value.toUpperCase())}
                   onKeyDown={e => e.key === "Enter" && handleJoin()}
+                  autoFocus
                 />
                 <Button onClick={handleJoin} disabled={joining || !code.trim()} className="w-full">
                   {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : "Join room"}
