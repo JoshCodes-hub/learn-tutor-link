@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Sparkles, History, RefreshCw, ExternalLink, Loader2, CheckCircle2, XCircle, X } from "lucide-react";
+import { Sparkles, History, RefreshCw, ExternalLink, Loader2, CheckCircle2, XCircle, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { listAIGenerationsForResource, type AIGenRow } from "@/lib/aiGenerationHistory";
+import { listAIGenerationsForResource, deleteAIGeneration, type AIGenRow } from "@/lib/aiGenerationHistory";
+import { toast } from "sonner";
 
 interface Props {
   resourceId: string;
@@ -34,6 +35,16 @@ export const GenerationHistoryPanel = ({ resourceId, onQuickOpen, onRerun }: Pro
     const r = await listAIGenerationsForResource(resourceId);
     setRows(r);
     setLoading(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this AI history entry?")) return;
+    try {
+      await deleteAIGeneration(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed");
+    }
   };
 
   useEffect(() => { refresh(); }, [resourceId]);
@@ -81,6 +92,15 @@ export const GenerationHistoryPanel = ({ resourceId, onQuickOpen, onRerun }: Pro
                   <RefreshCw className="w-3.5 h-3.5" />
                 </Button>
               )}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-muted-foreground hover:text-destructive"
+                onClick={() => handleDelete(r.id)}
+                aria-label="Delete entry"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
             </li>
           ))}
         </ul>
