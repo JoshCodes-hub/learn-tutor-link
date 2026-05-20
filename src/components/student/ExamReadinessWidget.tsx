@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, AlertTriangle, ArrowRight, TrendingUp, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { formatLevelLabel } from "@/components/shared/LevelSelect";
+import { computeGlobalReadiness, type SignalBreakdown } from "@/lib/examReadiness";
 
 /**
  * Compact, premium Exam Readiness widget for the dashboard.
@@ -17,6 +17,7 @@ export const ExamReadinessWidget = () => {
   const studentLevel = ((profile as any)?.level as string | null | undefined) ?? null;
   const [score, setScore] = useState<number>(0);
   const [weak, setWeak] = useState<{ name: string; courseId: string | null }[]>([]);
+  const [signals, setSignals] = useState<SignalBreakdown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,51 +25,12 @@ export const ExamReadinessWidget = () => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      // Pull recent attempts with quiz/course/level info so we can filter by level
-      const { data: attempts } = await supabase
-        .from("quiz_attempts")
-        .select(
-          "score, completed_at, quiz:quizzes!inner(level, course:courses(id, name, level))"
-        )
-        .eq("user_id", user.id)
-        .not("completed_at", "is", null)
-        .order("completed_at", { ascending: false })
-        .limit(60);
-      if (cancelled) return;
-      const matched = (attempts ?? []).filter((a: any) => {
-        if (!studentLevel) return true;
-        const qLvl = a.quiz?.level ?? null;
-        const cLvl = a.quiz?.course?.level ?? null;
-        // Match if quiz/course is level-agnostic OR explicitly tagged for student's level
-        return (
-          (qLvl === null || qLvl === studentLevel) &&
-          (cLvl === null || cLvl === studentLevel)
-        );
-      });
-      const avg = matched.length
-        ? Math.round(matched.reduce((s: number, a: any) => s + (a.score || 0), 0) / matched.length)
-        : 0;
-      // Group by course name, compute average score, lowest 3 = weakest
-      const byCourse = new Map<string, { sum: number; n: number; id: string | null }>();
-      matched.forEach((a: any) => {
-        const name = a.quiz?.course?.name as string | undefined;
-        if (!name) return;
-        const cur = byCourse.get(name) ?? { sum: 0, n: 0, id: a.quiz?.course?.id ?? null };
-        cur.sum += a.score || 0;
-        cur.n += 1;
-        cur.id = a.quiz?.course?.id ?? cur.id;
-        byCourse.set(name, cur);
-      });
-      const weakList = Array.from(byCourse.entries())
-        .map(([name, v]) => ({ name, avg: v.sum / v.n, courseId: v.id }))
-        .filter((x) => x.avg < 70)
-        .sort((a, b) => a.avg - b.avg)
-        .slice(0, 3)
-        .map((x) => ({ name: x.name, courseId: x.courseId }));
-      if (!cancelled) {
-        setScore(avg);
-        setWeak(weakList);
-        setLoading(false);
+      try {
+        const r = await computeGlobalReadiness(user.id, { level: studentLevel });
+        if (cancelled) return;
+        setScore(r.score); setWeak(r.weakCourses); setSignals(r.signals);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
     return () => {
@@ -150,6 +112,19 @@ export const ExamReadinessWidget = () => {
           )}
         </div>
       </div>
+      {signals.length > 0 && (
+        <div className="relative mt-3 grid grid-cols-5 gap-1">
+          {signals.map((s) => (
+            <div key={s.key} className="group relative" title={`${s.label}: ${s.score}% · weight ${s.weight}%`}>
+              <div className="h-1.5 rounded-full bg-amber-100 overflow-hidden">
+                <div className={`h-full rounded-full ${s.score >= 75 ? "bg-emerald-500" : s.score >= 50 ? "bg-amber-500" : "bg-rose-400"}`}
+                     style={{ width: `${s.score}%` }} />
+              </div>
+              <div className="mt-1 text-[8.5px] text-muted-foreground truncate text-center">{s.label.split(" ")[0]}</div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="relative mt-3 flex items-center justify-between">
         <Link
           to={`/student/mastery-breakdown${lvlQs}`}
