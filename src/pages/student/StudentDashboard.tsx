@@ -89,6 +89,7 @@ import { NewStudyPackFAB } from "@/components/student/NewStudyPackFAB";
 import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
 import { MobileGreetingHeader } from "@/components/student/MobileGreetingHeader";
 import { ContinueLearning } from "@/components/student/ContinueLearning";
+import { SignatureHero } from "@/components/student/SignatureHero";
 
 interface Stats {
   totalAttempts: number;
@@ -819,8 +820,8 @@ const StudentDashboard = () => {
       <main className="container mx-auto px-4 py-6 md:py-8 max-w-6xl">
         <DashboardOfflineBanner onReattempt={refreshQuizzes} />
 
-        {/* Mobile-first greeting header — matches product mockup */}
-        <MobileGreetingHeader />
+        {/* Mobile signature hero — greeting + readiness + streak + primary CTA */}
+        <SignatureHero />
 
         {/* Unified Updates Center: notifications + announcements in one card */}
         <UpdatesCenter />
