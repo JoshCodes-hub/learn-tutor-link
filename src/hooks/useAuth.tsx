@@ -49,11 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserData = useCallback(async (userId: string) => {
     try {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
+      // Use SECURITY DEFINER RPC so the owner can read their own full row
+      // (including sensitive columns like email/phone) without granting those
+      // columns to the authenticated role at large.
+      const { data: profileData } = await (supabase as any).rpc("get_my_profile");
 
       if (profileData) {
         setProfile({
