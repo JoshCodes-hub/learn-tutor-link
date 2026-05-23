@@ -9,11 +9,13 @@ export default function AffiliateRedirect() {
   useEffect(() => { (async () => {
     if (!slug) return nav('/');
     const sb = supabase as any;
-    const { data } = await sb.from('affiliate_links').select('id, destination, clicks').eq('slug', slug).maybeSingle();
-    if (!data) return nav('/');
-    sb.from('affiliate_links').update({ clicks: (data.clicks ?? 0) + 1 }).eq('id', data.id).then(() => {});
-    sessionStorage.setItem('aff_ref', data.id);
-    nav(data.destination ?? '/', { replace: true });
+    // resolve_affiliate_slug bumps the click count server-side and returns
+    // only id + destination — anon visitors cannot enumerate the table.
+    const { data } = await sb.rpc('resolve_affiliate_slug', { _slug: slug });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) return nav('/');
+    sessionStorage.setItem('aff_ref', row.id);
+    nav(row.destination ?? '/', { replace: true });
   })(); }, [slug, nav]);
   return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
 }
