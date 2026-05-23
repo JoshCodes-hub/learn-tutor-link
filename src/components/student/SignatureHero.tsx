@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -10,6 +10,7 @@ import {
   Sparkles,
   ArrowRight,
   GraduationCap,
+  RefreshCw,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +38,9 @@ export const SignatureHero = () => {
   const [readiness, setReadiness] = useState<number | null>(null);
   const [continueTo, setContinueTo] = useState<{ to: string; label: string; sub?: string } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloading, setReloading] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [localAvatar, setLocalAvatar] = useState<string | null>(() => {
     try { return localStorage.getItem("overra.avatar.last"); } catch { return null; }
   });
@@ -63,53 +67,82 @@ export const SignatureHero = () => {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
+    setLoadError(null);
     (async () => {
-      // Streak + unread notifications (lightweight)
-      const sRes: any = await (supabase as any)
-        .from("study_streaks")
-        .select("current_streak")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      const nRes: any = await (supabase as any)
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("is_read", false);
-
-      // Last quiz attempt → "Continue" CTA
-      const aRes: any = await (supabase as any)
-        .from("quiz_attempts")
-        .select("quiz_id, completed_at, quizzes(id, title, is_active)")
-        .eq("user_id", user.id)
-        .order("started_at", { ascending: false })
-        .limit(1);
-      const last = aRes?.data?.[0];
-
-      // Readiness
-      let r = 0;
       try {
-        const res = await computeGlobalReadiness(user.id, {
-          level: ((profile as any)?.level as string | null | undefined) ?? null,
-        });
-        r = res.score ?? 0;
-      } catch { /* noop */ }
+        const [sRes, nRes, aRes] = await Promise.all([
+          (supabase as any)
+            .from("study_streaks")
+            .select("current_streak")
+            .eq("user_id", user.id)
+            .maybeSingle(),
+          (supabase as any)
+            .from("notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+            .eq("is_read", false),
+          (supabase as any)
+            .from("quiz_attempts")
+            .select("quiz_id, completed_at, quizzes(id, title, is_active)")
+            .eq("user_id", user.id)
+            .order("started_at", { ascending: false })
+            .limit(1),
+        ]);
 
-      if (cancelled) return;
-      setStreak(sRes?.data?.current_streak ?? 0);
-      setUnread(nRes?.count ?? 0);
-      setReadiness(r);
-      if (last?.quizzes?.is_active && last?.quizzes?.id) {
-        setContinueTo({
-          to: `/quiz/${last.quizzes.id}/practice`,
-          label: last.completed_at ? "Retake quiz" : "Continue quiz",
-          sub: last.quizzes.title,
+        if (sRes?.error) throw sRes.error;
+        if (nRes?.error) throw nRes.error;
+        if (aRes?.error) throw aRes.error;
+
+        let r = 0;
+        try {
+          const res = await computeGlobalReadiness(user.id, {
+            level: ((profile as any)?.level as string | null | undefined) ?? null,
+          });
+          r = res.score ?? 0;
+        } catch { /* readiness is best-effort */ }
+
+        if (cancelled) return;
+        setStreak(sRes?.data?.current_streak ?? 0);
+        setUnread(nRes?.count ?? 0);
+        setReadiness(r);
+
+        // Smart Continue CTA with safe fallback to quiz catalog
+        const last = aRes?.data?.[0];
+        const activeQuiz = last?.quizzes?.is_active && last?.quizzes?.id ? last.quizzes : null;
+        if (activeQuiz) {
+          setContinueTo({
+            to: `/quiz/${activeQuiz.id}/practice`,
+            label: last?.completed_at ? "Retake quiz" : "Continue quiz",
+            sub: activeQuiz.title,
+          });
+        } else if (last?.quiz_id) {
+          // Last attempt's quiz no longer active → browse catalog
+          setContinueTo({ to: "/courses", label: "Browse quizzes", sub: "Pick your next challenge" });
+        } else {
+          setContinueTo({ to: "/courses", label: "Start your first quiz", sub: "Browse the catalog" });
+        }
+      } catch (err: any) {
+        if (cancelled) return;
+        console.error("SignatureHero load failed:", err);
+        setLoadError(err?.message || "Couldn't load your dashboard data.");
+        // Always give the user a safe CTA
+        setContinueTo({ to: "/courses", label: "Browse quizzes", sub: "Pick your next challenge" });
+        toast({
+          title: "We couldn't refresh your stats",
+          description: "Check your connection and tap Retry.",
+          variant: "destructive",
         });
-      } else {
-        setContinueTo({ to: "/student/readiness", label: "Start CBT simulation", sub: "Full timed practice" });
       }
     })();
     return () => { cancelled = true; };
-  }, [user, profile]);
+  }, [user, profile, reloadKey]);
+
+  const handleRetry = useCallback(async () => {
+    setReloading(true);
+    setReloadKey((k) => k + 1);
+    // Give effect a tick to run before clearing the spinner
+    setTimeout(() => setReloading(false), 600);
+  }, []);
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -138,12 +171,13 @@ export const SignatureHero = () => {
     setUploading(true);
     try {
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${user.id}/avatar.${ext}`;
-      const { publicUrl } = await uploadToBucketWithVerification({ bucket: "tutor-profiles", path, file });
-      await supabase
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { publicUrl } = await uploadToBucketWithVerification({ bucket: "avatars", path, file });
+      const { error: updateErr } = await supabase
         .from("profiles")
-        .update({ avatar_url: publicUrl, profile_image_url: publicUrl } as any)
+        .update({ avatar_url: publicUrl } as any)
         .eq("id", user.id);
+      if (updateErr) throw updateErr;
       setLocalAvatar(publicUrl);
       try {
         localStorage.setItem(`overra.avatar.${user.id}`, publicUrl);
@@ -337,6 +371,22 @@ export const SignatureHero = () => {
           </span>
           <ArrowRight className="h-4 w-4 text-amber-700 group-hover:translate-x-0.5 transition-transform" />
         </button>
+        {loadError && (
+          <button
+            type="button"
+            onClick={handleRetry}
+            disabled={reloading}
+            className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-white/15 backdrop-blur border border-white/30 text-white text-[11.5px] font-semibold py-2 hover:bg-white/25 active:scale-[0.98] transition disabled:opacity-60"
+            aria-label="Retry loading dashboard data"
+          >
+            {reloading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+            {reloading ? "Retrying…" : "Couldn't load stats — Retry"}
+          </button>
+        )}
       </div>
 
       <LevelSwitcherDialog open={levelOpen} onOpenChange={setLevelOpen} />
