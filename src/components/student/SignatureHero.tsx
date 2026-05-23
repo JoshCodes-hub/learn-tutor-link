@@ -371,6 +371,22 @@ export const SignatureHero = () => {
           </span>
           <ArrowRight className="h-4 w-4 text-amber-700 group-hover:translate-x-0.5 transition-transform" />
         </button>
+        {loadError && (
+          <button
+            type="button"
+            onClick={handleRetry}
+            disabled={reloading}
+            className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-white/15 backdrop-blur border border-white/30 text-white text-[11.5px] font-semibold py-2 hover:bg-white/25 active:scale-[0.98] transition disabled:opacity-60"
+            aria-label="Retry loading dashboard data"
+          >
+            {reloading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+            {reloading ? "Retrying…" : "Couldn't load stats — Retry"}
+          </button>
+        )}
       </div>
 
       <LevelSwitcherDialog open={levelOpen} onOpenChange={setLevelOpen} />
