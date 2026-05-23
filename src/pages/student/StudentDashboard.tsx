@@ -823,14 +823,20 @@ const StudentDashboard = () => {
         {/* Mobile signature hero — greeting + readiness + streak + primary CTA */}
         <SignatureHero />
 
-        {/* Unified Updates Center: notifications + announcements in one card */}
-        <UpdatesCenter />
+        {/* Updates Center — desktop keeps it prominent; mobile keeps the hero focused */}
+        <div className="hidden sm:block">
+          <UpdatesCenter />
+        </div>
 
-        {/* Premium quick actions */}
-        <PremiumQuickActions />
+        {/* Premium quick actions — desktop only (mobile uses StudyPackQuickActions below) */}
+        <div className="hidden sm:block">
+          <PremiumQuickActions />
+        </div>
 
-        {/* Exam readiness widget */}
-        <ExamReadinessWidget />
+        {/* Exam readiness widget — desktop only (mobile shows readiness ring inside hero) */}
+        <div className="hidden sm:block">
+          <ExamReadinessWidget />
+        </div>
 
         {/* Premium welcome strip — no profile photo, focus on greeting + path */}
         <motion.section
@@ -886,11 +892,11 @@ const StudentDashboard = () => {
           </div>
         </motion.section>
 
-        {/* Growth campaign banner */}
-        <CampaignBanner />
-
-        {/* Upload Document shortcut + first-visit / post-login welcome */}
-        <UploadCTABanner />
+        {/* Growth + upload nudges — desktop only to keep mobile clean */}
+        <div className="hidden sm:block">
+          <CampaignBanner />
+          <UploadCTABanner />
+        </div>
 
         {/* Fresh courses (admin + tutor created) — desktop only; mobile uses Continue Learning instead */}
         <div className="hidden sm:block">
@@ -930,17 +936,19 @@ const StudentDashboard = () => {
           />
         </div>
 
-        {/* Phase 2: Study Pack AI hero (mockup centerpiece) */}
-        <StudyPackHero />
+        {/* Phase 2: Study Pack AI hero — desktop centerpiece (mobile hero already covers this) */}
+        <div className="hidden sm:block">
+          <StudyPackHero />
+        </div>
 
         {/* Phase 2: 6-tile direct-nav Quick Actions */}
         <StudyPackQuickActions />
 
-        {/* Prominent Audio Reader hero */}
+        {/* Prominent Audio Reader hero — desktop only (mobile reaches it via quick actions) */}
         <button
           type="button"
           onClick={() => navigate("/audio-learning")}
-          className="group relative w-full mb-6 overflow-hidden rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-5 text-left shadow-[0_10px_30px_-15px_rgba(217,119,6,0.35)] hover:shadow-[0_18px_40px_-18px_rgba(217,119,6,0.45)] transition-all"
+          className="hidden sm:block group relative w-full mb-6 overflow-hidden rounded-3xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-white to-emerald-50 p-5 text-left shadow-[0_10px_30px_-15px_rgba(217,119,6,0.35)] hover:shadow-[0_18px_40px_-18px_rgba(217,119,6,0.45)] transition-all"
           aria-label="Open Audio Reader with piano background music"
         >
           <div className="flex items-center gap-4">
@@ -968,11 +976,11 @@ const StudentDashboard = () => {
         {/* Continue Learning — per-course progress bars (mockup) */}
         <ContinueLearning />
 
-        {/* Phase 2: Daily motivational quote */}
-        <MotivationalQuote />
-
-        {/* Phase 2: Top scholars + recent study packs split */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Motivational quote + scholars/packs — desktop only to avoid mobile stacking */}
+        <div className="hidden sm:block">
+          <MotivationalQuote />
+        </div>
+        <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <TopScholarsCard />
           <RecentStudyPacksCard />
         </div>
@@ -1049,14 +1057,14 @@ const StudentDashboard = () => {
         />
         </div>
 
-        {/* Study streak — single focused widget */}
-        <div className="mb-8">
+        {/* Study streak — desktop only; mobile streak lives in hero */}
+        <div className="hidden sm:block mb-8">
           <StudyStreak />
         </div>
 
-        {/* AI recommendations — only when meaningful */}
+        {/* AI recommendations — desktop only; mobile keeps the catalog as the single discovery surface */}
         {user && stats.totalAttempts > 0 && (
-          <div className="mb-8">
+          <div className="hidden sm:block mb-8">
             <AIQuizRecommendations
               userId={user.id}
               onSelectQuiz={(quizId) => navigate(`/quiz/${quizId}/practice`)}
