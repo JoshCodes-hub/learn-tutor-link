@@ -23,7 +23,7 @@ export default function PrivacySettings() {
       const uid = userData.user.id;
 
       const [profile, attempts, bookmarks, flashcards, goals] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
+        (supabase as any).rpc("get_my_profile"),
         supabase.from("quiz_attempts").select("*").eq("user_id", uid),
         supabase.from("bookmarked_questions").select("*").eq("user_id", uid),
         supabase.from("flashcards").select("*").eq("user_id", uid),

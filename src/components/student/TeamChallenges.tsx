@@ -97,38 +97,13 @@ export const TeamChallenges = () => {
     setClaiming(challenge.id);
 
     try {
-      // Update progress to mark reward as claimed
-      const { error: updateError } = await supabase
-        .from("team_challenge_progress")
-        .update({ reward_claimed: true })
-        .eq("challenge_id", challenge.id)
-        .eq("team_id", teamId);
-
-      if (updateError) throw updateError;
-
-      // Award tokens to user's wallet
-      const { data: wallet } = await supabase
-        .from("token_wallets")
-        .select("id, balance, total_earned")
-        .eq("user_id", user.id)
-        .single();
-
-      if (wallet) {
-        await supabase
-          .from("token_wallets")
-          .update({
-            balance: wallet.balance + challenge.reward_tokens,
-            total_earned: wallet.total_earned + challenge.reward_tokens
-          })
-          .eq("id", wallet.id);
-
-        await supabase.from("token_transactions").insert({
-          wallet_id: wallet.id,
-          amount: challenge.reward_tokens,
-          type: "challenge_reward",
-          description: `Team challenge reward: ${challenge.title}`
-        });
-      }
+      // Atomic, server-validated claim via SECURITY DEFINER RPC.
+      // Prevents users from forging arbitrary token_transactions client-side.
+      const { error: rpcError } = await (supabase as any).rpc(
+        "claim_team_challenge_reward",
+        { _challenge_id: challenge.id }
+      );
+      if (rpcError) throw rpcError;
 
       toast.success(`Claimed ${challenge.reward_tokens} tokens!`);
       

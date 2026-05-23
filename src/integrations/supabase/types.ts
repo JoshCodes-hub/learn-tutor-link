@@ -5365,6 +5365,10 @@ export type Database = {
         Args: { _booking_id: string }
         Returns: undefined
       }
+      claim_team_challenge_reward: {
+        Args: { _challenge_id: string }
+        Returns: undefined
+      }
       complete_session: { Args: { _booking_id: string }; Returns: undefined }
       credit_tokens_for_purchase: {
         Args: {
@@ -5391,6 +5395,49 @@ export type Database = {
           quizzes_completed: number
           quizzes_started: number
         }[]
+      }
+      get_my_profile: {
+        Args: never
+        Returns: {
+          academic_metadata: Json
+          academic_path: Database["public"]["Enums"]["academic_path"] | null
+          aspiring_cgpa: number | null
+          avatar_url: string | null
+          bio: string | null
+          cover_photo_url: string | null
+          created_at: string
+          current_cgpa: number | null
+          date_of_birth: string | null
+          department: string | null
+          email: string
+          full_name: string | null
+          gender: string | null
+          hobbies: string[] | null
+          id: string
+          level: string | null
+          linkedin_handle: string | null
+          matric_no: string | null
+          onboarding_completed: boolean
+          phone: string | null
+          profile_image_url: string | null
+          referral_code: string | null
+          referred_by: string | null
+          state_of_origin: string | null
+          study_interests: string[] | null
+          tutor_code: string | null
+          tutor_match_prefs: Json
+          tutor_specialization:
+            | Database["public"]["Enums"]["academic_path"]
+            | null
+          updated_at: string
+          x_handle: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_user_role: {
         Args: { _user_id: string }
@@ -5454,6 +5501,13 @@ export type Database = {
       request_withdrawal: {
         Args: { _payout_email: string; _tokens: number }
         Returns: string
+      }
+      resolve_affiliate_slug: {
+        Args: { _slug: string }
+        Returns: {
+          destination: string
+          id: string
+        }[]
       }
       start_dm: { Args: { _other_user: string }; Returns: string }
     }
