@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
-import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
-import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { SEO } from "@/components/seo/SEO";
 import { toast } from "@/hooks/use-toast";
@@ -76,7 +74,7 @@ const StudentDashboard = () => {
     averageScore: 0,
     practiceTime: 0,
   });
-  const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [, setWallet] = useState<Wallet | null>(null);
   const [, setQuizzes] = useState<Quiz[]>([]);
   const [, setCourses] = useState<{ id: string; code: string; name: string }[]>([]);
   const [purchasedQuizIds, setPurchasedQuizIds] = useState<Set<string>>(new Set());
@@ -84,9 +82,6 @@ const StudentDashboard = () => {
   const [, setLastSimulation] = useState<{ quizId: string; title: string; duration: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showBuyTokens, setShowBuyTokens] = useState(false);
-  const [showPurchaseQuiz, setShowPurchaseQuiz] = useState(false);
-  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [, setPurchaseRequests] = useState<any[]>([]);
   const [, setLastUpdated] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
