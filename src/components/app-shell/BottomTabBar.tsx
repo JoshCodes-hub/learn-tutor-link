@@ -1,18 +1,17 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Sparkles, GraduationCap, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target, Headphones, MessageSquare, FolderOpen, Upload } from "lucide-react";
+import { Home, BookOpen, User, LucideIcon, School, ClipboardCheck, Wallet, Megaphone, Users, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { track } from "@/lib/analytics";
 import { motion } from "framer-motion";
 
 interface Tab { to: string; label: string; icon: LucideIcon; }
 
 const STUDENT_TABS: Tab[] = [
-  { to: "/student/dashboard", label: "Home",     icon: Home },
-  { to: "/student/readiness", label: "Practice", icon: Target },
-  { to: "/library?upload=1",  label: "Upload",   icon: Upload },
-  { to: "/chat",              label: "Chat",     icon: MessageSquare },
-  { to: "/profile/edit",      label: "Profile",  icon: User },
+  { to: "/student/dashboard", label: "Home",      icon: Home },
+  { to: "/study-packs",       label: "Learn",     icon: BookOpen },
+  { to: "/student/readiness", label: "Practice",  icon: Target },
+  { to: "/community",         label: "Community", icon: Users },
+  { to: "/profile/edit",      label: "Profile",   icon: User },
 ];
 
 const SCHOOL_TABS: Tab[] = [
@@ -68,46 +67,26 @@ export const BottomTabBar = () => {
   return (
     <nav
       aria-label="Bottom navigation"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/85 backdrop-blur-2xl border-t border-amber-100/70 shadow-[0_-8px_24px_-12px_rgba(180,140,40,0.18)]"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/90 backdrop-blur-2xl border-t border-amber-100/70 shadow-[0_-6px_20px_-12px_rgba(180,140,40,0.18)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="grid grid-cols-5 relative">
         {tabs.map(({ to, label, icon: Icon }, idx) => {
           const path = to.split("?")[0];
           const active = location.pathname === path || location.pathname.startsWith(path + "/");
-          const isCenter = label === "Upload";
           return (
             <li key={to} className="relative">
               <Link
                 to={to}
                 aria-current={active ? "page" : undefined}
-                onClick={() => {
-                  if (label === "Upload") {
-                    void track("upload_cta_clicked", { surface: "bottom_nav", variant: "tab" });
-                  }
-                }}
                 className={cn(
                   "relative flex flex-col items-center justify-end gap-0.5 pt-2 pb-2 text-[10.5px] font-semibold tracking-tight min-h-[60px] transition-colors",
-                  isCenter
-                    ? "text-amber-900"
-                    : active
+                  active
                     ? "text-amber-700"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {isCenter ? (
-                  <span
-                    className={cn(
-                      "-mt-7 mb-0.5 h-12 w-12 rounded-2xl flex items-center justify-center",
-                      "bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 text-white",
-                      "shadow-[0_10px_24px_-8px_rgba(180,140,40,0.55)] ring-4 ring-white",
-                      "active:scale-95 transition-transform"
-                    )}
-                  >
-                    <Icon className="h-5 w-5" strokeWidth={2.5} />
-                  </span>
-                ) : (
-                  <span className="relative h-7 flex items-center justify-center">
+                <span className="relative h-7 flex items-center justify-center">
                     {active && (
                       <motion.span
                         layoutId="tab-pill"
@@ -120,10 +99,9 @@ export const BottomTabBar = () => {
                         "relative w-[22px] h-[22px] transition-transform duration-200",
                         active && "scale-110"
                       )}
-                      strokeWidth={active ? 2.4 : 2}
+                      strokeWidth={active ? 2.2 : 2}
                     />
                   </span>
-                )}
                 <span className="relative leading-none mt-0.5">{label}</span>
               </Link>
             </li>

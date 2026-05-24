@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Sparkles } from "lucide-react";
 
-const ALLOWED_PREFIXES = ["/student/dashboard", "/study-hub", "/study-packs"];
+const ALLOWED_PREFIXES = ["/study-hub", "/study-packs"];
 
 export const NewStudyPackFAB = () => {
   const navigate = useNavigate();
