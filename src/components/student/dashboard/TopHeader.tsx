@@ -27,20 +27,20 @@ export const TopHeader = () => {
     if (!user) return;
     let cancelled = false;
     (async () => {
-      const [{ data: s }, { count }] = await Promise.all([
-        supabase
-          .from("study_streaks")
-          .select("current_streak")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("notifications")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("read", false),
-      ]);
+      const { data: s } = await supabase
+        .from("study_streaks")
+        .select("current_streak")
+        .eq("user_id", user.id)
+        .maybeSingle();
       if (cancelled) return;
       setStreak((s as any)?.current_streak ?? 0);
+
+      const { count } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("read", false);
+      if (cancelled) return;
       setUnread(count ?? 0);
     })();
     return () => { cancelled = true; };
