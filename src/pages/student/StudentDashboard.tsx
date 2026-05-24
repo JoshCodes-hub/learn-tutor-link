@@ -365,15 +365,10 @@ const StudentDashboard = () => {
               rating: null
             }, ...prev]);
 
-            // Auto-clear filters so new quiz is visible
-            setSearchQuery("");
-            setSelectedCourse("all");
-            setSelectedType("all");
-
             // Show toast notification for new quiz
             toast({
               title: "New Quiz Available!",
-              description: `"${newQuiz.title}" in ${courseData?.name || 'Unknown Course'} is now available. Filters cleared to show it.`,
+              description: `"${newQuiz.title}" in ${courseData?.name || 'Unknown Course'} is now available.`,
             });
           } catch (error) {
             console.error('Error processing new quiz:', error);
@@ -583,47 +578,6 @@ const StudentDashboard = () => {
             <StudentSpotlight university={(profile as any)?.university || "FUTA"} />
           </main>
         </div>
-
-        {/* Buy Tokens Dialog */}
-        <BuyTokensDialog
-          open={showBuyTokens}
-          onOpenChange={setShowBuyTokens}
-          onSuccess={() => {
-            if (user) {
-              supabase
-                .from("token_wallets")
-                .select("*")
-                .eq("user_id", user.id)
-                .single()
-                .then(({ data }) => { if (data) setWallet(data); });
-            }
-          }}
-        />
-
-        {/* Purchase Quiz Dialog */}
-        <PurchaseQuizDialog
-          open={showPurchaseQuiz}
-          onOpenChange={setShowPurchaseQuiz}
-          quiz={selectedQuiz}
-          walletBalance={wallet?.balance || 0}
-          onSuccess={() => {
-            if (user) {
-              supabase
-                .from("token_wallets")
-                .select("*")
-                .eq("user_id", user.id)
-                .single()
-                .then(({ data }) => { if (data) setWallet(data); });
-              supabase
-                .from("student_quiz_purchases")
-                .select("quiz_id")
-                .eq("student_id", user.id)
-                .then(({ data }) => {
-                  if (data) setPurchasedQuizIds(new Set(data.map((p) => p.quiz_id)));
-                });
-            }
-          }}
-        />
 
         <OnboardingDialog
           isOpen={showOnboarding}
