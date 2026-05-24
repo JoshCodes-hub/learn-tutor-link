@@ -35,7 +35,7 @@ export const TopHeader = () => {
       if (cancelled) return;
       setStreak((s as any)?.current_streak ?? 0);
 
-      const { count } = await supabase
+      const { count } = await (supabase as any)
         .from("notifications")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
