@@ -1,95 +1,24 @@
-import { useEffect, useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { BuyTokensDialog } from "@/components/student/BuyTokensDialog";
 import { PurchaseQuizDialog } from "@/components/student/PurchaseQuizDialog";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
-import { AIQuizRecommendations } from "@/components/student/AIQuizRecommendations";
-import { StudyStreak } from "@/components/student/StudyStreak";
-import { SubjectCombinationTracker } from "@/components/student/SubjectCombinationTracker";
-import { ReadinessRing } from "@/components/student/ReadinessRing";
-import { Achievements } from "@/components/student/Achievements";
-import { ReferralCard } from "@/components/student/ReferralCard";
-import { TeamCard } from "@/components/student/TeamCard";
-import FavoriteTutors from "@/components/student/FavoriteTutors";
-import BookmarkedQuestions from "@/components/student/BookmarkedQuestions";
-import { TeamChallenges } from "@/components/student/TeamChallenges";
-import { TeamChat } from "@/components/student/TeamChat";
-import { MyCommunities } from "@/components/student/MyCommunities";
 import { SEO } from "@/components/seo/SEO";
-import DashboardNav from "@/components/layout/DashboardNav";
-import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  LogOut, 
-  User, 
-  Brain,
-  Target,
-  TrendingUp,
-  Wallet,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  ChevronRight,
-  Loader2,
-  Sparkles,
-  Play,
-  Lock,
-  Coins,
-  History,
-  Unlock,
-  GraduationCap,
-  Star,
-  Search,
-  Filter,
-  X,
-  Trophy,
-  MessageSquare,
-  Flame,
-  RefreshCw,
-  FileText,
-  Share2,
-  Users,
-  Headphones
-} from "lucide-react";
-import logo from "@/assets/logo.png";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
-import { UpdatesCenter } from "@/components/student/UpdatesCenter";
-import { PremiumQuickActions } from "@/components/student/PremiumQuickActions";
-import { ExamReadinessWidget } from "@/components/student/ExamReadinessWidget";
-import { UploadCTABanner } from "@/components/student/UploadCTABanner";
-import { FreshCourses } from "@/components/student/FreshCourses";
-import { CampaignBanner } from "@/components/growth/CampaignBanner";
-import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
-import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
 import { DashboardOfflineBanner } from "@/components/dashboard/DashboardOfflineBanner";
-import { LastUpdatedBadge } from "@/components/dashboard/LastUpdatedBadge";
 import { CompleteProfileCard } from "@/components/student/CompleteProfileCard";
-import { QuickTray } from "@/components/student/QuickTray";
 import { StudyPackHero } from "@/components/student/StudyPackHero";
-import { StudyPackQuickActions } from "@/components/student/StudyPackQuickActions";
-import { MotivationalQuote } from "@/components/student/MotivationalQuote";
-import { TopScholarsCard } from "@/components/student/TopScholarsCard";
-import { RecentStudyPacksCard } from "@/components/student/RecentStudyPacksCard";
-import { NewStudyPackFAB } from "@/components/student/NewStudyPackFAB";
-import { CommandPalette, CommandPaletteTrigger, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
-import { MobileGreetingHeader } from "@/components/student/MobileGreetingHeader";
+import { CommandPalette, useCommandPaletteHotkey } from "@/components/student/CommandPalette";
 import { ContinueLearning } from "@/components/student/ContinueLearning";
-import { SignatureHero } from "@/components/student/SignatureHero";
+import { TopHeader } from "@/components/student/dashboard/TopHeader";
+import { QuickActionsGrid } from "@/components/student/dashboard/QuickActionsGrid";
+import { OpportunityHubPreview } from "@/components/student/dashboard/OpportunityHubPreview";
+import { StudentSpotlight } from "@/components/student/dashboard/StudentSpotlight";
 
 interface Stats {
   totalAttempts: number;
@@ -138,9 +67,9 @@ interface Wallet {
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
-  const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const { showOnboarding, completeOnboarding } = useOnboarding(user?.id);
-  const [stats, setStats] = useState<Stats>({
+  const [, setStats] = useState<Stats>({
     totalAttempts: 0,
     totalQuestions: 0,
     correctAnswers: 0,
@@ -148,49 +77,20 @@ const StudentDashboard = () => {
     practiceTime: 0,
   });
   const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [courses, setCourses] = useState<{ id: string; code: string; name: string }[]>([]);
+  const [, setQuizzes] = useState<Quiz[]>([]);
+  const [, setCourses] = useState<{ id: string; code: string; name: string }[]>([]);
   const [purchasedQuizIds, setPurchasedQuizIds] = useState<Set<string>>(new Set());
-  const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
-  const [lastSimulation, setLastSimulation] = useState<{ quizId: string; title: string; duration: number } | null>(null);
+  const [, setRecentAttempts] = useState<any[]>([]);
+  const [, setLastSimulation] = useState<{ quizId: string; title: string; duration: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showBuyTokens, setShowBuyTokens] = useState(false);
   const [showPurchaseQuiz, setShowPurchaseQuiz] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
-  const [purchaseRequests, setPurchaseRequests] = useState<any[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [, setPurchaseRequests] = useState<any[]>([]);
+  const [, setLastUpdated] = useState<number | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   useCommandPaletteHotkey(setPaletteOpen);
-
-  // Profile completeness gate for paid quizzes
-  const tryStartPaidQuiz = (quiz: Quiz) => {
-    const isPaid = quiz.is_premium && (quiz.token_cost || 0) > 0 && !!quiz.tutor_id;
-    if (isPaid) {
-      // Lazy-import to avoid pulling in profile completeness logic for free quizzes
-      // Use the same source of truth as CompleteProfileCard.
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { getProfileCompleteness } = require("@/lib/profileCompleteness");
-      const { isComplete, missing } = getProfileCompleteness(profile);
-      if (!isComplete) {
-        toast({
-          title: "Complete your profile first",
-          description: `Add ${missing[0]?.label?.toLowerCase() || "your details"} (and ${missing.length - 1} more) before unlocking tutor-paid quizzes.`,
-          variant: "destructive",
-        });
-        navigate("/profile/edit");
-        return;
-      }
-    }
-    setSelectedQuiz(quiz);
-    setShowPurchaseQuiz(true);
-  };
-
-  
-  // Search and filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState<string>("all");
-  const [selectedType, setSelectedType] = useState<string>("all");
 
   useEffect(() => {
     if (!authLoading && !user) {
