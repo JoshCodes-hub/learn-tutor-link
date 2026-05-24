@@ -1,79 +1,119 @@
-## Goal
-Extend OverraPrep with a course-centric content architecture, improve the Library, upgrade AI generation UX, and add generation history + cancellation — without rebuilding existing features.
 
-## 1. Course-Centric Architecture
+# Phase 1 — Foundation Restructure (Dashboard + Navigation)
 
-### Data model (migration)
-Reuse existing `courses` and `topics`. Add light linkage so content can be filtered per course:
-- `courses`: add `code` (e.g. GNS101), `cover_url`, `created_by` (tutor), `is_published` (already exists if present — verify).
-- `topics`: ensure `course_id` FK exists.
-- `lecture_notes` / tutor materials: ensure `course_id` and optional `topic_id`.
-- `flashcard_decks` (new if missing): `id, course_id, topic_id?, title, owner_id, visibility`.
-- `flashcards`: `deck_id, front, back, order_index`.
-- `quizzes`: already has `course_id` — confirm + add `topic_id` nullable.
-- `course_images` (new): `course_id, topic_id?, url, caption, uploaded_by`.
-- RLS: tutors manage their own; students read published/approved.
+Scope is strictly the Student dashboard and the bottom navigation. No backend, auth, or unrelated page changes. No new features — only restructuring, hierarchy, and polish.
 
-### Routes
-- `/courses` — searchable course directory (students + tutors).
-- `/courses/:courseId` — Course Hub with tabs:
-  - Overview, Documents/PDFs, Flashcards, Quizzes, Images/Materials, AI Study Packs.
-- `/tutor/courses` — tutor's courses list with "New Course" CTA.
-- `/tutor/courses/:courseId/manage` — manage topics + upload tabs (documents, flashcards, quizzes, images).
+## 1. Bottom navigation — 5 tabs
 
-### Components
-- `CourseHubLayout` (tab nav, header with code/title/cover).
-- `CourseDocumentsTab`, `CourseFlashcardsTab`, `CourseQuizzesTab`, `CourseImagesTab`, `CourseStudyPacksTab`.
-- `TutorCourseEditor` (create course, add topics, upload to each tab).
-- Keep existing pages working; add deep-links from old listings to the new hub.
+Edit `src/components/app-shell/BottomTabBar.tsx`:
 
-## 2. Library Improvements
-- Tutor materials surfaced inside Library with Open/View/Download actions (reuse existing viewer).
-- "Offline Ready" badge driven by `offlineLibraryCache.isCached(resourceId)` after cache completes.
-- Persistent saved items: already in `saved_resources`; ensure tutor materials auto-link when saved.
+- Replace `STUDENT_TABS` with exactly 5 tabs, in order:
+  1. **Home** → `/student/dashboard` (icon: `Home`)
+  2. **Learn** → `/study-packs` (icon: `BookOpen`)
+  3. **Practice** → `/student/readiness` (icon: `Target`)
+  4. **Community** → `/community` (icon: `Users`)
+  5. **Profile** → `/profile/edit` (icon: `User`)
+- Keep the existing rounded amber pill + safe-area + active "pill" `layoutId` animation, but drop the elevated center "Upload" FAB tile — the new set is all equal-weight so the bar feels native Android / Material.
+- Tone down icon weight (strokeWidth 2, active 2.2), tighter labels, and use the existing `font-semibold tracking-tight` style.
+- `isStudentRoute` already forces student tabs on student routes — keep that.
+- Hide `NewStudyPackFAB` on the dashboard (it duplicates the hero CTA). Done by adding `/student/dashboard` to its internal hidden-route list. The FAB stays on `/study-packs`, `/library`, etc.
 
-## 3. AI Generation Upgrades
+No changes to school/teacher/parent/admin tab arrays.
 
-### Structured quiz output
-- Update `library-ai` / quiz generation prompt + JSON schema to enforce:
-  `{ question, options[4], correct_index, explanation, difficulty }`.
-- Render in a clean card with Question → Options → Correct Answer → Explanation.
-- After generation, open a **Review Mode** screen showing all Q/A before saving or starting practice.
+## 2. Student dashboard — rebuild the page composition
 
-### Generation history
-- New table `ai_generation_history`:
-  `id, user_id, resource_id, kind (quiz|flashcards|summary|audio), output_ref, status, created_at, params jsonb`.
-- UI panel on Library item + Study Packs: list past generations with **Quick Open**, **Re-run**, timestamp.
+Edit `src/pages/student/StudentDashboard.tsx`. Keep all existing data fetching, realtime, refresh, and dialogs (`BuyTokensDialog`, `PurchaseQuizDialog`, `OnboardingDialog`, `CommandPalette`, `PullToRefresh`). Only the **render tree** changes.
 
-### Cancel generation
-- Wire `AbortController` through `OutlineActionsMenu` + `libraryAI` calls.
-- Progress dialog gains a **Cancel** button that aborts the fetch and marks history row `cancelled`.
+New top-to-bottom structure (single column, mobile-first, max width `max-w-3xl` on desktop so it stays calm):
 
-## 4. UI/UX
-- White + gold tokens (existing). Use `.ai-prose` for AI output.
-- Mobile-first: tab bar scrolls horizontally on `/courses/:id`.
-- Large icon cards on Course Hub tabs.
-- No global restyle — only new screens + small badge/button additions.
+```text
+┌─────────────────────────────────────────┐
+│  TopHeader                              │  greeting + university chip
+│  • "Good morning, Joshua"               │  + streak pill + bell + avatar
+│  • FUTA badge · Level · Dept            │
+├─────────────────────────────────────────┤
+│  StudyPackHeroCard  (single hero)       │  one card, 3 CTAs:
+│  • Upload PDF                           │   Upload PDF / Continue / Generate
+│  • Continue Studying                    │
+│  • Generate Study Pack                  │
+├─────────────────────────────────────────┤
+│  Quick Actions (5 tiles, 2-col grid)    │  Flashcards, Practice Quiz,
+│                                          │  Audio Reader, Ask AI, Saved
+├─────────────────────────────────────────┤
+│  Continue Learning                      │  recent courses + study packs
+│  (horizontal snap-scroll on mobile)     │  + unfinished quizzes
+├─────────────────────────────────────────┤
+│  Opportunity Hub (preview)              │  4 simple cards:
+│                                          │  Internships · Scholarships
+│                                          │  Hackathons · Opportunities
+├─────────────────────────────────────────┤
+│  Student Spotlight                      │  3–5 top scholars row
+└─────────────────────────────────────────┘
+```
 
-## Technical sections
+What gets removed from the current page (kept in code, just not rendered on the dashboard):
 
-### Files to add
-- `supabase/migrations/<ts>_course_architecture.sql`
-- `src/pages/courses/CourseDirectory.tsx`
-- `src/pages/courses/CourseHub.tsx` + tab components in `src/components/courses/`
-- `src/pages/tutor/TutorCourseEditor.tsx`
-- `src/pages/quiz/QuizReviewMode.tsx`
-- `src/components/ai/GenerationHistoryPanel.tsx`
-- `src/lib/aiGenerationHistory.ts`
+- Desktop gold welcome strip (`motion.section` lines ~842–893)
+- `UpdatesCenter`, `PremiumQuickActions`, `ExamReadinessWidget`, `CampaignBanner`, `UploadCTABanner`, `FreshCourses`, `PremiumStatCard` trio, `AIQuizRecommendations`, `SubjectCombinationTracker`, `ReadinessRing`, `Achievements`, `ReferralCard`, `TeamCard`, `FavoriteTutors`, `BookmarkedQuestions`, `TeamChallenges`, `TeamChat`, `MyCommunities`, `RecentStudyPacksCard`, `MotivationalQuote`, the inline quiz catalog with search/filter/dropdowns, recent attempts list, purchase requests list.
+- The whole `DashboardNav` horizontal pill bar (it duplicates the new bottom nav on mobile and adds clutter on desktop).
+- `MobileGreetingHeader` + `SignatureHero` get replaced by the new `TopHeader` + reused `StudyPackHero`.
 
-### Files to edit
-- `src/components/layout/AnimatedRoutes.tsx` — new routes
-- `src/components/student/library/OutlineActionsMenu.tsx` — abort + history logging
-- `src/lib/libraryAI.ts` — AbortSignal support, structured quiz schema
-- `supabase/functions/library-ai/index.ts` — schema enforcement, abort-friendly
-- `src/pages/student/Library.tsx` — Offline Ready badge, tutor-material actions
-- Tutor dashboard nav — link to `/tutor/courses`
+Imports cleaned up to match. Removed components are NOT deleted — they remain available for other routes (e.g. `/community`, `/leaderboard`) and future phases.
 
-### Out of scope (kept as-is)
-- Existing AI prose typography, splash, audio mini player, payments.
-- Existing global pages (Study Packs, AI Tutor) — only add deep links into course hub.
+## 3. New / reused components
+
+**New:**
+
+- `src/components/student/dashboard/TopHeader.tsx`
+  - Greeting (Good morning/afternoon/evening + first name)
+  - University chip ("FUTA") + level/department subline
+  - Streak pill (uses existing streak query already in `StudyStreak`; lift the small read into the header)
+  - Bell → `/notifications`
+  - Avatar → `/profile/edit`
+- `src/components/student/dashboard/QuickActionsGrid.tsx`
+  - 2-col grid on mobile, 5-col on `md+`
+  - 5 fixed tiles with Lucide icons (`Layers`, `Target`, `Headphones`, `Sparkles`, `Bookmark`)
+  - Rounded-2xl, soft border, no neon, single gold accent dot
+  - Routes: `/flashcards`, `/student/readiness`, `/audio-learning`, `/ai-tutor`, `/library`
+- `src/components/student/dashboard/OpportunityHubPreview.tsx`
+  - 4 simple cards (Internships, Scholarships, Hackathons, Opportunities) — currently route to `/coming-soon` (placeholder); structure ready for university scoping later.
+- `src/components/student/dashboard/StudentSpotlight.tsx`
+  - Thin wrapper that re-uses existing `TopScholarsCard` data but with a compact horizontal row layout (3 avatars + name + badge).
+
+**Reused unchanged:**
+
+- `StudyPackHero` (hero card with the 3 CTAs already exists — just verify the three CTAs match: Upload / Continue / Generate; minor copy tweak if needed)
+- `ContinueLearning` (already shows recent courses/packs)
+- `PullToRefresh`, `CommandPalette`, dialogs
+
+## 4. Design system polish
+
+- Background: keep `bg-background` (white). Surfaces: `bg-card` + `border-amber-100/60`.
+- Accent: existing soft-gold (`amber-500/600`). No neon, no heavy gradients on dashboard tiles — flat surfaces with a 2px gold top accent on the hero only.
+- Spacing: section gap `mb-6` mobile / `mb-8` desktop. Card padding `p-5` mobile / `p-6` desktop. Min touch target 44px.
+- Typography: keep existing `font-display` for headings, `font-sans` body. Reduce on-page heading count — only the hero and section labels.
+- Icons: Lucide only (already the standard). Consistent size 20px in tiles, 22px in nav, 18px in inline chips.
+- Motion: keep `framer-motion` fade/translate-in already used; remove decorative blob backgrounds on the dashboard.
+
+## 5. University-first scaffolding (structure only, no filtering)
+
+- Add a `university` field read from `profile?.university || "FUTA"` and surface it in `TopHeader` (chip) + pass as a prop to `OpportunityHubPreview` and `StudentSpotlight` so they're ready to scope later. No query changes.
+
+## Files touched
+
+- `src/components/app-shell/BottomTabBar.tsx` — 5-tab set, flatten center FAB.
+- `src/components/student/NewStudyPackFAB.tsx` — hide on `/student/dashboard`.
+- `src/pages/student/StudentDashboard.tsx` — new render tree, prune imports.
+- `src/components/student/dashboard/TopHeader.tsx` — new.
+- `src/components/student/dashboard/QuickActionsGrid.tsx` — new.
+- `src/components/student/dashboard/OpportunityHubPreview.tsx` — new.
+- `src/components/student/dashboard/StudentSpotlight.tsx` — new.
+
+No DB, no edge function, no auth, no other pages changed.
+
+## Out of scope (Phase 2+)
+
+- Building real Opportunity Hub data
+- University filtering / multi-uni switcher
+- Learn / Practice / Community tab page redesigns
+- Tutor or admin dashboards
