@@ -481,170 +481,132 @@ const AudioLearning = () => {
         </header>
 
         <main className="container mx-auto px-4 py-5 max-w-3xl space-y-5">
-          {/* MUSIC-APP STYLE PLAYER */}
+          {/* PREMIUM NOW-PLAYING CARD */}
           <motion.div
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/80 p-5 sm:p-6 text-primary-foreground shadow-2xl"
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-amber-50/80 to-white p-5 sm:p-7 ring-1 ring-amber-200/60 shadow-xl"
           >
-            {/* Animated ambient blobs */}
-            <motion.div
-              className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/10 blur-3xl"
-              animate={isPlaying ? { scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] } : {}}
-              transition={{ duration: 4, repeat: Infinity }}
-            />
-            <motion.div
-              className="absolute -left-10 bottom-0 w-44 h-44 rounded-full bg-white/10 blur-3xl"
-              animate={isPlaying ? { scale: [1.1, 1, 1.1], opacity: [0.5, 0.3, 0.5] } : {}}
-              transition={{ duration: 5, repeat: Infinity }}
+            <NowPlayingArtwork
+              title={fileName || "Your Document"}
+              subtitle={voices.find((v) => v.id === voiceURI)?.name ?? "Default voice"}
+              isPlaying={isPlaying}
             />
 
-            <div className="relative flex items-center gap-4">
-              <motion.div
-                animate={isPlaying ? { rotate: 360 } : { rotate: 0 }}
-                transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-white/30 to-white/5 backdrop-blur flex items-center justify-center ring-4 ring-white/20 shadow-xl"
-              >
-                <Headphones className="w-8 h-8 sm:w-9 sm:h-9" />
-              </motion.div>
-              <div className="flex-1 min-w-0">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 mb-1">
-                  <Sparkles className="w-3 h-3" />
-                  <span className="text-[10px] font-bold tracking-wider uppercase">Now Playing</span>
-                </div>
-                <p className="font-display text-lg sm:text-xl font-bold tracking-tight truncate">
-                  {fileName || "Your Document"}
-                </p>
-                <p className="text-[11px] sm:text-xs opacity-80 truncate">
-                  {voices.find((v) => v.id === voiceURI)?.name ?? "Default voice"} · {rate}x · {AMBIENT_LIST.find((a) => a.id === ambient)?.label}
-                </p>
-              </div>
+            {/* Title row */}
+            <div className="mt-5 text-center">
+              <p className="font-display text-lg sm:text-xl font-bold tracking-tight truncate">
+                {fileName || "Untitled narration"}
+              </p>
+              <p className="text-[12px] text-muted-foreground truncate">
+                {tick.total ? `Track ${Math.min(tick.chunk + 1, tick.total)} of ${tick.total}` : "Ready when you are"} · {rate}x
+              </p>
             </div>
 
             {/* Live word ticker */}
-            <div className="relative mt-4 min-h-[64px] rounded-2xl bg-black/20 backdrop-blur-sm p-3 sm:p-4 ring-1 ring-white/10 overflow-hidden">
+            <div className="mt-4 min-h-[56px] rounded-2xl bg-amber-50 ring-1 ring-amber-200/50 p-3">
               {liveWord ? (
-                <p className="text-[13px] sm:text-sm leading-relaxed text-white/85 line-clamp-3">
-                  <span className="opacity-60">{liveWord.before}</span>
+                <p className="text-[13px] leading-relaxed text-foreground/90 line-clamp-3">
+                  <span className="opacity-50">{liveWord.before}</span>
                   <motion.span
                     key={`${liveWord.chunkIdx}-${tick.charIndex}`}
-                    initial={{ backgroundColor: "rgba(255,255,255,0.4)" }}
-                    animate={{ backgroundColor: "rgba(255,255,255,0.25)" }}
+                    initial={{ backgroundColor: "hsl(var(--primary) / 0.35)" }}
+                    animate={{ backgroundColor: "hsl(var(--primary) / 0.15)" }}
                     transition={{ duration: 0.4 }}
-                    className="font-bold text-white px-1 rounded"
+                    className="font-bold text-primary px-1 rounded"
                   >
                     {liveWord.word}
                   </motion.span>
-                  <span className="opacity-60">{liveWord.after}</span>
+                  <span className="opacity-50">{liveWord.after}</span>
                 </p>
               ) : (
-                <p className="text-xs opacity-60 italic">
+                <p className="text-xs text-muted-foreground italic text-center">
                   Press play — words will light up as they're spoken.
                 </p>
               )}
             </div>
 
-            {/* Waveform-style equalizer */}
-            <div className="relative mt-3 flex items-end justify-center gap-0.5 h-6">
-              {Array.from({ length: 24 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-1 rounded-full bg-white/60"
-                  animate={isPlaying
-                    ? { height: [`${20 + Math.random() * 50}%`, `${40 + Math.random() * 60}%`, `${20 + Math.random() * 50}%`] }
-                    : { height: "20%" }}
-                  transition={{ duration: 0.5 + (i % 5) * 0.1, repeat: Infinity, delay: i * 0.04 }}
-                />
-              ))}
-            </div>
-
             {/* Progress */}
-            <div className="relative mt-3">
-              <div className="h-1.5 rounded-full bg-white/25 overflow-hidden">
-                <motion.div className="h-full bg-white rounded-full"
+            <div className="mt-4">
+              <div className="h-1.5 rounded-full bg-amber-200/60 overflow-hidden">
+                <motion.div className="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full"
                   animate={{ width: `${Math.round(tick.progress * 100)}%` }} transition={{ duration: 0.3 }} />
               </div>
-              <div className="flex items-center justify-between mt-1.5 text-[11px] opacity-90 font-mono">
+              <div className="flex items-center justify-between mt-1.5 text-[11px] text-muted-foreground font-mono">
                 <span>{tick.total ? `${Math.min(tick.chunk + (isPlaying ? 1 : 0), tick.total)} / ${tick.total}` : "—"}</span>
                 <span>{Math.round(tick.progress * 100)}%</span>
               </div>
             </div>
 
-            {/* Transport */}
-            <div className="relative mt-3 flex items-center justify-center gap-4">
+            {/* Transport — large, centered */}
+            <div className="mt-4 flex items-center justify-center gap-5">
               <button onClick={handleStop} disabled={tick.state === "idle"}
-                className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 disabled:opacity-40 flex items-center justify-center transition-all active:scale-95"
-                aria-label="Stop"><Square className="w-4 h-4" /></button>
+                className="w-12 h-12 rounded-full bg-white ring-1 ring-amber-200 hover:bg-amber-50 disabled:opacity-40 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                aria-label="Stop"><Square className="w-4 h-4 text-amber-700" /></button>
               <button onClick={handlePlay} disabled={!text.trim() || extracting}
-                className="w-16 h-16 rounded-full bg-white text-primary shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-2xl shadow-amber-500/40 flex items-center justify-center hover:scale-105 active:scale-95 transition-all disabled:opacity-50 ring-4 ring-amber-100"
                 aria-label={isPlaying ? "Pause" : "Play"}>
-                {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 translate-x-0.5" />}
+                {isPlaying ? <Pause className="w-9 h-9" /> : <Play className="w-9 h-9 translate-x-0.5" />}
               </button>
               <button onClick={() => { ttsRef.current?.stop(); setTimeout(handlePlay, 50); }}
                 disabled={tick.state === "idle"}
-                className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 disabled:opacity-40 flex items-center justify-center transition-all active:scale-95"
-                aria-label="Restart"><RotateCcw className="w-4 h-4" /></button>
+                className="w-12 h-12 rounded-full bg-white ring-1 ring-amber-200 hover:bg-amber-50 disabled:opacity-40 flex items-center justify-center transition-all active:scale-95 shadow-sm"
+                aria-label="Restart"><RotateCcw className="w-4 h-4 text-amber-700" /></button>
             </div>
 
-            {/* Speed + bookmark */}
-            <div className="relative mt-4 flex items-center gap-2 flex-wrap">
-              <p className="text-[11px] opacity-80 font-medium flex items-center gap-1 mr-1">
-                <Gauge className="w-3 h-3" /> Speed
-              </p>
+            {/* Speed picker */}
+            <div className="mt-4 flex items-center justify-center gap-1.5 flex-wrap">
+              <Gauge className="w-3.5 h-3.5 text-muted-foreground mr-1" />
               {SPEEDS.map((s) => (
                 <button key={s} onClick={() => handleRate(s)}
                   className={cn("px-2.5 py-1 rounded-full text-[11px] font-bold transition-all",
-                    rate === s ? "bg-white text-primary shadow" : "bg-white/15 hover:bg-white/25")}>
+                    rate === s
+                      ? "bg-amber-600 text-white shadow"
+                      : "bg-amber-50 text-amber-800 hover:bg-amber-100 ring-1 ring-amber-200/60")}>
                   {s}x
                 </button>
               ))}
+            </div>
+
+            {/* Secondary actions row */}
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <VoiceSheet
+                trigger={
+                  <button className="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98]">
+                    <Volume2 className="w-4 h-4 text-amber-700" />
+                    <span className="text-[11px] font-bold text-foreground/80">Voice</span>
+                    <span className="text-[10px] text-muted-foreground truncate max-w-full px-1">
+                      {voices.find((v) => v.id === voiceURI)?.name?.split(" ")[0] ?? "Default"}
+                    </span>
+                  </button>
+                }
+                voices={voices} voiceURI={voiceURI} pinned={pinned}
+                onPick={handleVoice} onTogglePin={togglePin} onExport={exportPinnedVoices}
+              />
+              <AmbientSheet
+                trigger={
+                  <button className="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98]">
+                    <span className="text-base leading-none">
+                      {AMBIENT_LIST.find((a) => a.id === ambient)?.emoji ?? "🔇"}
+                    </span>
+                    <span className="text-[11px] font-bold text-foreground/80">Ambient</span>
+                    <span className="text-[10px] text-muted-foreground truncate max-w-full px-1">
+                      {AMBIENT_LIST.find((a) => a.id === ambient)?.label ?? "Off"}
+                    </span>
+                  </button>
+                }
+                ambient={ambient} ambientVol={ambientVol}
+                onPick={handleAmbient} onVol={handleAmbientVol}
+              />
               <button onClick={addBookmark} disabled={activeSection === null}
-                className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 text-[11px] font-bold disabled:opacity-40">
-                <Bookmark className="w-3 h-3" /> Bookmark spot
+                className="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98] disabled:opacity-40">
+                <Bookmark className="w-4 h-4 text-amber-700" />
+                <span className="text-[11px] font-bold text-foreground/80">Bookmark</span>
+                <span className="text-[10px] text-muted-foreground truncate max-w-full px-1">
+                  {bookmarks.length ? `${bookmarks.length} saved` : "Mark spot"}
+                </span>
               </button>
             </div>
           </motion.div>
-
-          {/* AMBIENT SOUND PICKER — beautiful and addictive */}
-          <Card className="p-5 space-y-3 bg-gradient-to-br from-card to-primary/5">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="font-semibold flex items-center gap-2">
-                <Music className="w-4 h-4 text-primary" /> Focus Sounds
-              </Label>
-              <span className="text-[11px] text-muted-foreground">Plays under narration</span>
-            </div>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {AMBIENT_LIST.map((a) => {
-                const active = ambient === a.id;
-                return (
-                  <button key={a.id} onClick={() => handleAmbient(a.id)}
-                    className={cn(
-                      "flex flex-col items-center gap-1 p-2.5 rounded-xl border-2 transition-all",
-                      active
-                        ? "border-primary bg-primary/10 shadow-md scale-[1.03]"
-                        : "border-border hover:border-primary/40 hover:bg-muted/40",
-                    )}>
-                    <span className="text-2xl leading-none">{a.emoji}</span>
-                    <span className={cn("text-[11px] font-bold", active ? "text-primary" : "text-foreground")}>
-                      {a.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {ambient !== "off" && (
-              <div className="flex items-center gap-2 pt-1">
-                <Volume2 className="w-3.5 h-3.5 text-muted-foreground" />
-                <input
-                  type="range" min={0} max={1} step={0.05} value={ambientVol}
-                  onChange={(e) => handleAmbientVol(Number(e.target.value))}
-                  className="flex-1 accent-primary"
-                />
-                <span className="text-[11px] font-mono text-muted-foreground w-10 text-right">
-                  {Math.round(ambientVol * 100)}%
-                </span>
-              </div>
-            )}
-          </Card>
 
           {/* Capability badges */}
           <div className="flex flex-wrap gap-2">
