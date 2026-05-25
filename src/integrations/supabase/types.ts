@@ -1131,44 +1131,6 @@ export type Database = {
         }
         Relationships: []
       }
-      course_topics: {
-        Row: {
-          course_id: string
-          created_at: string
-          created_by: string | null
-          id: string
-          position: number
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          course_id: string
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          position?: number
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          course_id?: string
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          position?: number
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "course_topics_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       courses: {
         Row: {
           code: string
@@ -1719,7 +1681,7 @@ export type Database = {
             foreignKeyName: "lecture_notes_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
-            referencedRelation: "course_topics"
+            referencedRelation: "topics"
             referencedColumns: ["id"]
           },
         ]
@@ -2807,7 +2769,7 @@ export type Database = {
             foreignKeyName: "quizzes_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
-            referencedRelation: "course_topics"
+            referencedRelation: "topics"
             referencedColumns: ["id"]
           },
         ]
