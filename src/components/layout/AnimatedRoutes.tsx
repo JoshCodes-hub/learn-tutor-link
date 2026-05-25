@@ -259,6 +259,16 @@ export const AnimatedRoutes = () => {
             }
           />
           <Route
+            path="/admin/insights"
+            element={
+              <AdminRoute>
+                <PageTransition>
+                  <AdminInsights />
+                </PageTransition>
+              </AdminRoute>
+            }
+          />
+          <Route
             path="/admin/startup-checklist"
             element={
               <AdminRoute>
