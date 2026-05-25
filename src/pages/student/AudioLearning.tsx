@@ -16,6 +16,8 @@ import { SEO } from "@/components/seo/SEO";
 import { cn } from "@/lib/utils";
 import { BrowserTts, isTtsSupported, listVoices, type TtsState, type TtsTick, type TtsVoice } from "@/lib/browserTts";
 import { AmbientPlayer, AMBIENT_LIST, type AmbientPreset } from "@/lib/ambientAudio";
+import { useStudentScope } from "@/hooks/useStudentScope";
+import { LevelChip } from "@/components/shell/PageHeader";
 
 const MAX_CHARS = 50000;
 const SPEEDS = [0.85, 1, 1.25, 1.5, 2];
@@ -41,6 +43,7 @@ const docKey = (name: string, len: number) =>
 const AudioLearning = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { label: scopeLabel } = useStudentScope();
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState("");
   const [extracting, setExtracting] = useState(false);
@@ -455,14 +458,21 @@ const AudioLearning = () => {
         description="Turn notes into audio using your phone's voice with built-in lo-fi, rain and ocean focus sounds."
         url="/audio-learning" />
       <div className="min-h-screen bg-background pb-12">
-        <header className="sticky top-0 z-40 bg-card/85 backdrop-blur border-b border-border">
+        <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-amber-200/50">
           <div className="container mx-auto px-4 h-14 flex items-center gap-2 max-w-3xl">
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4 mr-1" /> Back
             </Button>
             <div className="ml-auto flex items-center gap-2">
-              <Headphones className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-sm">AI Narration</span>
+              {scopeLabel && (
+                <span className="hidden sm:inline-flex">
+                  <LevelChip label={scopeLabel} />
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700">
+                <Headphones className="w-3.5 h-3.5" />
+                <span className="font-bold text-xs tracking-wide">AUDIO LEARNING</span>
+              </span>
             </div>
           </div>
         </header>
