@@ -1,94 +1,164 @@
-## Phase 4 — AI Study System, Audio Learning & Exam Readiness
+# Phase 5 — Community, Engagement & Student Ecosystem
 
-Most of the Phase 4 infrastructure is **already built** in prior phases:
-
-- `runLibraryAI` (summary/flashcards/quiz, with cancel via `AbortSignal`, history logging) — `src/lib/libraryAI.ts`
-- `ai_generation_history` table + UI (`AIHistory.tsx`, `GenerationHistoryPanel.tsx`) with filters, delete, clear-all confirmation, CSV export
-- Browser-native TTS engine (`browserTts.ts`) + Audio Learning page with chunking, sections, bookmarks, resume, ambient music
-- Exam Readiness Engine (`examReadiness.ts`) with 5 weighted signals + per-course breakdown
-- `extractTextFromFile` for PDF / DOCX / TXT
-- Personal Library with Save-to-Library, offline downloads
-
-This phase **does not rebuild** any of that. It closes the remaining gaps to make the system feel *course-aware* and *exam-ready*.
+Builds on existing infrastructure (course chat, tutor follows, tutor communities, notifications, profiles) rather than rebuilding it. Closes gaps to make the platform feel like a living academic ecosystem.
 
 ---
 
-### 1. Course-aware AI scoping (DB)
+## 1. Course Discussion upgrades (no redesign)
 
-Single migration:
+Extend `course_chat_messages` (one migration):
 
-- Add `course_id uuid`, `topic_id uuid` (both nullable) to `public.ai_generation_history`, indexed.
-- Add same two nullable columns to `public.user_resources` so AI outputs and uploads can belong to a course.
-- New RPC `list_course_ai_generations(course_id uuid)` returning current user's history scoped to a course.
+- Add `parent_id uuid` (threaded replies, nullable, self-ref, indexed)
+- Add `is_ai boolean default false` + `ai_status text` (`pending|ready|failed`) for @AI replies
+- Reuse existing `course_chat_reactions` + `course_pinned_prompts` — no schema change
 
-`logAIGeneration` and `runLibraryAI` will accept optional `courseId` / `topicId` and persist them. Existing resource-only flow keeps working.
+`CourseChat.tsx` gains:
+- Inline "Reply" affordance under each message → small thread strip (depth = 1, Slack-style; no nesting beyond one level)
+- Tutor badge (gold pill) shown when message author is a course tutor (resolved from existing `quizzes.tutor_id` lookup we already do)
+- `@AI <prompt>` detection: when a message starts with or contains `@AI`, fire `course-ai-reply` edge function that inserts an AI message with `is_ai = true`, scoped to course context (course code + recent N messages)
+- Markdown rendering for AI messages (react-markdown, already in deps), human messages stay plain text
 
-### 2. Course Hub: AI Packs + Audio tabs become real
+New edge function `course-ai-reply` (Lovable AI Gateway, `google/gemini-2.5-flash`):
+- Auth: validate JWT, confirm `is_course_participant`
+- Input: `course_id`, `parent_id`, `prompt`, last 10 messages for context
+- Inserts placeholder row (`ai_status='pending'`), streams completion, updates row with `ai_status='ready'`
+- Charges existing AI quota via `increment_ai_usage('chat_ai_reply', 30)`
 
-`src/pages/courses/CourseHub.tsx`
+## 2. Tutor follow → live signals
 
-- **AI Packs tab**: replace the stub with `<CourseAIPanel courseId topicId={topicFilter} />` — new component that:
-  - Lists this course's `lecture_notes` (already fetched) as pickable source documents.
-  - Per-document action buttons: Summary, Flashcards, Practice quiz — call `runLibraryAI` and persist with `course_id`/`topic_id`.
-  - Inline `<GenerationHistoryPanel>` (existing) filtered by the picked document, plus a course-wide history strip using the new RPC.
-  - In-flight rows show **Cancel** + post-failure **Retry**.
-- **Audio tab**: replace the stub with `<CourseAudioPanel courseId>` — list this course's documents with a "Listen" button that opens `/audio-learning?source=lecture_note:<id>`. `AudioLearning.tsx` gains a small effect that, when this query param is present, fetches the doc, extracts text, and pre-fills.
+`tutor_follows` already exists. Add:
+- Trigger `notify_followers_on_tutor_upload`: when a row is inserted into `lecture_notes`, `quizzes` (status=approved), or `tutor_announcements`, insert one `notifications` row per follower with type `tutor_upload` / `tutor_announcement` / `tutor_quiz`
+- Hook this into the existing realtime notification bell (already wired in Phase 4)
 
-### 3. AI Quiz one-click flow + Review Mode
+## 3. Opportunity Hub (real)
 
-- New page `src/pages/student/AIQuizRunner.tsx` route `/ai-quiz/:resourceId`:
-  - Loads `user_resources` row of kind `note` with `material_type: "quiz"` (already saved by `runLibraryAI`).
-  - Renders questions one-at-a-time with clear blocks: question / options / selected / correct answer / explanation.
-  - On finish → Review Mode (all questions, correct/incorrect highlighted, explanations expanded).
-  - On completion writes a row to `quiz_attempts` (course_id/quiz_id null, source=`ai_resource:<id>`) so readiness picks it up.
-- `OutlineActionsMenu` quiz output → "Open quiz" navigates here instead of just toasting.
+Replaces the `OpportunityHubPreview` placeholder.
 
-### 4. Better PDF extraction
+Tables:
+```sql
+opportunities (
+  id, title, organization, category (enum:
+    internship|scholarship|hackathon|competition|tech_program|career),
+  description, deadline date, apply_url, cover_image_url,
+  university text null, posted_by uuid, status (draft|published|archived),
+  created_at, updated_at
+)
+opportunity_bookmarks (id, opportunity_id, user_id, created_at, unique pair)
+```
 
-Upgrade `src/lib/extractText.ts`:
+RLS: published rows readable by any authenticated user; admins can CRUD; bookmarks owned by user.
 
-- For PDFs: track `transform[5]` (y position) and font height per text item; insert `\n\n` on large y-jumps and `# ` prefix for items whose font size is markedly above the page median. Keeps everything client-side, no new deps.
-- Increase default `maxPages` from 40 → 80 with a soft cap option.
-- Add an OCR-not-supported toast hint when extracted text < 50 chars on a PDF (so students know why it failed).
+Pages:
+- `/opportunities` — filterable list (category chips, deadline sort, university scope), card grid, save toggle
+- `/opportunities/:id` — detail view with Apply CTA + share
+- `/admin/opportunities` — admin CRUD (table + dialog)
 
-### 5. Flashcard completion → readiness signal
+Dashboard `OpportunityHubPreview` rewires to live data (top 4 by deadline). Removes the "Coming soon" badge.
 
-- `src/components/courses/CourseProgressCard.tsx` already surfaces `cardsReviewed/totalFlashcards`. Add a small `FlashcardProgressStrip` to the Course Hub flashcards tab showing % complete and a "Continue review" button to `/review?course=<id>`.
-- No engine change needed — `flashcard_mastery` already weighted 20% via SRS.
+## 4. Student Spotlight
 
-### 6. AI chat formatting + notification bell
+Table `student_spotlights (id, user_id, category text [graduating|innovator|hackathon|scholarship|top_performer], title, summary, image_url, link_url, featured_until, created_by, created_at)`. Admin-curated.
 
-- Wrap all AI chat message bodies (`ai-tutor-chat`, `chat-with-notes`, `library-ai` summaries previewed in chat) in `ReactMarkdown` and run text through existing `sanitizeAIText` so bold/headings/lists render cleanly and `***` noise is stripped. Files touched: `src/components/chat/MessageBubble.tsx`, `src/pages/ai-tutor/AITutor.tsx` rendering block only.
-- `TopHeader.tsx` notification bell: subscribe to `notifications` realtime channel so the unread dot updates without refresh, and call the existing `useNotifications` invalidation when `library_ai_completed` / `audio_generated` analytics events fire (via simple custom event bus).
+- Public read for authenticated users; admin write
+- New `/spotlight` page (gallery) + dashboard strip `StudentSpotlightFeatured` (top 3 active)
+- Existing XP-based `StudentSpotlight` component keeps working alongside (renamed to `TopXPStrip`)
 
-### 7. Out of scope (per phase rules)
+## 5. Leaderboard split
 
-- Dashboard redesign, onboarding, subscriptions, payments — untouched.
-- Server-side OCR — flagged via UI hint only.
-- Paid TTS — browser SpeechSynthesis remains primary; existing `text-to-speech` edge function stays available as opt-in but not wired into the default flow.
+Refactor `/leaderboard` (`LeaderboardPage`) to a tabbed view:
+
+- **Top Students** — weighted score (existing logic, expanded):
+  - 40% quiz accuracy (last 30d)
+  - 20% flashcards reviewed (SRS table)
+  - 15% study streak
+  - 15% AI study activity (`ai_generation_history` count last 30d)
+  - 10% engagement (course_chat_messages + reactions)
+- **Top Tutors** — `tutor_uploads_count`, `students_impacted` (distinct quiz_attempts on their quizzes), `avg_rating`, `tutor_follows_count`
+
+Two RPCs `get_student_leaderboard(_limit int)` and `get_tutor_leaderboard(_limit int)` returning pre-aggregated rows. Cached 5 min via React Query.
+
+## 6. Smart Activity Feed
+
+New table `activity_events (id, actor_id, verb, object_type, object_id, course_id null, university null, visibility [public|followers|course], created_at)`.
+
+Triggers populate it from existing events:
+- tutor upload (lecture_notes / quizzes / tutor_announcements)
+- new opportunity published
+- spotlight featured
+- new course discussion (course-level only)
+- self-actions (flashcard milestone, leaderboard movement) — written client-side via tiny `logActivity()` helper
+
+Page `/feed` (calm chronological list, max 50 items). Dashboard gets a compact `<RecentActivityStrip />` (top 5, no infinite scroll).
+
+## 7. Profile system improvement
+
+`/profile/:userId` (`PublicProfile.tsx`) — extend, do not redesign:
+
+Student profile blocks: university / department / level (from `profiles`), current streak, achievements, followed tutors count, study stats (quizzes taken, avg score, flashcards reviewed).
+
+Tutor profile blocks: expertise tags, courses uploaded (count + list), follower count, total students impacted, average rating.
+
+All pulled with one batched query; cached.
+
+## 8. Notification system polish
+
+- New notification types: `tutor_upload`, `tutor_announcement`, `mention` (when `@username` appears in chat — basic parse), `opportunity_new`, `leaderboard_move` (weekly)
+- `NotificationCenter` groups by type (icon + accent), instant badge already wired via realtime
+- Add filter chips: All / Tutors / Mentions / Opportunities / System
+
+## 9. UX guardrails
+
+- Keep white + gold theme, Inter typography, generous spacing
+- No infinite scroll; max-50 pages
+- Reactions stay minimal (existing 6-emoji set)
+- AI chat replies rendered with `prose-sm` markdown
+- Protected premium materials remain gated by existing `usePremium` — discussion/share never exposes file URLs
+
+## Out of scope
+
+- Onboarding, dashboard layout, AI engine internals, subscriptions — untouched
+- Direct messaging between students (already exists via Phase 8 inbox)
+- LiveKit/live sessions
 
 ---
 
-### Files to create
+## Technical changes
 
-- `supabase/migrations/<ts>_course_aware_ai.sql`
-- `src/components/courses/CourseAIPanel.tsx`
-- `src/components/courses/CourseAudioPanel.tsx`
-- `src/components/courses/FlashcardProgressStrip.tsx`
-- `src/pages/student/AIQuizRunner.tsx`
+### Migrations (one file)
+- Extend `course_chat_messages` (+parent_id, +is_ai, +ai_status, index)
+- Tables: `opportunities`, `opportunity_bookmarks`, `student_spotlights`, `activity_events`
+- RLS + admin policies
+- Triggers: `notify_followers_*`, `activity_event_*`
+- RPCs: `get_student_leaderboard`, `get_tutor_leaderboard`, `list_followed_tutor_activity`
+- Enable realtime on new tables that need it (`activity_events`, extended `course_chat_messages`)
 
-### Files to edit
+### New files
+- `supabase/migrations/<ts>_phase5_community.sql`
+- `supabase/functions/course-ai-reply/index.ts`
+- `src/pages/opportunities/Opportunities.tsx`
+- `src/pages/opportunities/OpportunityDetail.tsx`
+- `src/pages/admin/AdminOpportunities.tsx`
+- `src/pages/student/Spotlight.tsx`
+- `src/pages/admin/AdminSpotlights.tsx`
+- `src/pages/student/Feed.tsx` (rename existing social Feed kept)
+- `src/components/feed/RecentActivityStrip.tsx`
+- `src/components/spotlight/SpotlightCard.tsx`
+- `src/components/opportunities/OpportunityCard.tsx`
+- `src/hooks/useOpportunities.ts`, `useSpotlights.ts`, `useActivityFeed.ts`, `useLeaderboards.ts`
+- `src/lib/activityLog.ts`
 
-- `src/lib/libraryAI.ts` — accept `courseId` / `topicId`
-- `src/lib/aiGenerationHistory.ts` — pass through scope columns, new `listCourseAIGenerations`
-- `src/lib/extractText.ts` — heading/paragraph preservation
-- `src/pages/courses/CourseHub.tsx` — swap AI Packs + Audio tabs
-- `src/pages/student/AudioLearning.tsx` — `?source=lecture_note:<id>` pre-fill
-- `src/components/student/library/OutlineActionsMenu.tsx` — open quiz route
-- `src/components/chat/MessageBubble.tsx`, `src/pages/ai-tutor/AITutor.tsx` — markdown render + sanitize
-- `src/components/student/dashboard/TopHeader.tsx` — realtime notification dot
-- `src/components/layout/AnimatedRoutes.tsx` — register `/ai-quiz/:resourceId`
+### Edits
+- `src/components/course/CourseChat.tsx` — replies, tutor badge, @AI hook, markdown
+- `src/components/student/dashboard/OpportunityHubPreview.tsx` — live data
+- `src/components/student/dashboard/StudentSpotlight.tsx` — featured spotlights row + keep XP strip
+- `src/pages/LeaderboardPage.tsx` + `src/components/student/Leaderboard.tsx` — tabs (Students/Tutors)
+- `src/pages/profile/PublicProfile.tsx` — extended blocks
+- `src/components/notifications/NotificationCenter.tsx` — filter chips + new types
+- `src/components/layout/AnimatedRoutes.tsx` — register new routes
+- `src/components/app-shell/BottomTabBar.tsx` — optional Feed tab (only if it fits; otherwise keep in More)
 
-### Expected outcome
+---
 
-Every AI output is attached to its university course + topic. From any Course Hub a student can generate a summary, flashcards, or a practice quiz from real lecture notes, listen to those same notes via browser TTS, see the generation history scoped to that course, cancel/retry mid-flight, and watch the Exam Readiness signal move as they review.
+## Expected outcome
+
+A student can: ask a question in CSC201, tag `@AI explain polymorphism`, get a clean markdown reply inline, react/reply, follow Dr. Ade and get notified when she uploads, browse curated internships/scholarships in Opportunity Hub, see Student Spotlight winners, check split Top Students / Top Tutors leaderboards, and watch a calm Activity Feed of what's happening across their academic world — all on the existing white + gold layout, no clutter.

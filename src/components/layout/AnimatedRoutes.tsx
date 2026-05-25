@@ -151,6 +151,12 @@ const Subscription = lazy(() => import("@/pages/student/Subscription"));
 const Referrals = lazy(() => import("@/pages/student/Referrals"));
 const Wallet = lazy(() => import("@/pages/student/Wallet"));
 const AdminPaymentRequests = lazy(() => import("@/pages/admin/PaymentRequests"));
+const Opportunities = lazy(() => import("@/pages/opportunities/Opportunities"));
+const OpportunityDetail = lazy(() => import("@/pages/opportunities/OpportunityDetail"));
+const AdminOpportunities = lazy(() => import("@/pages/admin/AdminOpportunities"));
+const Spotlight = lazy(() => import("@/pages/student/Spotlight"));
+const AdminSpotlights = lazy(() => import("@/pages/admin/AdminSpotlights"));
+const ActivityFeed = lazy(() => import("@/pages/student/ActivityFeed"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -362,6 +368,12 @@ export const AnimatedRoutes = () => {
           <Route path="/referrals" element={<PageTransition><Referrals /></PageTransition>} />
           <Route path="/wallet" element={<PageTransition><Wallet /></PageTransition>} />
           <Route path="/admin/payments" element={<AdminRoute><PageTransition><AdminPaymentRequests /></PageTransition></AdminRoute>} />
+          <Route path="/opportunities" element={<PageTransition><Opportunities /></PageTransition>} />
+          <Route path="/opportunities/:id" element={<PageTransition><OpportunityDetail /></PageTransition>} />
+          <Route path="/spotlight" element={<PageTransition><Spotlight /></PageTransition>} />
+          <Route path="/activity" element={<PageTransition><ActivityFeed /></PageTransition>} />
+          <Route path="/admin/opportunities" element={<AdminRoute><PageTransition><AdminOpportunities /></PageTransition></AdminRoute>} />
+          <Route path="/admin/spotlights" element={<AdminRoute><PageTransition><AdminSpotlights /></PageTransition></AdminRoute>} />
           <Route path="/courses" element={<PageTransition><CourseDirectory /></PageTransition>} />
           <Route path="/courses/:courseId" element={<PageTransition><CourseHub /></PageTransition>} />
           <Route path="/tutor/courses/new" element={<PageTransition><TutorCourseEditor /></PageTransition>} />
