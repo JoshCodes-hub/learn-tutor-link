@@ -5796,6 +5796,22 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_public_profile_stats: {
+        Args: { _user_id: string }
+        Returns: {
+          ai_activity: number
+          avg_rating: number
+          cards_reviewed: number
+          current_streak: number
+          engagement: number
+          followers_count: number
+          longest_streak: number
+          quiz_accuracy: number
+          quizzes_taken: number
+          students_impacted: number
+          uploads_count: number
+        }[]
+      }
       get_student_leaderboard: {
         Args: { _limit?: number }
         Returns: {
