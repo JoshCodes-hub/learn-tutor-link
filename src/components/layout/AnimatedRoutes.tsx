@@ -94,6 +94,7 @@ const Terms = lazy(() => import("@/pages/legal/Terms"));
 const Privacy = lazy(() => import("@/pages/legal/Privacy"));
 const PrivacySettings = lazy(() => import("@/pages/settings/PrivacySettings"));
 const NotificationSettings = lazy(() => import("@/pages/settings/NotificationSettings"));
+const DeviceSessions = lazy(() => import("@/pages/settings/DeviceSessions"));
 const LectureNotes = lazy(() => import("@/pages/tutor/LectureNotes"));
 const Inbox = lazy(() => import("@/pages/messages/Inbox"));
 const Announcements = lazy(() => import("@/pages/announcements/Announcements"));
@@ -438,6 +439,7 @@ export const AnimatedRoutes = () => {
           <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
           <Route path="/settings/privacy" element={<PageTransition><PrivacySettings /></PageTransition>} />
           <Route path="/settings/notifications" element={<PageTransition><NotificationSettings /></PageTransition>} />
+          <Route path="/settings/devices" element={<PageTransition><DeviceSessions /></PageTransition>} />
           <Route path="/lecture-notes" element={<PageTransition><LectureNotes /></PageTransition>} />
           <Route path="/messages" element={<PageTransition><Inbox /></PageTransition>} />
           <Route path="/chat" element={<PageTransition><ChatInbox /></PageTransition>} />
