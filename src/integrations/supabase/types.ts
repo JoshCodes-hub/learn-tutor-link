@@ -2201,6 +2201,44 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunity_applications: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          opportunity_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          opportunity_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          opportunity_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_applications_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_bookmarks: {
         Row: {
           created_at: string
@@ -2400,6 +2438,7 @@ export type Database = {
           tutor_specialization:
             | Database["public"]["Enums"]["academic_path"]
             | null
+          tutor_status: string | null
           university: string | null
           updated_at: string
           x_handle: string | null
@@ -2436,6 +2475,7 @@ export type Database = {
           tutor_specialization?:
             | Database["public"]["Enums"]["academic_path"]
             | null
+          tutor_status?: string | null
           university?: string | null
           updated_at?: string
           x_handle?: string | null
@@ -2472,6 +2512,7 @@ export type Database = {
           tutor_specialization?:
             | Database["public"]["Enums"]["academic_path"]
             | null
+          tutor_status?: string | null
           university?: string | null
           updated_at?: string
           x_handle?: string | null
@@ -3072,6 +3113,39 @@ export type Database = {
           referrer_id?: string
           referrer_tokens?: number
           status?: string
+        }
+        Relationships: []
+      }
+      refund_events: {
+        Row: {
+          amount_cents: number | null
+          created_at: string
+          currency: string | null
+          id: string
+          paddle_transaction_id: string | null
+          raw: Json | null
+          reason: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          paddle_transaction_id?: string | null
+          raw?: Json | null
+          reason?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          paddle_transaction_id?: string | null
+          raw?: Json | null
+          reason?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -5763,6 +5837,11 @@ export type Database = {
       }
     }
     Functions: {
+      admin_revoke_all_sessions: { Args: { _user_id: string }; Returns: number }
+      admin_set_tutor_status: {
+        Args: { _reason?: string; _status: string; _user_id: string }
+        Returns: undefined
+      }
       approve_payment_request: {
         Args: { _id: string; _note?: string }
         Returns: undefined
@@ -5799,6 +5878,16 @@ export type Database = {
       generate_team_code: { Args: never; Returns: string }
       generate_tutor_code: { Args: never; Returns: string }
       get_admin_insights: { Args: never; Returns: Json }
+      get_admin_kpis: {
+        Args: never
+        Returns: {
+          low_trust_users_24h: number
+          open_moderation_reports: number
+          opportunities_expiring_7d: number
+          pending_tutor_apps: number
+          refunds_24h: number
+        }[]
+      }
       get_course_snapshots: { Args: { _user_id: string }; Returns: Json }
       get_health_metrics: {
         Args: { days?: number }
@@ -5844,6 +5933,7 @@ export type Database = {
           tutor_specialization:
             | Database["public"]["Enums"]["academic_path"]
             | null
+          tutor_status: string | null
           university: string | null
           updated_at: string
           x_handle: string | null
@@ -6000,6 +6090,16 @@ export type Database = {
         }[]
       }
       my_university: { Args: never; Returns: string }
+      opportunities_needing_reminder: {
+        Args: never
+        Returns: {
+          deadline: string
+          hours_left: number
+          opportunity_id: string
+          title: string
+          user_id: string
+        }[]
+      }
       ping_session: { Args: { _token: string }; Returns: string }
       recommend_opportunities: {
         Args: { _limit?: number }
