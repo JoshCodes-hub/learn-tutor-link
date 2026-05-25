@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle, XCircle, Settings, Sparkles, GraduationCap, Briefcase, MessageSquare, CreditCard } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle, XCircle, Settings, Sparkles, GraduationCap, Briefcase, MessageSquare, CreditCard, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,14 @@ const getNotificationIcon = (type: string) => {
   }
 };
 
-type FilterKey = "all" | "ai" | "tutors" | "opportunities" | "discussions" | "subscriptions";
+type FilterKey = "all" | "ai" | "tutors" | "opportunities" | "spotlights" | "discussions" | "subscriptions";
 
 const FILTERS: { key: FilterKey; label: string; icon: any }[] = [
   { key: "all", label: "All", icon: Bell },
   { key: "ai", label: "AI", icon: Sparkles },
   { key: "tutors", label: "Tutors", icon: GraduationCap },
   { key: "opportunities", label: "Opportunities", icon: Briefcase },
+  { key: "spotlights", label: "Spotlights", icon: Star },
   { key: "discussions", label: "Discussions", icon: MessageSquare },
   { key: "subscriptions", label: "Plan", icon: CreditCard },
 ];
@@ -44,6 +45,7 @@ const matchesFilter = (n: { title: string; message: string; link: string | null;
     case "ai": return /\bai\b|overraprep ai|gemini/.test(hay);
     case "tutors": return /tutor|upload|announcement|note|quiz/.test(hay);
     case "opportunities": return /opportunity|opportunit|internship|scholarship/.test(hay);
+    case "spotlights": return /spotlight|featured|champion|recognition/.test(hay);
     case "discussions": return /discussion|chat|message|mention|reply|thread/.test(hay);
     case "subscriptions": return /subscription|premium|payment|plan|wallet|token/.test(hay);
     default: return true;

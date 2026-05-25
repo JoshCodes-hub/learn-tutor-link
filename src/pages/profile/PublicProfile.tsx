@@ -6,6 +6,7 @@ import { SEO } from "@/components/seo/SEO";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { ProfileStatBlocks } from "@/components/profile/ProfileStatBlocks";
 
 type Role = "student" | "tutor" | "admin" | "school" | "parent";
 
@@ -133,6 +134,8 @@ const PublicProfile = () => {
             <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{profile.bio}</p>
           </section>
         )}
+
+        <ProfileStatBlocks userId={profile.id} role={role} />
       </main>
     </div>
   );
