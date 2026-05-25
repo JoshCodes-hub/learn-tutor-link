@@ -1,19 +1,30 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, ExternalLink, Bookmark } from "lucide-react";
+import { ArrowLeft, Calendar, ExternalLink, Bookmark, Check } from "lucide-react";
 import { format } from "date-fns";
 import { SEO } from "@/components/seo/SEO";
 import { useOpportunity, useOpportunityBookmarks, useToggleOpportunityBookmark } from "@/hooks/useOpportunities";
+import { useMyApplicationFor, useSetApplicationStatus, type AppStatus } from "@/hooks/useOpportunityApplications";
+import { toast } from "sonner";
 
 export default function OpportunityDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: op, isLoading } = useOpportunity(id);
   const { data: bookmarks = new Set<string>() } = useOpportunityBookmarks();
   const toggle = useToggleOpportunityBookmark();
+  const { data: myApp } = useMyApplicationFor(id);
+  const setStatus = useSetApplicationStatus();
 
   if (isLoading || !op) {
     return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
   }
   const isBookmarked = bookmarks.has(op.id);
+  const status: AppStatus | null = (myApp?.status as AppStatus | undefined) ?? null;
+  const STATUSES: { v: AppStatus; label: string }[] = [
+    { v: "interested", label: "Interested" },
+    { v: "applied", label: "Applied" },
+    { v: "accepted", label: "Accepted" },
+    { v: "rejected", label: "Rejected" },
+  ];
 
   return (
     <>
@@ -59,6 +70,30 @@ export default function OpportunityDetail() {
               <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-amber-500" : ""}`} />
               {isBookmarked ? "Saved" : "Save"}
             </button>
+          </div>
+
+          <div className="mt-6 border-t border-amber-100/70 pt-4">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+              Your application
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {STATUSES.map((s) => {
+                const active = status === s.v;
+                return (
+                  <button key={s.v}
+                    onClick={() => setStatus.mutate(
+                      { opportunityId: op.id, status: s.v },
+                      { onSuccess: () => toast.success(`Marked as ${s.label.toLowerCase()}`) },
+                    )}
+                    className={`text-[12px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border transition-colors inline-flex items-center gap-1 ${
+                      active ? "bg-amber-500 border-amber-500 text-white"
+                             : "bg-card border-amber-100/70 text-muted-foreground hover:border-amber-200"
+                    }`}>
+                    {active && <Check className="h-3 w-3" />} {s.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </main>
       </div>

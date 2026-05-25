@@ -140,6 +140,9 @@ const AdminWithdrawals = lazy(() => import("@/pages/admin/AdminWithdrawals"));
 const AdminCohorts = lazy(() => import("@/pages/admin/AdminCohorts"));
 const AdminCampaigns = lazy(() => import("@/pages/admin/AdminCampaigns"));
 const AdminInsights = lazy(() => import("@/pages/admin/AdminInsights"));
+const AdminAudit = lazy(() => import("@/pages/admin/AdminAudit"));
+const AdminTrust = lazy(() => import("@/pages/admin/AdminTrust"));
+const AdminBroadcast = lazy(() => import("@/pages/admin/AdminBroadcast"));
 const SmartSearch = lazy(() => import("@/pages/SmartSearch"));
 const LiveRoom = lazy(() => import("@/pages/sessions/LiveRoom"));
 const CopilotPage = lazy(() => import("@/pages/student/CopilotPage"));
@@ -480,6 +483,9 @@ export const AnimatedRoutes = () => {
           <Route path="/admin/withdrawals" element={<AdminRoute><PageTransition><AdminWithdrawals /></PageTransition></AdminRoute>} />
           <Route path="/admin/cohorts" element={<AdminRoute><PageTransition><AdminCohorts /></PageTransition></AdminRoute>} />
           <Route path="/admin/campaigns" element={<AdminRoute><PageTransition><AdminCampaigns /></PageTransition></AdminRoute>} />
+          <Route path="/admin/audit" element={<AdminRoute><PageTransition><AdminAudit /></PageTransition></AdminRoute>} />
+          <Route path="/admin/trust" element={<AdminRoute><PageTransition><AdminTrust /></PageTransition></AdminRoute>} />
+          <Route path="/admin/broadcast" element={<AdminRoute><PageTransition><AdminBroadcast /></PageTransition></AdminRoute>} />
           <Route path="/search" element={<PageTransition><SmartSearch /></PageTransition>} />
           <Route path="/live/:slotId" element={<PageTransition><LiveRoom /></PageTransition>} />
           <Route path="/copilot" element={<PageTransition><CopilotPage /></PageTransition>} />
