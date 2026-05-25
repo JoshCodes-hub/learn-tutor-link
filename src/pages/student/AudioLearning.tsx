@@ -235,8 +235,7 @@ const AudioLearning = () => {
         extracted = await file.text();
         setExtractProgress({ done: 1, total: 1, label: "Cleaning text…" });
       } else { toast.error("Unsupported file. Use PDF, DOCX, TXT or MD."); return; }
-      const cleaned = extracted.replace(/\r\n/g, "\n").replace(/[ \t]+\n/g, "\n")
-        .replace(/\n{3,}/g, "\n\n").replace(/[ \t]{2,}/g, " ").trim();
+      const cleaned = sanitizeForTts(extracted);
       if (!cleaned) { toast.error("No readable text found."); return; }
       setText(cleaned.slice(0, MAX_CHARS));
       localStorage.removeItem(transcriptKey(docKey(file.name, cleaned.slice(0, MAX_CHARS).length)));
