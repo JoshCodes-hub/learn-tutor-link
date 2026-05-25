@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { supabase } from "@/integrations/supabase/client";
+import { prefetchDashboardNeighbors } from "@/lib/routePrefetch";
+import { track } from "@/lib/analytics";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { SEO } from "@/components/seo/SEO";
 import { toast } from "@/hooks/use-toast";
@@ -17,6 +19,9 @@ import { TopHeader } from "@/components/student/dashboard/TopHeader";
 import { QuickActionsGrid } from "@/components/student/dashboard/QuickActionsGrid";
 import { OpportunityHubPreview } from "@/components/student/dashboard/OpportunityHubPreview";
 import { StudentSpotlight } from "@/components/student/dashboard/StudentSpotlight";
+
+// Warm likely-next route bundles when the dashboard mounts.
+if (typeof window !== "undefined") prefetchDashboardNeighbors();
 
 interface Stats {
   totalAttempts: number;
