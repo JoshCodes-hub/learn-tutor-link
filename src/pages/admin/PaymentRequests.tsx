@@ -26,7 +26,7 @@ const PaymentRequests = () => {
       let q = (supabase as any).from("payment_requests").select("*").order("created_at", { ascending: false });
       if (tab === "pending") q = q.eq("status", "pending");
       const { data: rows } = await q;
-      const ids = Array.from(new Set((rows ?? []).map((r: any) => r.user_id)));
+      const ids = Array.from(new Set((rows ?? []).map((r: any) => r.user_id as string))) as string[];
       const { data: profs } = ids.length
         ? await supabase.from("profiles").select("id,full_name,email").in("id", ids)
         : { data: [] as any[] };
