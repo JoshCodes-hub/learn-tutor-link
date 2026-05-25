@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Upload, Loader2, Play, Pause, Square, Sparkles, Headphones,
+  ArrowLeft, Upload, Loader2, Play, Pause, Square, Headphones,
   ListMusic, FileText, Volume2, WifiOff, Smartphone, RotateCcw, Pencil,
   Check, X, Gauge, Bookmark, BookmarkCheck,
   RefreshCw, FileDown,
