@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, ArrowLeft, ArrowRight, RotateCcw, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 
 interface QuizQuestion {
   question: string;
@@ -93,21 +94,12 @@ const AIQuizRunner = () => {
 
   const submit = async () => {
     setReviewMode(true);
-    // Record an attempt against the AI quiz so readiness picks it up.
-    try {
-      if (user) {
-        await supabase.from("quiz_attempts").insert({
-          user_id: user.id,
-          quiz_id: null,
-          score,
-          total_questions: total,
-          completed_at: new Date().toISOString(),
-          metadata: { source: "ai_resource", resource_id: resourceId, title: resourceTitle },
-        } as never);
-      }
-    } catch (e) {
-      console.warn("attempt log failed", e);
-    }
+    void track("ai_quiz_completed", {
+      resource_id: resourceId,
+      title: resourceTitle,
+      score,
+      total,
+    });
     toast.success(`You scored ${score}/${total}`);
   };
 
