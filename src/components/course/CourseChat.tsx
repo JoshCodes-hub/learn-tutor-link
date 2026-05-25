@@ -6,10 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Send, Loader2, Sparkles, Pin, Plus, X, SmilePlus } from "lucide-react";
+import { MessageSquare, Send, Loader2, Sparkles, Pin, Plus, X, SmilePlus, Reply, Bot, ShieldCheck, ChevronDown, ChevronRight, RefreshCw, AlertTriangle } from "lucide-react";
 import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import { sanitizeAIText } from "@/lib/sanitizeAI";
 
 interface Message {
   id: string;
@@ -17,6 +19,9 @@ interface Message {
   user_id: string;
   content: string;
   created_at: string;
+  parent_id?: string | null;
+  is_ai?: boolean;
+  ai_status?: "pending" | "ready" | "failed" | null;
 }
 interface Reaction { id: string; message_id: string; user_id: string; emoji: string }
 interface PinnedPrompt { id: string; course_id: string; content: string; created_by: string; created_at: string }
@@ -39,6 +44,7 @@ export const CourseChat = ({ courseId, courseCode }: Props) => {
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [pins, setPins] = useState<PinnedPrompt[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [tutorIds, setTutorIds] = useState<Set<string>>(new Set());
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -47,6 +53,8 @@ export const CourseChat = ({ courseId, courseCode }: Props) => {
   const [reactingFor, setReactingFor] = useState<string | null>(null);
   const [newPin, setNewPin] = useState("");
   const [showPinForm, setShowPinForm] = useState(false);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const loadProfiles = async (userIds: string[]) => {
@@ -58,6 +66,16 @@ export const CourseChat = ({ courseId, courseCode }: Props) => {
       const map: Record<string, Profile> = {};
       data.forEach((p: any) => (map[p.id] = p));
       setProfiles((prev) => ({ ...prev, ...map }));
+    }
+    // Mark which users are tutors of THIS course
+    const { data: q } = await supabase
+      .from("quizzes").select("tutor_id").eq("course_id", courseId).in("tutor_id", need);
+    if (q && q.length > 0) {
+      setTutorIds((prev) => {
+        const next = new Set(prev);
+        q.forEach((r: any) => next.add(r.tutor_id));
+        return next;
+      });
     }
   };
 
@@ -103,11 +121,22 @@ export const CourseChat = ({ courseId, courseCode }: Props) => {
     const channel = supabase
       .channel(`course-chat-${courseId}`)
       .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "course_chat_messages", filter: `course_id=eq.${courseId}` },
+        { event: "*", schema: "public", table: "course_chat_messages", filter: `course_id=eq.${courseId}` },
         (payload) => {
-          const m = payload.new as Message;
-          setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
-          if (!profiles[m.user_id]) loadProfiles([m.user_id]);
+          if ((payload as any).eventType === "DELETE") {
+            const old = (payload as any).old as Message;
+            setMessages((prev) => prev.filter((x) => x.id !== old.id));
+            return;
+          }
+          const m = (payload as any).new as Message;
+          setMessages((prev) => {
+            const idx = prev.findIndex((x) => x.id === m.id);
+            if (idx === -1) return [...prev, m];
+            const next = prev.slice();
+            next[idx] = m;
+            return next;
+          });
+          if (m.user_id && !profiles[m.user_id]) loadProfiles([m.user_id]);
         },
       )
       .on("postgres_changes",
@@ -139,19 +168,46 @@ export const CourseChat = ({ courseId, courseCode }: Props) => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages.length]);
 
+  const invokeAI = async (prompt: string, parentId: string | null) => {
+    try {
+      await supabase.functions.invoke("course-ai-reply", {
+        body: { course_id: courseId, prompt, parent_id: parentId, course_code: courseCode ?? null },
+      });
+    } catch (e) {
+      console.error("AI reply failed", e);
+      toast.error("AI reply failed.");
+    }
+  };
+
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !text.trim()) return;
     setSending(true);
     const body = text.trim().slice(0, 2000);
+    const parentId = replyTo?.id ?? null;
     setText("");
+    setReplyTo(null);
     const { error } = await supabase
-      .from("course_chat_messages").insert({ course_id: courseId, user_id: user.id, content: body });
+      .from("course_chat_messages").insert({ course_id: courseId, user_id: user.id, content: body, parent_id: parentId });
     setSending(false);
     if (error) {
       toast.error("You need to enroll in this course (or be its tutor) to chat here.");
       setText(body);
+      setReplyTo(replyTo);
+      return;
     }
+    if (/@AI\b/i.test(body)) {
+      invokeAI(body.replace(/@AI\b/i, "").trim() || body, parentId);
+    }
+  };
+
+  const retryAI = async (aiMsg: Message) => {
+    // find prompt: the parent message that triggered this AI reply (same parent_id user message)
+    const prompt = messages.find((m) => m.id === aiMsg.parent_id)?.content;
+    if (!prompt) { toast.error("Couldn't find the original question."); return; }
+    await supabase.from("course_chat_messages")
+      .update({ content: "_thinking…_", ai_status: "pending" }).eq("id", aiMsg.id);
+    invokeAI(prompt.replace(/@AI\b/i, "").trim() || prompt, aiMsg.parent_id ?? null);
   };
 
   const useAsPrompt = (content: string) => {
@@ -199,6 +255,172 @@ export const CourseChat = ({ courseId, courseCode }: Props) => {
     }
     return map;
   }, [reactions, user?.id]);
+
+  const { topLevel, repliesByParent } = useMemo(() => {
+    const top: Message[] = [];
+    const byParent: Record<string, Message[]> = {};
+    for (const m of messages) {
+      if (m.parent_id) {
+        (byParent[m.parent_id] = byParent[m.parent_id] || []).push(m);
+      } else {
+        top.push(m);
+      }
+    }
+    return { topLevel: top, repliesByParent: byParent };
+  }, [messages]);
+
+  const toggleThread = (id: string) => {
+    setOpenThreads((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const renderMessage = (m: Message, depth = 0) => {
+    const mine = m.user_id === user?.id;
+    const isAi = !!m.is_ai;
+    const status = m.ai_status as Message["ai_status"];
+    const p = profiles[m.user_id];
+    const rx = reactionMap[m.id] || {};
+    const isTutor = tutorIds.has(m.user_id) && !isAi;
+
+    if (isAi) {
+      return (
+        <div key={m.id} className={cn("flex gap-2", depth > 0 && "ml-7")}>
+          <div className="h-7 w-7 shrink-0 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
+            <Bot className="h-3.5 w-3.5 text-amber-700" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[11px] font-semibold text-amber-800">OverraPrep AI</span>
+              {status === "pending" && (
+                <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> thinking…
+                </span>
+              )}
+              {status === "failed" && (
+                <span className="text-[10px] text-rose-600 inline-flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" /> failed
+                </span>
+              )}
+              <span className="text-[10px] text-muted-foreground ml-auto">{formatStamp(m.created_at)}</span>
+            </div>
+            <div className={cn(
+              "rounded-2xl px-3.5 py-2.5 text-sm bg-white border-l-2 border-amber-400 border-y border-r border-amber-100/80 shadow-sm",
+              "ai-prose prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-foreground prose-p:my-1.5 prose-li:my-0.5 prose-code:bg-amber-50 prose-code:px-1 prose-code:rounded",
+            )}>
+              <ReactMarkdown>{sanitizeAIText(m.content)}</ReactMarkdown>
+            </div>
+            {status === "failed" && (
+              <button
+                type="button" onClick={() => retryAI(m)}
+                className="mt-1 text-[11px] font-medium text-amber-700 hover:text-amber-800 inline-flex items-center gap-1"
+              >
+                <RefreshCw className="w-3 h-3" /> Retry
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={m.id} className={cn("flex gap-2", mine && depth === 0 && "flex-row-reverse", depth > 0 && "ml-7")}>
+        <Avatar className="w-7 h-7 shrink-0">
+          <AvatarImage src={p?.profile_image_url || p?.avatar_url || undefined} />
+          <AvatarFallback className="bg-amber-100 text-amber-800 text-[10px] font-bold">
+            {p?.full_name?.charAt(0)?.toUpperCase() || "?"}
+          </AvatarFallback>
+        </Avatar>
+        <div className={cn("max-w-[78%]", mine && depth === 0 && "text-right")}>
+          <div className={cn("flex items-center gap-1.5 mb-0.5", mine && depth === 0 && "justify-end")}>
+            <span className="text-[11px] font-semibold">{p?.full_name || "Member"}</span>
+            {isTutor && (
+              <span className="inline-flex items-center gap-0.5 text-[9.5px] font-bold uppercase tracking-wide bg-amber-500/15 text-amber-800 border border-amber-300 rounded-full px-1.5 py-[1px]">
+                <ShieldCheck className="w-2.5 h-2.5" /> Tutor
+              </span>
+            )}
+            <span
+              className="text-[10px] text-muted-foreground"
+              title={`${format(new Date(m.created_at), "PPpp")} · ${formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}`}
+            >
+              {formatStamp(m.created_at)}
+            </span>
+          </div>
+          <div className="relative group">
+            <div
+              className={cn(
+                "px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words shadow-sm",
+                mine
+                  ? "bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-br-sm"
+                  : "bg-white border border-amber-100 text-foreground rounded-bl-sm",
+              )}
+            >
+              {m.content}
+            </div>
+            <div className={cn(
+              "absolute -bottom-2 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition",
+              mine && depth === 0 ? "-left-2" : "-right-2",
+            )}>
+              <button
+                type="button"
+                onClick={() => setReactingFor(reactingFor === m.id ? null : m.id)}
+                aria-label="Add reaction"
+                className="h-6 w-6 rounded-full bg-white border border-amber-200 shadow flex items-center justify-center text-amber-700"
+              >
+                <SmilePlus className="w-3.5 h-3.5" />
+              </button>
+              {depth === 0 && (
+                <button
+                  type="button"
+                  onClick={() => setReplyTo(m)}
+                  aria-label="Reply"
+                  className="h-6 w-6 rounded-full bg-white border border-amber-200 shadow flex items-center justify-center text-amber-700"
+                >
+                  <Reply className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+          {reactingFor === m.id && (
+            <div className="mt-1 inline-flex gap-1 bg-white border border-amber-200 rounded-full px-1.5 py-1 shadow">
+              {QUICK_EMOJIS.map((emo) => (
+                <button
+                  key={emo} type="button"
+                  onClick={() => toggleReaction(m.id, emo)}
+                  className="text-base hover:scale-125 transition"
+                  aria-label={`React with ${emo}`}
+                >
+                  {emo}
+                </button>
+              ))}
+            </div>
+          )}
+          {Object.keys(rx).length > 0 && (
+            <div className={cn("mt-1 flex flex-wrap gap-1", mine && depth === 0 && "justify-end")}>
+              {Object.entries(rx).map(([emo, info]) => (
+                <button
+                  key={emo}
+                  type="button"
+                  onClick={() => toggleReaction(m.id, emo)}
+                  className={cn(
+                    "inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-full border transition",
+                    info.mine
+                      ? "bg-amber-100 border-amber-300 text-amber-900"
+                      : "bg-white border-amber-100 text-foreground hover:bg-amber-50",
+                  )}
+                >
+                  <span>{emo}</span>
+                  <span className="font-semibold tabular-nums">{info.count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Card className="border-amber-100/60 bg-gradient-to-br from-white to-amber-50/20">
@@ -271,96 +493,41 @@ export const CourseChat = ({ courseId, courseCode }: Props) => {
         <ScrollArea className="h-72 pr-3" ref={scrollRef as any}>
           {loading ? (
             <div className="flex justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-amber-600" /></div>
-          ) : messages.length === 0 ? (
+          ) : topLevel.length === 0 ? (
             <div className="py-10 text-center">
               <Sparkles className="w-8 h-8 text-amber-500 mx-auto mb-2" />
               <p className="text-sm font-semibold">Start the conversation</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Brainstorm with classmates and the tutor — no one's posted yet.
+                Brainstorm with classmates and the tutor — try{" "}
+                <span className="font-mono bg-amber-100 text-amber-900 px-1 rounded">@AI</span>{" "}
+                to ask OverraPrep AI a question.
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {messages.map((m) => {
-                const mine = m.user_id === user?.id;
-                const p = profiles[m.user_id];
-                const rx = reactionMap[m.id] || {};
+            <div className="space-y-4">
+              {topLevel.map((m) => {
+                const replies = repliesByParent[m.id] ?? [];
+                const open = openThreads.has(m.id);
                 return (
-                  <div key={m.id} className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}>
-                    <Avatar className="w-7 h-7 shrink-0">
-                      <AvatarImage src={p?.profile_image_url || p?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-amber-100 text-amber-800 text-[10px] font-bold">
-                        {p?.full_name?.charAt(0)?.toUpperCase() || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={`max-w-[78%] ${mine ? "text-right" : ""}`}>
-                      <div className={`flex items-center gap-2 mb-0.5 ${mine ? "justify-end" : ""}`}>
-                        <span className="text-[11px] font-semibold">{p?.full_name || "Member"}</span>
-                        <span
-                          className="text-[10px] text-muted-foreground"
-                          title={`${format(new Date(m.created_at), "PPpp")} · ${formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}`}
-                        >
-                          {formatStamp(m.created_at)}
-                        </span>
-                      </div>
-                      <div className="relative group">
-                        <div
-                          className={`px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words shadow-sm ${
-                            mine
-                              ? "bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-br-sm"
-                              : "bg-white border border-amber-100 text-foreground rounded-bl-sm"
-                          }`}
-                        >
-                          {m.content}
-                        </div>
+                  <div key={m.id} className="space-y-2">
+                    {renderMessage(m, 0)}
+                    {replies.length > 0 && (
+                      <div className="ml-9 space-y-2">
                         <button
                           type="button"
-                          onClick={() => setReactingFor(reactingFor === m.id ? null : m.id)}
-                          aria-label="Add reaction"
-                          className={cn(
-                            "absolute -bottom-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition",
-                            "h-6 w-6 rounded-full bg-white border border-amber-200 shadow flex items-center justify-center text-amber-700",
-                            mine ? "-left-2" : "-right-2",
-                          )}
+                          onClick={() => toggleThread(m.id)}
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 hover:text-amber-800"
                         >
-                          <SmilePlus className="w-3.5 h-3.5" />
+                          {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                          {replies.length} {replies.length === 1 ? "reply" : "replies"}
                         </button>
+                        {open && (
+                          <div className="space-y-3 pl-2 border-l-2 border-amber-100">
+                            {replies.map((r) => renderMessage(r, 1))}
+                          </div>
+                        )}
                       </div>
-                      {reactingFor === m.id && (
-                        <div className={`mt-1 inline-flex gap-1 bg-white border border-amber-200 rounded-full px-1.5 py-1 shadow ${mine ? "" : ""}`}>
-                          {QUICK_EMOJIS.map((emo) => (
-                            <button
-                              key={emo} type="button"
-                              onClick={() => toggleReaction(m.id, emo)}
-                              className="text-base hover:scale-125 transition"
-                              aria-label={`React with ${emo}`}
-                            >
-                              {emo}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      {Object.keys(rx).length > 0 && (
-                        <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : ""}`}>
-                          {Object.entries(rx).map(([emo, info]) => (
-                            <button
-                              key={emo}
-                              type="button"
-                              onClick={() => toggleReaction(m.id, emo)}
-                              className={cn(
-                                "inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-full border transition",
-                                info.mine
-                                  ? "bg-amber-100 border-amber-300 text-amber-900"
-                                  : "bg-white border-amber-100 text-foreground hover:bg-amber-50",
-                              )}
-                            >
-                              <span>{emo}</span>
-                              <span className="font-semibold tabular-nums">{info.count}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
                 );
               })}
@@ -369,19 +536,31 @@ export const CourseChat = ({ courseId, courseCode }: Props) => {
         </ScrollArea>
 
         {canPost ? (
-          <form onSubmit={send} className="flex gap-2">
-            <Input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Brainstorm with classmates & the tutor…"
-              maxLength={2000}
-              disabled={sending}
-              className="flex-1"
-            />
-            <Button type="submit" size="icon" disabled={!text.trim() || sending} className="bg-amber-500 hover:bg-amber-600 text-white">
-              {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            </Button>
-          </form>
+          <div className="space-y-1.5">
+            {replyTo && (
+              <div className="flex items-center gap-2 text-[11px] bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
+                <Reply className="w-3 h-3 text-amber-700 shrink-0" />
+                <span className="text-muted-foreground">Replying to</span>
+                <span className="font-medium text-amber-900 truncate">{(profiles[replyTo.user_id]?.full_name || "Member")}: {replyTo.content}</span>
+                <button type="button" onClick={() => setReplyTo(null)} className="ml-auto text-muted-foreground hover:text-foreground">
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+            <form onSubmit={send} className="flex gap-2">
+              <Input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder={replyTo ? "Write a reply… (type @AI to ask AI)" : "Brainstorm… type @AI to ask OverraPrep AI"}
+                maxLength={2000}
+                disabled={sending}
+                className="flex-1"
+              />
+              <Button type="submit" size="icon" disabled={!text.trim() || sending} className="bg-amber-500 hover:bg-amber-600 text-white">
+                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </Button>
+            </form>
+          </div>
         ) : (
           <p className="text-xs text-center text-muted-foreground py-2">
             Enroll in this course (or be its tutor) to join the chat.
