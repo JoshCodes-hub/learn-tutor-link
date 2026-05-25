@@ -113,6 +113,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_daily: {
+        Row: {
+          count: number
+          day: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -2040,6 +2061,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      payment_requests: {
+        Row: {
+          admin_note: string | null
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          plan_id: string
+          proof_path: string | null
+          reference: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          plan_id: string
+          proof_path?: string | null
+          reference?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          plan_id?: string
+          proof_path?: string | null
+          reference?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_requests_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_announcements: {
         Row: {
@@ -4405,6 +4479,36 @@ export type Database = {
           },
         ]
       }
+      token_transfers: {
+        Row: {
+          amount: number
+          created_at: string
+          from_user: string
+          id: string
+          status: string
+          to_email: string | null
+          to_user: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          from_user: string
+          id?: string
+          status?: string
+          to_email?: string | null
+          to_user?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          from_user?: string
+          id?: string
+          status?: string
+          to_email?: string | null
+          to_user?: string | null
+        }
+        Relationships: []
+      }
       token_wallets: {
         Row: {
           balance: number
@@ -5419,6 +5523,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_payment_request: {
+        Args: { _id: string; _note?: string }
+        Returns: undefined
+      }
       book_session: { Args: { _slot_id: string }; Returns: string }
       cancel_session_booking: {
         Args: { _booking_id: string }
@@ -5516,6 +5624,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_ai_usage: {
+        Args: { _kind: string; _limit: number }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          used: number
+        }[]
+      }
       increment_lecture_note_download: {
         Args: { p_note_id: string }
         Returns: undefined
@@ -5532,6 +5648,7 @@ export type Database = {
         Args: { _course_id: string; _user_id: string }
         Returns: boolean
       }
+      is_pro: { Args: { _uid?: string }; Returns: boolean }
       is_school_member: {
         Args: { _role?: string; _school_id: string }
         Returns: boolean
@@ -5565,6 +5682,10 @@ export type Database = {
         }[]
       }
       my_university: { Args: never; Returns: string }
+      reject_payment_request: {
+        Args: { _id: string; _note?: string }
+        Returns: undefined
+      }
       request_withdrawal: {
         Args: { _payout_email: string; _tokens: number }
         Returns: string
