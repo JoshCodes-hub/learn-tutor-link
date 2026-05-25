@@ -47,6 +47,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { CloudDownload, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { NoteMaterialPreview } from "@/components/tutor/NoteMaterialPreview";
 
 interface TutorMini {
   id: string;
@@ -712,6 +713,9 @@ const StudentTutorCourses = () => {
                                                 {downloadProgress[m.id]}%
                                               </span>
                                             </div>
+                                          )}
+                                          {m.kind === "note" && (
+                                            <NoteMaterialPreview material={m} compact />
                                           )}
                                         </li>
                                       ))}

@@ -5,7 +5,7 @@ import {
   ArrowLeft, Upload, Loader2, Play, Pause, Square, Headphones,
   ListMusic, FileText, Volume2, WifiOff, Smartphone, RotateCcw, Pencil,
   Check, X, Gauge, Bookmark, BookmarkCheck,
-  RefreshCw, FileDown,
+  RefreshCw, FileDown, Sparkles, Wand2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,11 @@ import { LevelChip } from "@/components/shell/PageHeader";
 import { NowPlayingArtwork } from "@/components/audio/NowPlayingArtwork";
 import { VoiceSheet } from "@/components/audio/VoiceSheet";
 import { AmbientSheet } from "@/components/audio/AmbientSheet";
+import { BookmarksSheet } from "@/components/audio/BookmarksSheet";
+import { SpeedSheet } from "@/components/audio/SpeedSheet";
+import { sanitizeForTts } from "@/lib/sanitizeForTts";
+import { exportSummaryPdf } from "@/lib/exportSummaryPdf";
+import { supabase } from "@/integrations/supabase/client";
 
 const MAX_CHARS = 50000;
 const SPEEDS = [0.85, 1, 1.25, 1.5, 2];
@@ -77,6 +82,20 @@ const AudioLearning = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supported = isTtsSupported();
   const docId = useMemo(() => docKey(fileName, text.length), [fileName, text.length]);
+  const [aiSummaryBusy, setAiSummaryBusy] = useState(false);
+  const activeChunkRef = useRef<HTMLParagraphElement | null>(null);
+
+  // Auto-scroll the synced chunk view so the spoken chunk stays centered.
+  useEffect(() => {
+    if (tick.state !== "playing" && tick.state !== "paused") return;
+    const el = activeChunkRef.current;
+    if (!el) return;
+    try {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+    } catch {
+      el.scrollIntoView();
+    }
+  }, [tick.chunk, tick.state]);
 
   // Currently-spoken word for the highlight overlay
   const liveWord = useMemo(() => {
@@ -216,8 +235,7 @@ const AudioLearning = () => {
         extracted = await file.text();
         setExtractProgress({ done: 1, total: 1, label: "Cleaning text…" });
       } else { toast.error("Unsupported file. Use PDF, DOCX, TXT or MD."); return; }
-      const cleaned = extracted.replace(/\r\n/g, "\n").replace(/[ \t]+\n/g, "\n")
-        .replace(/\n{3,}/g, "\n\n").replace(/[ \t]{2,}/g, " ").trim();
+      const cleaned = sanitizeForTts(extracted);
       if (!cleaned) { toast.error("No readable text found."); return; }
       setText(cleaned.slice(0, MAX_CHARS));
       localStorage.removeItem(transcriptKey(docKey(file.name, cleaned.slice(0, MAX_CHARS).length)));
@@ -237,6 +255,69 @@ const AudioLearning = () => {
     if (!lastFileRef.current) return toast.error("Re-upload the file to re-extract.");
     await extractFromFile(lastFileRef.current);
     toast.success("Re-extracted successfully");
+  };
+
+  /** Re-run the markdown / special-char sanitizer on the current text without
+   *  needing the source file. Useful when AI/imported text contains `**`, `/`,
+   *  or other characters the TTS engine reads aloud. */
+  const cleanCurrentText = () => {
+    if (!text.trim()) return toast.error("Nothing to clean yet.");
+    const before = text.length;
+    const after = sanitizeForTts(text);
+    setText(after.slice(0, MAX_CHARS));
+    setSections([]);
+    persistTranscript([]);
+    toast.success(`Cleaned ${before - after.length} characters — regenerate the queue to refresh sections.`);
+  };
+
+  const generateSummaryPdf = async () => {
+    if (!text.trim()) return toast.error("Add some text first.");
+    setAiSummaryBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("library-ai", {
+        body: {
+          action: "summary",
+          text: text.slice(0, 18000),
+          title: fileName || "Study Notes",
+        },
+      });
+      if (error) throw new Error(error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const result = (data as any)?.result || {};
+      const parts: string[] = [];
+      parts.push(`# ${result.title || fileName || "Summary"}`);
+      if (result.overview) parts.push("", "## Overview", result.overview);
+      if (Array.isArray(result.sections)) {
+        for (const sec of result.sections) {
+          parts.push("", `## ${sec.heading}`);
+          for (const b of sec.bullets || []) parts.push(`- ${b}`);
+        }
+      }
+      if (Array.isArray(result.key_points) && result.key_points.length) {
+        parts.push("", "## Key points");
+        for (const k of result.key_points) parts.push(`- ${k}`);
+      }
+      if (Array.isArray(result.must_know) && result.must_know.length) {
+        parts.push("", "## Must know");
+        for (const k of result.must_know) parts.push(`- ${k}`);
+      }
+      if (Array.isArray(result.exam_tips) && result.exam_tips.length) {
+        parts.push("", "## Exam tips");
+        for (const k of result.exam_tips) parts.push(`- ${k}`);
+      }
+      await exportSummaryPdf({
+        title: result.title || fileName || "Study Notes",
+        subtitle: `AI summary · ${new Date().toLocaleDateString()} · ${scopeLabel || ""}`.trim(),
+        bodyMarkdown: parts.join("\n"),
+        filename: `${(fileName || "overraprep-notes").replace(/\.[^.]+$/, "")}-summary`,
+      });
+      toast.success("Summary PDF downloaded");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || "Could not generate summary.");
+    } finally {
+      setAiSummaryBusy(false);
+    }
   };
 
   /* TTS helpers */
@@ -544,7 +625,7 @@ const AudioLearning = () => {
                 aria-label="Restart"><RotateCcw className="w-4 h-4 text-amber-700" /></button>
             </div>
 
-            {/* Speed picker */}
+            {/* Speed quick row + sheet trigger */}
             <div className="mt-4 flex items-center justify-center gap-1.5 flex-wrap">
               <Gauge className="w-3.5 h-3.5 text-muted-foreground mr-1" />
               {SPEEDS.map((s) => (
@@ -556,6 +637,18 @@ const AudioLearning = () => {
                   {s}x
                 </button>
               ))}
+              <SpeedSheet
+                trigger={
+                  <button
+                    className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white text-amber-700 ring-1 ring-amber-200/60 hover:bg-amber-50"
+                    aria-label="More speeds"
+                  >
+                    More…
+                  </button>
+                }
+                rate={rate}
+                onPick={handleRate}
+              />
             </div>
 
             {/* Secondary actions row */}
@@ -588,14 +681,34 @@ const AudioLearning = () => {
                 ambient={ambient} ambientVol={ambientVol}
                 onPick={handleAmbient} onVol={handleAmbientVol}
               />
-              <button onClick={addBookmark} disabled={activeSection === null}
-                className="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98] disabled:opacity-40">
-                <Bookmark className="w-4 h-4 text-amber-700" />
-                <span className="text-[11px] font-bold text-foreground/80">Bookmark</span>
-                <span className="text-[10px] text-muted-foreground truncate max-w-full px-1">
-                  {bookmarks.length ? `${bookmarks.length} saved` : "Mark spot"}
-                </span>
-              </button>
+              <div className="grid grid-cols-2 gap-1">
+                <button
+                  onClick={addBookmark}
+                  disabled={activeSection === null}
+                  className="flex flex-col items-center justify-center gap-0.5 p-2 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98] disabled:opacity-40"
+                  aria-label="Add bookmark"
+                >
+                  <Bookmark className="w-4 h-4 text-amber-700" />
+                  <span className="text-[10px] font-bold text-foreground/80">Save</span>
+                </button>
+                <BookmarksSheet
+                  trigger={
+                    <button
+                      className="flex flex-col items-center justify-center gap-0.5 p-2 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98]"
+                      aria-label="View bookmarks"
+                    >
+                      <BookmarkCheck className="w-4 h-4 text-amber-700" />
+                      <span className="text-[10px] font-bold text-foreground/80">
+                        {bookmarks.length || "0"}
+                      </span>
+                    </button>
+                  }
+                  bookmarks={bookmarks}
+                  onJump={jumpToBookmark}
+                  onDelete={deleteBookmark}
+                  onClearAll={bookmarks.length ? () => persistBookmarks([]) : undefined}
+                />
+              </div>
             </div>
           </motion.div>
 
@@ -672,36 +785,27 @@ const AudioLearning = () => {
               <Textarea value={text} onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
                 rows={6} placeholder="Paste lecture notes, a chapter, or any study text…"
                 className="resize-y font-sans text-sm leading-relaxed" />
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Button
+                  type="button" size="sm" variant="outline" onClick={cleanCurrentText}
+                  disabled={!text.trim()} className="h-8 text-[11px]"
+                >
+                  <Wand2 className="w-3.5 h-3.5 mr-1.5" /> Clean special chars
+                </Button>
+                <Button
+                  type="button" size="sm" onClick={generateSummaryPdf}
+                  disabled={!text.trim() || aiSummaryBusy}
+                  className="h-8 text-[11px] bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+                >
+                  {aiSummaryBusy
+                    ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    : <Sparkles className="w-3.5 h-3.5 mr-1.5" />}
+                  AI Summary PDF
+                </Button>
+                <span className="text-[10px] text-muted-foreground">Branded with OverraPrep AI watermark.</span>
+              </div>
             </div>
           </Card>
-
-          {/* Bookmarks */}
-          {bookmarks.length > 0 && (
-            <Card className="p-5 space-y-3">
-              <Label className="font-semibold flex items-center gap-2">
-                <BookmarkCheck className="w-4 h-4 text-primary" /> Bookmarks
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">{bookmarks.length}</span>
-              </Label>
-              <ul className="space-y-1.5">
-                {bookmarks.map((b) => (
-                  <li key={b.id} className="flex items-center gap-2 rounded-lg border border-border bg-card p-2">
-                    <button onClick={() => jumpToBookmark(b)} className="flex-1 text-left min-w-0">
-                      <p className="text-[12px] font-semibold truncate">{b.label}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        Section {b.sectionIdx + 1} · Chunk {b.chunkIdx + 1} · {new Date(b.createdAt).toLocaleString()}
-                      </p>
-                    </button>
-                    <Button size="icon" variant="ghost" onClick={() => jumpToBookmark(b)} aria-label="Jump" className="h-7 w-7">
-                      <Play className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => deleteBookmark(b.id)} aria-label="Delete" className="h-7 w-7">
-                      <X className="w-3.5 h-3.5" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
 
           {/* Queue (sections) with synced highlight */}
           <Card className="p-5 space-y-4">
@@ -732,7 +836,20 @@ const AudioLearning = () => {
                       <motion.li key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                         className={cn("rounded-xl border p-3 transition-colors",
                           isActive ? "border-primary bg-primary/5" : "border-border bg-card")}>
-                        <div className="flex items-start gap-3 min-w-0">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => !isEditing && playSection(i)}
+                          onKeyDown={(e) => {
+                            if (isEditing) return;
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              playSection(i);
+                            }
+                          }}
+                          className="flex items-start gap-3 min-w-0 cursor-pointer select-none"
+                          aria-label={`Play section ${i + 1}: ${s.title}`}
+                        >
                           <span className="shrink-0 mt-0.5 inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-[11px] font-bold text-primary">
                             {i + 1}
                           </span>
@@ -747,7 +864,7 @@ const AudioLearning = () => {
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                             {!isEditing && (
                               <Button size="icon" variant="ghost" onClick={() => startEdit(i)} aria-label="Edit" className="h-8 w-8">
                                 <Pencil className="w-3.5 h-3.5" />
@@ -768,8 +885,10 @@ const AudioLearning = () => {
                               const past = ci < tick.chunk;
                               return (
                                 <p key={ci}
+                                  ref={isHere ? activeChunkRef : undefined}
+                                  onClick={(e) => { e.stopPropagation(); playSection(i, ci); }}
                                   className={cn(
-                                    "rounded px-1.5 py-0.5 transition-colors",
+                                    "rounded px-1.5 py-0.5 transition-colors cursor-pointer hover:bg-primary/10",
                                     isHere ? "bg-primary/15 text-foreground font-medium ring-1 ring-primary/30"
                                       : past ? "text-muted-foreground/70" : "text-foreground/90",
                                   )}>
