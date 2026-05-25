@@ -836,7 +836,20 @@ const AudioLearning = () => {
                       <motion.li key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                         className={cn("rounded-xl border p-3 transition-colors",
                           isActive ? "border-primary bg-primary/5" : "border-border bg-card")}>
-                        <div className="flex items-start gap-3 min-w-0">
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => !isEditing && playSection(i)}
+                          onKeyDown={(e) => {
+                            if (isEditing) return;
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              playSection(i);
+                            }
+                          }}
+                          className="flex items-start gap-3 min-w-0 cursor-pointer select-none"
+                          aria-label={`Play section ${i + 1}: ${s.title}`}
+                        >
                           <span className="shrink-0 mt-0.5 inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-[11px] font-bold text-primary">
                             {i + 1}
                           </span>
@@ -851,7 +864,7 @@ const AudioLearning = () => {
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                             {!isEditing && (
                               <Button size="icon" variant="ghost" onClick={() => startEdit(i)} aria-label="Edit" className="h-8 w-8">
                                 <Pencil className="w-3.5 h-3.5" />
@@ -872,8 +885,10 @@ const AudioLearning = () => {
                               const past = ci < tick.chunk;
                               return (
                                 <p key={ci}
+                                  ref={isHere ? activeChunkRef : undefined}
+                                  onClick={(e) => { e.stopPropagation(); playSection(i, ci); }}
                                   className={cn(
-                                    "rounded px-1.5 py-0.5 transition-colors",
+                                    "rounded px-1.5 py-0.5 transition-colors cursor-pointer hover:bg-primary/10",
                                     isHere ? "bg-primary/15 text-foreground font-medium ring-1 ring-primary/30"
                                       : past ? "text-muted-foreground/70" : "text-foreground/90",
                                   )}>
