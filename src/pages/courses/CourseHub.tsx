@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,16 +12,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen, FileText, Layers, ClipboardList, Image as ImageIcon, Sparkles,
-  Download, ExternalLink, Settings,
+  Download, ExternalLink, Settings, MessageSquare, Headphones,
 } from "lucide-react";
 import CourseProgressCard from "@/components/courses/CourseProgressCard";
 import CourseOfflineButton from "@/components/courses/CourseOfflineButton";
+import CourseTopicsStrip from "@/components/courses/CourseTopicsStrip";
+import { CourseChat } from "@/components/course/CourseChat";
+import { useTrackCourseOpen } from "@/hooks/useRecentlyOpenedCourses";
 
 const CourseHub = () => {
   const { courseId = "" } = useParams();
   const { user, primaryRole } = useAuth();
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as
     "admin" | "tutor" | "student";
+  const [topicFilter, setTopicFilter] = useState<string | null>(null);
+  useTrackCourseOpen(courseId);
 
   const { data: course } = useQuery({
     queryKey: ["course", courseId],
@@ -38,43 +43,49 @@ const CourseHub = () => {
   });
 
   const { data: documents = [] } = useQuery({
-    queryKey: ["course-docs", courseId],
+    queryKey: ["course-docs", courseId, topicFilter],
     enabled: !!courseId,
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("lecture_notes")
-        .select("id, title, description, file_url, file_type, created_at, view_count, download_count")
+        .select("id, title, description, file_url, file_type, created_at, view_count, download_count, topic_id")
         .eq("course_id", courseId)
         .eq("is_published", true)
         .order("created_at", { ascending: false });
+      if (topicFilter) q = q.eq("topic_id", topicFilter);
+      const { data } = await q;
       return data ?? [];
     },
   });
 
   const { data: quizzes = [] } = useQuery({
-    queryKey: ["course-quizzes", courseId],
+    queryKey: ["course-quizzes", courseId, topicFilter],
     enabled: !!courseId,
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("quizzes")
-        .select("id, title, description, duration_minutes, question_count, is_premium")
+        .select("id, title, description, duration_minutes, question_count, is_premium, topic_id")
         .eq("course_id", courseId)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
+      if (topicFilter) q = q.eq("topic_id", topicFilter);
+      const { data } = await q;
       return data ?? [];
     },
   });
 
   const { data: flashDecks = [] } = useQuery({
-    queryKey: ["course-flashcards", courseId],
+    queryKey: ["course-flashcards", courseId, topicFilter],
     enabled: !!courseId,
     queryFn: async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("flashcards")
-        .select("id, front, back, subject, topic, created_at")
+        .select("id, front, back, subject, topic, created_at, topic_id")
         .eq("course_id", courseId)
         .order("created_at", { ascending: false })
         .limit(200);
+      if (topicFilter) q = q.eq("topic_id", topicFilter);
+      const { data } = await q;
       return data ?? [];
     },
   });
@@ -145,6 +156,8 @@ const CourseHub = () => {
           totalFlashcards={flashDecks.length}
         />
 
+        <CourseTopicsStrip courseId={course.id} value={topicFilter} onChange={setTopicFilter} />
+
         <Tabs defaultValue="documents" className="w-full">
           <TabsList className="w-full overflow-x-auto justify-start gap-1 h-auto p-1 bg-muted/50">
             <TabsTrigger value="documents" className="gap-1.5"><FileText className="w-3.5 h-3.5" /> Documents</TabsTrigger>
@@ -152,6 +165,8 @@ const CourseHub = () => {
             <TabsTrigger value="quizzes" className="gap-1.5"><ClipboardList className="w-3.5 h-3.5" /> Quizzes</TabsTrigger>
             <TabsTrigger value="images" className="gap-1.5"><ImageIcon className="w-3.5 h-3.5" /> Images</TabsTrigger>
             <TabsTrigger value="ai" className="gap-1.5"><Sparkles className="w-3.5 h-3.5" /> AI Packs</TabsTrigger>
+            <TabsTrigger value="audio" className="gap-1.5"><Headphones className="w-3.5 h-3.5" /> Audio</TabsTrigger>
+            <TabsTrigger value="discuss" className="gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Discussion</TabsTrigger>
           </TabsList>
 
           <TabsContent value="documents" className="mt-4">
@@ -258,6 +273,23 @@ const CourseHub = () => {
                 <Link to="/library">Open Library</Link>
               </Button>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="audio" className="mt-4">
+            <Card className="p-5 text-center">
+              <Headphones className="w-7 h-7 text-amber-500 mx-auto mb-2" />
+              <h3 className="font-semibold">Audio Lessons</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+                Listen to this course's materials on the go. Convert any document to audio from your library.
+              </p>
+              <Button asChild className="mt-3 bg-amber-500 hover:bg-amber-600 text-white">
+                <Link to="/audio-learning">Open Audio Learning</Link>
+              </Button>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="discuss" className="mt-4">
+            <CourseChat courseId={course.id} courseCode={course.code} />
           </TabsContent>
         </Tabs>
       </div>
