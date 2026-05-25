@@ -625,7 +625,7 @@ const AudioLearning = () => {
                 aria-label="Restart"><RotateCcw className="w-4 h-4 text-amber-700" /></button>
             </div>
 
-            {/* Speed picker */}
+            {/* Speed quick row + sheet trigger */}
             <div className="mt-4 flex items-center justify-center gap-1.5 flex-wrap">
               <Gauge className="w-3.5 h-3.5 text-muted-foreground mr-1" />
               {SPEEDS.map((s) => (
@@ -637,6 +637,18 @@ const AudioLearning = () => {
                   {s}x
                 </button>
               ))}
+              <SpeedSheet
+                trigger={
+                  <button
+                    className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white text-amber-700 ring-1 ring-amber-200/60 hover:bg-amber-50"
+                    aria-label="More speeds"
+                  >
+                    More…
+                  </button>
+                }
+                rate={rate}
+                onPick={handleRate}
+              />
             </div>
 
             {/* Secondary actions row */}
@@ -669,14 +681,34 @@ const AudioLearning = () => {
                 ambient={ambient} ambientVol={ambientVol}
                 onPick={handleAmbient} onVol={handleAmbientVol}
               />
-              <button onClick={addBookmark} disabled={activeSection === null}
-                className="flex flex-col items-center gap-1 p-2.5 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98] disabled:opacity-40">
-                <Bookmark className="w-4 h-4 text-amber-700" />
-                <span className="text-[11px] font-bold text-foreground/80">Bookmark</span>
-                <span className="text-[10px] text-muted-foreground truncate max-w-full px-1">
-                  {bookmarks.length ? `${bookmarks.length} saved` : "Mark spot"}
-                </span>
-              </button>
+              <div className="grid grid-cols-2 gap-1">
+                <button
+                  onClick={addBookmark}
+                  disabled={activeSection === null}
+                  className="flex flex-col items-center justify-center gap-0.5 p-2 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98] disabled:opacity-40"
+                  aria-label="Add bookmark"
+                >
+                  <Bookmark className="w-4 h-4 text-amber-700" />
+                  <span className="text-[10px] font-bold text-foreground/80">Save</span>
+                </button>
+                <BookmarksSheet
+                  trigger={
+                    <button
+                      className="flex flex-col items-center justify-center gap-0.5 p-2 rounded-xl bg-white ring-1 ring-amber-200/60 hover:bg-amber-50 transition-colors active:scale-[0.98]"
+                      aria-label="View bookmarks"
+                    >
+                      <BookmarkCheck className="w-4 h-4 text-amber-700" />
+                      <span className="text-[10px] font-bold text-foreground/80">
+                        {bookmarks.length || "0"}
+                      </span>
+                    </button>
+                  }
+                  bookmarks={bookmarks}
+                  onJump={jumpToBookmark}
+                  onDelete={deleteBookmark}
+                  onClearAll={bookmarks.length ? () => persistBookmarks([]) : undefined}
+                />
+              </div>
             </div>
           </motion.div>
 
