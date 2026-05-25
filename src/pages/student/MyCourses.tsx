@@ -14,6 +14,7 @@ import { SEO } from "@/components/seo/SEO";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { BookOpen, Plus, Search, Trash2, Lock } from "lucide-react";
+import { MyCoursesGrid } from "@/components/courses/MyCoursesGrid";
 
 interface Course {
   id: string;
@@ -133,36 +134,7 @@ const MyCourses = () => {
           </TabsList>
 
           <TabsContent value="enrolled" className="mt-4">
-            {enrolled.length === 0 ? (
-              <Card><CardContent className="py-12 text-center text-muted-foreground">
-                You haven't added any courses yet. Switch to Browse to get started.
-              </CardContent></Card>
-            ) : (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {enrolled.map((c) => (
-                  <Card key={c.id} className="glass-card hover:shadow-elegant transition-all">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <Badge variant="outline" className="mb-2">{c.code}</Badge>
-                          <CardTitle className="text-base font-display">{c.name}</CardTitle>
-                        </div>
-                        <BookOpen className="w-5 h-5 text-primary" />
-                      </div>
-                      {c.level && <CardDescription>{c.level} Level{c.department ? ` · ${c.department}` : ""}</CardDescription>}
-                    </CardHeader>
-                    <CardContent className="flex gap-2">
-                      <Button size="sm" variant="outline" asChild className="flex-1">
-                        <Link to={`/study-hub/${c.id}`}>Open</Link>
-                      </Button>
-                      <Button size="sm" variant="ghost" disabled={busy === c.id} onClick={() => unenroll(c.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <MyCoursesGrid emptyMessage="You haven't added any courses yet. Switch to Browse to get started." />
           </TabsContent>
 
           <TabsContent value="browse" className="mt-4 space-y-4">

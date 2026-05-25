@@ -35,6 +35,54 @@ export const KIND_META: Record<ResourceKind, { label: string; emoji: string }> =
 
 const sanitize = (s: string) => s.replace(/[^\w.\-]+/g, "_").slice(0, 80) || "file";
 
+const normalizeTitle = (s: string) =>
+  s.toLowerCase().replace(/\.[a-z0-9]+$/i, "").replace(/[^a-z0-9]+/g, " ").trim();
+
+/** SHA-256 hex digest of a Blob's bytes (browser SubtleCrypto). */
+export async function sha256Blob(blob: Blob): Promise<string | null> {
+  try {
+    const buf = await blob.arrayBuffer();
+    const hash = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(hash))
+      .map((b) => b.toString(16).padStart(2, "0")).join("");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Lightweight duplicate lookup. Checks exact content hash first, then a
+ * fuzzy normalized-title match. Returns the first existing resource that
+ * looks like a duplicate, or null.
+ */
+export async function findDuplicateResource(
+  userId: string,
+  opts: { hash?: string | null; title?: string | null },
+): Promise<UserResource | null> {
+  if (opts.hash) {
+    const { data } = await supabase
+      .from("user_resources")
+      .select("*")
+      .eq("user_id", userId)
+      .filter("meta->>content_hash", "eq", opts.hash)
+      .limit(1);
+    if (data && data.length) return data[0] as UserResource;
+  }
+  if (opts.title) {
+    const norm = normalizeTitle(opts.title);
+    if (norm.length >= 3) {
+      const { data } = await supabase
+        .from("user_resources")
+        .select("*")
+        .eq("user_id", userId)
+        .filter("meta->>normalized_title", "eq", norm)
+        .limit(1);
+      if (data && data.length) return data[0] as UserResource;
+    }
+  }
+  return null;
+}
+
 /** Upload a Blob/File to the user's library and create a DB row. */
 export async function saveResource(opts: {
   userId: string;
@@ -71,7 +119,14 @@ export async function saveResource(opts: {
       storage_path: path,
       mime: opts.mime || blob.type || null,
       size_bytes: blob.size,
-      meta: (meta || {}) as never,
+      meta: {
+        ...(meta || {}),
+        normalized_title: normalizeTitle(title),
+        // Content hash is best-effort: callers can pre-compute and pass it
+        // via meta.content_hash to avoid hashing twice.
+        content_hash:
+          (meta as any)?.content_hash ?? (await sha256Blob(blob)) ?? null,
+      } as never,
       course_id: opts.courseId ?? null,
       topic_id: opts.topicId ?? null,
     } as never])

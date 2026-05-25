@@ -1,82 +1,99 @@
-# Phase 6 — Production Readiness
+# Phase 7 — Academic Organization, Library, Course Hub, Audio Refinement
 
-Scoped to high-impact, low-risk changes that reuse existing infrastructure (`analytics_events`, `client_errors`, `study_streaks`, `audit_logs`, `offlineSrsCache`, `offlineLibraryCache`, `notifications`, existing PWA manifest). No dashboard redesign, no new features.
+Scope is large but additive. No dashboard redesign, no onboarding/subscription rework. Reuse existing tables (`student_courses`, `recently_opened_courses`, `user_resources`, `lecture_notes`, `srs_cards`, `quiz_attempts`, `ai_generation_history`, `student_resource_bookmarks`, `student_download_history`, `community_announcements`, `course_messages`) and the existing `globalAudio` singleton + `MiniPlayerBar`.
 
-## 1. Reliability fixes
-- Fix `StudyHub.tsx` dynamic-import error surfacing in console (runtime error).
-- Harden top-level `ErrorBoundary`: friendly empty state, **Retry** + **Reload** + "Report" (writes to `client_errors`), separate chunk-load error path that auto-soft-reloads once.
-- Wrap every lazy route in a Suspense boundary with a skeleton fallback (already partial) — standardize on a `RouteFallback` component.
+## 1. Course-first experience
 
-## 2. Performance pass
-- Add `<link rel="preload" as="image">` only for splash logo and a `requestIdleCallback`-based prefetcher (`src/lib/routePrefetch.ts`) that warms the most likely next route after dashboard idle (e.g. `/courses`, `/library`, `/review`).
-- Memoize heavy lists: `Leaderboard` rows, `ActivityFeed` groups, `CourseChat` reaction map (already memo'd).
-- Convert `CourseChat` realtime subscription to single channel + cleanup audit (already cleans up — verify). Add `visibilitychange` pause for realtime channels in `useNotifications` and `useActivityFeed` to stop work while tab hidden.
-- Add a tiny `useVirtualList` (windowing only when length > 50) — apply to `CourseChat` and `ActivityFeed` if length warrants. Skip if not needed; document threshold.
+**New components**
+- `src/components/courses/CourseCard.tsx` — premium card: code, title, tutor, unread count, readiness %, 6 quick-action chips (Open, Continue, Audio, Flashcards, Quiz, Resources).
+- `src/components/courses/MyCoursesGrid.tsx` — grid wrapper used on `MyCourses` and dashboard preview slot.
 
-## 3. Mobile polish (no redesign)
-- Audit tap targets in `TopHeader`, `QuickActionsGrid`, `NotificationCenter` filters → enforce `min-h-11 min-w-11` where needed via class additions only.
-- Add `overscroll-behavior: contain` + `touch-action: manipulation` globally in `index.css` to remove double-tap zoom and rubber-band on chat/audio.
+**Hook**
+- `src/hooks/useCourseSnapshots.ts` — single batched query that returns `{ course, tutor, unread_updates, readiness_pct, last_opened_at }` for the student's enrolled courses (joins `student_courses`, `courses`, `recently_opened_courses`, counts unread `community_announcements`/`course_messages`, pulls readiness from existing `exam_readiness` data).
 
-## 4. Analytics foundation
-- Extend `src/lib/analytics.ts` (existing) with `track(event, props)` typed wrapper that inserts into `analytics_events` (best-effort, non-blocking, batched in a 2s window).
-- Instrument: dashboard view, course open, quiz start/finish, AI generation success, flashcard review, opportunity click, tutor follow, audio play.
-- Respect `privacy_settings.analytics_opt_out` if it exists; otherwise default-on for authenticated users only.
+**Edits**
+- `src/pages/student/MyCourses.tsx` — replace flat list with `MyCoursesGrid`.
+- `src/pages/courses/CourseHub.tsx` — add ordered tab strip: Materials · PDFs · Notes · Flashcards · Quizzes · Audio · Discussions · Announcements. Reuse existing panels; only reorder + add a unified `CourseHubHeader` showing tutor + readiness.
 
-## 5. Admin insight dashboard
-- New page `/admin/insights` (admin-only) showing:
-  - DAU/WAU/MAU (computed via SQL RPC `get_admin_insights` on `analytics_events`)
-  - Top 5 universities by active users
-  - Top 5 courses by quiz attempts (last 30d)
-  - AI usage trend (last 14 days) — simple inline sparkline (`recharts` already in app)
-  - Tutor activity: top 5 by uploads + students impacted
-  - Subscription growth: weekly counts from `token_purchases`
-- One SECURITY DEFINER RPC, admin-only via `has_role(_user_id, 'admin')`.
+## 2. Library rebuild
 
-## 6. Session security
-- Add `session_devices` table: `(id, user_id, session_token, user_agent, last_seen_at, created_at)`. Token is a random `crypto.randomUUID()` minted at login and stored in `localStorage`.
-- On every app mount, `useAuth` upserts the row and polls every 60s. A new device login bumps `session_token`; the previous device, on its next poll, detects the mismatch and gracefully signs out with a toast "Signed in on another device".
-- Trigger inserts a `notifications` row "New sign-in detected" with the new device's UA.
+**Refactor `src/pages/student/Library.tsx`**
+- Sticky search + filter chip rail.
+- Sidebar groups: `Courses`, `Recent`, `Saved`, `Audio`, `Flashcards`, `AI Generations`, `Personal`.
+- Body switches to compact `ResourceListItem` cards.
 
-## 7. Protected content + screenshot deterrence
-- Migrate any remaining public premium URLs to **signed URLs** via a new edge function `signed-asset` that checks: enrollment, premium, or tutor ownership before issuing a 5-minute signed URL from the private bucket.
-- Add `<ProtectedView>` wrapper that:
-  - Adds `blur-md` class when `document.visibilityState === "hidden"`.
-  - Sets `userSelect: none`, `-webkit-touch-callout: none`.
-  - On Capacitor Android, calls `FLAG_SECURE` shim if `window.AndroidSecure?.enable()` exists (graceful no-op on web).
-- Apply to `MaterialAIPanel` premium materials and PDF previews.
+**New components**
+- `src/components/library/LibrarySidebar.tsx`
+- `src/components/library/ResourceListItem.tsx`
+- `src/components/library/LibrarySearchBar.tsx` — debounced, hits `useCourseSearch` + `user_resources` title ILIKE in parallel.
 
-## 8. Offline improvements
-- Extend `offlineLibraryCache.ts` to also cache: last-opened summary, last 3 generated audio MP3 blobs, last 50 SRS cards (already exists).
-- Add `/offline` route showing what's available offline; reuse `OfflineDownloads.tsx`.
-- Add `useOnlineStatus()` hook and a sticky top banner "You're offline — showing cached content" only when on a data-bound route.
+**Duplicate detection**
+- `src/lib/userResources.ts` — add `sha256` of blob during `saveResource`; store in `meta.content_hash` and `meta.normalized_title`.
+- New helper `findDuplicateResource(userId, hash, title)` → returns existing row; UI shows "This looks like a duplicate of X — Replace / Keep both / Cancel".
+- Migration adds index on `((meta->>'content_hash'))`.
 
-## 9. Search
-- Confirm `/search` route hits `semantic-search` edge function with debounced (300ms) input; add typed result groups: Courses, Tutors, Opportunities, Materials, Discussions. Already partly done — add tabs with counts and keyboard arrow nav.
+## 3. Continue learning
 
-## 10. Background task cleanup
-- Audit `useEffect` cleanups in: `CourseChat`, `useNotifications`, `useActivityFeed`, `AudioPlayerCard`, AI generation flows. Add `AbortController` to all `fetch` calls in long-lived components.
+- `src/hooks/useContinueLearning.ts` — merges last `recently_opened_courses`, last `globalAudio` track (persisted to `localStorage`), unfinished `srs_cards`, in-progress `quiz_attempts`, latest `ai_generation_history` → one ranked list.
+- `src/components/student/ContinueLearningStrip.tsx` — horizontal carousel; one-tap resume.
+- Mount on `StudentDashboard` above existing study-pack hero (not redesigning hero, just adding strip above).
 
-## Files (estimated)
-- 1 migration: `session_devices` + `get_admin_insights` RPC + RLS
-- 1 edge function: `signed-asset`
-- New hooks: `useOnlineStatus`, `useSingleSession`
-- New components: `RouteFallback`, `ProtectedView`, `OfflineBanner`
-- New page: `src/pages/admin/AdminInsights.tsx`
-- Edits: `ErrorBoundary`, `analytics.ts`, `useAuth.tsx`, `AnimatedRoutes.tsx`, `index.css`, `NotificationCenter.tsx`, `useActivityFeed.ts`, `MaterialAIPanel.tsx`, `StudyHub.tsx` (fix import)
+## 4. Modern audio learning
+
+**Refactor `src/pages/student/AudioLearning.tsx`**
+- New layout: large artwork, animated waveform bar (CSS-only bars driven by `requestAnimationFrame` reading `currentTime`), big play/skip controls, speed pill (0.75/1/1.25/1.5/2), queue drawer, "Continue listening" row.
+- Background-play indicator + sleep-timer button.
+
+**New**
+- `src/components/audio/Waveform.tsx` — lightweight, no extra deps.
+- `src/components/audio/QueueDrawer.tsx`
+- `src/components/audio/SpeedPicker.tsx`
+- `src/lib/audioQueue.ts` — persistent queue (`localStorage`) wired to `globalAudio`; next/prev across tracks.
+
+**Ambient mode**
+- `src/lib/ambientAudio.ts` already exists — add `rain`, `forest`, `lofi` presets (CDN-hosted Pixabay free loops; URLs constants). Mixer slider in player ducks ambience under narration.
+
+**Optional AI narration enhancement**
+- Existing `text-to-speech` edge function stays default. Add a toggle "Enhanced AI voice (beta)" that, when on, routes through existing `overra-tts` edge function (already wired). No new paid deps.
+
+## 5. Smart search
+
+- Promote `useCourseSearch` to power a global `⌘K`/search-icon palette: `src/components/search/GlobalSearchPalette.tsx`. Returns grouped hits (Courses, Topics, Tutors, Materials, My Library, AI Generations). Triggered from TopHeader search icon and `/library`.
+
+## 6. Resource auto-organization
+
+- `saveResource` already accepts `courseId`/`topicId`. Add a small `autoTagResource(userId, blob, title)` heuristic that, when no course is supplied, fuzzy-matches title against the student's enrolled course codes (`CSC201`, etc.) and proposes a course before save.
+
+## Database (one migration)
+
+```sql
+-- Index for content-hash duplicate lookup
+CREATE INDEX IF NOT EXISTS idx_user_resources_content_hash
+  ON public.user_resources (((meta->>'content_hash')));
+
+-- RPC: course snapshots in one round-trip
+CREATE OR REPLACE FUNCTION public.get_course_snapshots(_user_id uuid)
+RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
+  SELECT coalesce(jsonb_agg(row_to_json(t)), '[]'::jsonb) FROM (
+    SELECT c.id, c.code, c.name, c.department, c.level,
+      (SELECT count(*) FROM community_announcements ca
+        WHERE ca.course_id = c.id
+          AND ca.created_at > coalesce((SELECT opened_at FROM recently_opened_courses
+            WHERE user_id=_user_id AND course_id=c.id), 'epoch')) AS unread_updates,
+      (SELECT opened_at FROM recently_opened_courses
+        WHERE user_id=_user_id AND course_id=c.id) AS last_opened_at
+    FROM student_courses sc JOIN courses c ON c.id = sc.course_id
+    WHERE sc.student_id = _user_id
+    ORDER BY last_opened_at DESC NULLS LAST, c.code
+  ) t;
+$$;
+```
 
 ## Out of scope
-- Dashboard redesign
-- New end-user features
-- Subscription/pricing changes
-- Onboarding tweaks
+- Dashboard redesign, splash, onboarding, subscriptions/pricing, tutor curriculum builder, new social features, new admin tools.
 
-## Order of execution
-1. Reliability fixes + ErrorBoundary
-2. Migration (session_devices + insights RPC)
-3. Edge function (signed-asset)
-4. Analytics wrapper + instrumentation
-5. Admin insights page
-6. Session security wiring
-7. ProtectedView + screenshot deterrence
-8. Offline banner + cache extensions
-9. Performance + mobile polish + cleanup
+## Files (new)
+CourseCard, MyCoursesGrid, useCourseSnapshots, LibrarySidebar, ResourceListItem, LibrarySearchBar, useContinueLearning, ContinueLearningStrip, Waveform, QueueDrawer, SpeedPicker, audioQueue, GlobalSearchPalette, CourseHubHeader, migration.
+
+## Files (edited)
+MyCourses, CourseHub, Library, AudioLearning, userResources, ambientAudio, StudentDashboard (1 import + 1 element), TopHeader (search icon hook), App router (palette mount).
