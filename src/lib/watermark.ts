@@ -17,7 +17,6 @@ export function applyPdfWatermark(doc: any, text: string) {
       const w = doc.internal.pageSize.getWidth();
       const h = doc.internal.pageSize.getHeight();
       doc.saveGraphicsState?.();
-      // @ts-expect-error - GState supported by jspdf
       doc.setGState?.(new doc.GState({ opacity: 0.08 }));
       doc.setTextColor(180, 140, 40);
       doc.setFontSize(36);

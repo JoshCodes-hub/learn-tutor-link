@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { SEO } from "@/components/seo/SEO";
 import { useOpportunities, useOpportunityBookmarks, type OpportunityCategory } from "@/hooks/useOpportunities";
 import { OpportunityCard } from "@/components/opportunities/OpportunityCard";
+import RecommendedOpportunities from "@/components/opportunities/RecommendedOpportunities";
 
 const CATEGORIES: { id: OpportunityCategory | "all"; label: string }[] = [
   { id: "all", label: "All" },
@@ -37,6 +38,8 @@ export default function Opportunities() {
           <p className="text-[12.5px] text-muted-foreground mb-3">
             Curated internships, scholarships and programs for university students.
           </p>
+
+          {cat === "all" && <RecommendedOpportunities />}
 
           <div className="flex gap-1.5 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
             {CATEGORIES.map((c) => (
