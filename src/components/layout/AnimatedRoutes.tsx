@@ -146,6 +146,10 @@ const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
 const CourseDirectory = lazy(() => import("@/pages/courses/CourseDirectory"));
 const CourseHub = lazy(() => import("@/pages/courses/CourseHub"));
 const TutorCourseEditor = lazy(() => import("@/pages/tutor/TutorCourseEditor"));
+const Subscription = lazy(() => import("@/pages/student/Subscription"));
+const Referrals = lazy(() => import("@/pages/student/Referrals"));
+const Wallet = lazy(() => import("@/pages/student/Wallet"));
+const AdminPaymentRequests = lazy(() => import("@/pages/admin/PaymentRequests"));
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -352,6 +356,10 @@ export const AnimatedRoutes = () => {
           <Route path="/library/analytics" element={<PageTransition><UploadAnalytics /></PageTransition>} />
           <Route path="/library/offline-downloads" element={<PageTransition><OfflineDownloads /></PageTransition>} />
           <Route path="/ai-history" element={<PageTransition><AIHistory /></PageTransition>} />
+          <Route path="/subscription" element={<PageTransition><Subscription /></PageTransition>} />
+          <Route path="/referrals" element={<PageTransition><Referrals /></PageTransition>} />
+          <Route path="/wallet" element={<PageTransition><Wallet /></PageTransition>} />
+          <Route path="/admin/payments" element={<AdminRoute><PageTransition><AdminPaymentRequests /></PageTransition></AdminRoute>} />
           <Route path="/courses" element={<PageTransition><CourseDirectory /></PageTransition>} />
           <Route path="/courses/:courseId" element={<PageTransition><CourseHub /></PageTransition>} />
           <Route path="/tutor/courses/new" element={<PageTransition><TutorCourseEditor /></PageTransition>} />
