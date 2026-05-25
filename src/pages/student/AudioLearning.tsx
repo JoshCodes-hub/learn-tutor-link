@@ -18,6 +18,9 @@ import { BrowserTts, isTtsSupported, listVoices, type TtsState, type TtsTick, ty
 import { AmbientPlayer, AMBIENT_LIST, type AmbientPreset } from "@/lib/ambientAudio";
 import { useStudentScope } from "@/hooks/useStudentScope";
 import { LevelChip } from "@/components/shell/PageHeader";
+import { NowPlayingArtwork } from "@/components/audio/NowPlayingArtwork";
+import { VoiceSheet } from "@/components/audio/VoiceSheet";
+import { AmbientSheet } from "@/components/audio/AmbientSheet";
 
 const MAX_CHARS = 50000;
 const SPEEDS = [0.85, 1, 1.25, 1.5, 2];
