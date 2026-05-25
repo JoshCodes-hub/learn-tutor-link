@@ -257,6 +257,69 @@ const AudioLearning = () => {
     toast.success("Re-extracted successfully");
   };
 
+  /** Re-run the markdown / special-char sanitizer on the current text without
+   *  needing the source file. Useful when AI/imported text contains `**`, `/`,
+   *  or other characters the TTS engine reads aloud. */
+  const cleanCurrentText = () => {
+    if (!text.trim()) return toast.error("Nothing to clean yet.");
+    const before = text.length;
+    const after = sanitizeForTts(text);
+    setText(after.slice(0, MAX_CHARS));
+    setSections([]);
+    persistTranscript([]);
+    toast.success(`Cleaned ${before - after.length} characters — regenerate the queue to refresh sections.`);
+  };
+
+  const generateSummaryPdf = async () => {
+    if (!text.trim()) return toast.error("Add some text first.");
+    setAiSummaryBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("library-ai", {
+        body: {
+          action: "summary",
+          text: text.slice(0, 18000),
+          title: fileName || "Study Notes",
+        },
+      });
+      if (error) throw new Error(error.message);
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const result = (data as any)?.result || {};
+      const parts: string[] = [];
+      parts.push(`# ${result.title || fileName || "Summary"}`);
+      if (result.overview) parts.push("", "## Overview", result.overview);
+      if (Array.isArray(result.sections)) {
+        for (const sec of result.sections) {
+          parts.push("", `## ${sec.heading}`);
+          for (const b of sec.bullets || []) parts.push(`- ${b}`);
+        }
+      }
+      if (Array.isArray(result.key_points) && result.key_points.length) {
+        parts.push("", "## Key points");
+        for (const k of result.key_points) parts.push(`- ${k}`);
+      }
+      if (Array.isArray(result.must_know) && result.must_know.length) {
+        parts.push("", "## Must know");
+        for (const k of result.must_know) parts.push(`- ${k}`);
+      }
+      if (Array.isArray(result.exam_tips) && result.exam_tips.length) {
+        parts.push("", "## Exam tips");
+        for (const k of result.exam_tips) parts.push(`- ${k}`);
+      }
+      await exportSummaryPdf({
+        title: result.title || fileName || "Study Notes",
+        subtitle: `AI summary · ${new Date().toLocaleDateString()} · ${scopeLabel || ""}`.trim(),
+        bodyMarkdown: parts.join("\n"),
+        filename: `${(fileName || "overraprep-notes").replace(/\.[^.]+$/, "")}-summary`,
+      });
+      toast.success("Summary PDF downloaded");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || "Could not generate summary.");
+    } finally {
+      setAiSummaryBusy(false);
+    }
+  };
+
   /* TTS helpers */
   const ensureTts = (forText: string, useRate?: number, startIdx?: number) => {
     if (ttsRef.current) ttsRef.current.destroy();
