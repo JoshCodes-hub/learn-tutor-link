@@ -79,6 +79,7 @@ export type Database = {
       }
       ai_generation_history: {
         Row: {
+          course_id: string | null
           created_at: string
           id: string
           kind: string
@@ -87,9 +88,11 @@ export type Database = {
           resource_id: string | null
           resource_label: string | null
           status: string
+          topic_id: string | null
           user_id: string
         }
         Insert: {
+          course_id?: string | null
           created_at?: string
           id?: string
           kind: string
@@ -98,9 +101,11 @@ export type Database = {
           resource_id?: string | null
           resource_label?: string | null
           status?: string
+          topic_id?: string | null
           user_id: string
         }
         Update: {
+          course_id?: string | null
           created_at?: string
           id?: string
           kind?: string
@@ -109,6 +114,7 @@ export type Database = {
           resource_id?: string | null
           resource_label?: string | null
           status?: string
+          topic_id?: string | null
           user_id?: string
         }
         Relationships: []
@@ -5249,6 +5255,7 @@ export type Database = {
       }
       user_resources: {
         Row: {
+          course_id: string | null
           created_at: string
           folder: string
           id: string
@@ -5258,10 +5265,12 @@ export type Database = {
           size_bytes: number | null
           storage_path: string
           title: string
+          topic_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          course_id?: string | null
           created_at?: string
           folder?: string
           id?: string
@@ -5271,10 +5280,12 @@ export type Database = {
           size_bytes?: number | null
           storage_path: string
           title: string
+          topic_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          course_id?: string | null
           created_at?: string
           folder?: string
           id?: string
@@ -5284,6 +5295,7 @@ export type Database = {
           size_bytes?: number | null
           storage_path?: string
           title?: string
+          topic_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -5654,6 +5666,28 @@ export type Database = {
         Returns: boolean
       }
       join_brainstorm_thread: { Args: { _code: string }; Returns: string }
+      list_course_ai_generations: {
+        Args: { _course_id: string }
+        Returns: {
+          course_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          output_ref: string | null
+          params: Json
+          resource_id: string | null
+          resource_label: string | null
+          status: string
+          topic_id: string | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ai_generation_history"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       log_admin_action: {
         Args: {
           p_action: string
