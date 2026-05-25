@@ -128,6 +128,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    const guard = await requireUser(req, corsHeaders);
+    if (guard instanceof Response) return guard;
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return bad(500, "LOVABLE_API_KEY is not configured");
 

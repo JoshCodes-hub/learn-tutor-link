@@ -11,6 +11,7 @@ const NOIZ_URL = "https://noiz.ai/v1/text-to-speech";
 
 // Hard cap to keep cost predictable & avoid huge requests
 const MAX_CHARS = 12000;
+import { requireUser } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -18,6 +19,8 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const guard = await requireUser(req, corsHeaders);
+    if (guard instanceof Response) return guard;
     const apiKey = Deno.env.get("NOIZ_API_KEY");
     if (!apiKey) {
       return new Response(
