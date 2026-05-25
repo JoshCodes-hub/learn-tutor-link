@@ -20,6 +20,7 @@ import ScrollToTop from "@/components/system/ScrollToTop";
 import PageViewTracker from "@/components/system/PageViewTracker";
 import { initPushNotifications } from "@/lib/native/push";
 import { Capacitor } from "@capacitor/core";
+import { useRecordDeviceLogin } from "@/hooks/useDeviceHistory";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,13 @@ function PushBootstrap() {
   return null;
 }
 
+// Phase 8: log device on every authenticated load so users can audit history.
+function DeviceTracker() {
+  const { user } = useAuth();
+  useRecordDeviceLogin(user?.id);
+  return null;
+}
+
 const App = () => {
   return (
     <ErrorBoundary>
@@ -56,6 +64,7 @@ const App = () => {
             <PageViewTracker />
             <AuthProvider>
               <PushBootstrap />
+              <DeviceTracker />
               <BiometricUnlock>
                 <PaymentTestModeBanner />
                 <div className="pb-16 md:pb-0">
