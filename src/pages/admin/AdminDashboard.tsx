@@ -45,6 +45,7 @@ import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { PremiumStatCard } from "@/components/dashboard/PremiumStatCard";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PullToRefresh } from "@/components/native/PullToRefresh";
+import AdminKpiStrip from "@/components/admin/AdminKpiStrip";
 
 interface DashboardStats {
   totalStudents: number;
@@ -248,6 +249,8 @@ const AdminDashboard = () => {
           }
           className="mb-6"
         />
+
+        <AdminKpiStrip />
 
         {/* Premium Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
