@@ -438,3 +438,6 @@
 .ai-prose table { width: 100%; border-collapse: collapse; font-size: 0.92em; margin: 0.6em 0; }
 .ai-prose th, .ai-prose td { padding: 0.45em 0.7em; border: 1px solid hsl(var(--border)); text-align: left; }
 .ai-prose th { background: hsl(var(--muted)); font-weight: 600; }
+/* hide scrollbar on horizontal chip rails */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
