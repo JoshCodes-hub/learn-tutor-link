@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_events: {
+        Row: {
+          actor_id: string | null
+          course_id: string | null
+          created_at: string
+          id: string
+          meta: Json | null
+          object_id: string | null
+          object_type: string
+          university: string | null
+          verb: string
+          visibility: string
+        }
+        Insert: {
+          actor_id?: string | null
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          object_id?: string | null
+          object_type: string
+          university?: string | null
+          verb: string
+          visibility?: string
+        }
+        Update: {
+          actor_id?: string | null
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          object_id?: string | null
+          object_type?: string
+          university?: string | null
+          verb?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       affiliate_links: {
         Row: {
           clicks: number
@@ -953,24 +992,33 @@ export type Database = {
       }
       course_chat_messages: {
         Row: {
+          ai_status: string | null
           content: string
           course_id: string
           created_at: string
           id: string
+          is_ai: boolean
+          parent_id: string | null
           user_id: string
         }
         Insert: {
+          ai_status?: string | null
           content: string
           course_id: string
           created_at?: string
           id?: string
+          is_ai?: boolean
+          parent_id?: string | null
           user_id: string
         }
         Update: {
+          ai_status?: string | null
           content?: string
           course_id?: string
           created_at?: string
           id?: string
+          is_ai?: boolean
+          parent_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -979,6 +1027,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_chat_messages_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "course_chat_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -2067,6 +2122,83 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      opportunities: {
+        Row: {
+          apply_url: string | null
+          category: Database["public"]["Enums"]["opportunity_category"]
+          cover_image_url: string | null
+          created_at: string
+          deadline: string | null
+          description: string
+          id: string
+          organization: string
+          posted_by: string | null
+          status: Database["public"]["Enums"]["opportunity_status"]
+          title: string
+          university: string | null
+          updated_at: string
+        }
+        Insert: {
+          apply_url?: string | null
+          category: Database["public"]["Enums"]["opportunity_category"]
+          cover_image_url?: string | null
+          created_at?: string
+          deadline?: string | null
+          description: string
+          id?: string
+          organization: string
+          posted_by?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          title: string
+          university?: string | null
+          updated_at?: string
+        }
+        Update: {
+          apply_url?: string | null
+          category?: Database["public"]["Enums"]["opportunity_category"]
+          cover_image_url?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          id?: string
+          organization?: string
+          posted_by?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          title?: string
+          university?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      opportunity_bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          opportunity_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          opportunity_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          opportunity_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_bookmarks_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_requests: {
         Row: {
@@ -3816,6 +3948,45 @@ export type Database = {
           resource_type?: string
           title?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      student_spotlights: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          featured_until: string | null
+          id: string
+          image_url: string | null
+          link_url: string | null
+          summary: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          featured_until?: string | null
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          summary?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          featured_until?: string | null
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          summary?: string | null
+          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -5625,6 +5796,34 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_student_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          ai_activity: number
+          avatar_url: string
+          cards_reviewed: number
+          engagement: number
+          full_name: string
+          quiz_accuracy: number
+          score: number
+          streak_days: number
+          university: string
+          user_id: string
+        }[]
+      }
+      get_tutor_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          avg_rating: number
+          followers_count: number
+          full_name: string
+          score: number
+          students_impacted: number
+          tutor_id: string
+          uploads_count: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -5756,6 +5955,14 @@ export type Database = {
       application_status: "pending" | "approved" | "rejected"
       chat_context_kind: "study_pack" | "tutor_curriculum"
       chat_thread_kind: "dm" | "group" | "brainstorm"
+      opportunity_category:
+        | "internship"
+        | "scholarship"
+        | "hackathon"
+        | "competition"
+        | "tech_program"
+        | "career"
+      opportunity_status: "draft" | "published" | "archived"
       resource_kind:
         | "pdf"
         | "image"
@@ -5904,6 +6111,15 @@ export const Constants = {
       application_status: ["pending", "approved", "rejected"],
       chat_context_kind: ["study_pack", "tutor_curriculum"],
       chat_thread_kind: ["dm", "group", "brainstorm"],
+      opportunity_category: [
+        "internship",
+        "scholarship",
+        "hackathon",
+        "competition",
+        "tech_program",
+        "career",
+      ],
+      opportunity_status: ["draft", "published", "archived"],
       resource_kind: [
         "pdf",
         "image",
