@@ -37,6 +37,7 @@ import { BulkQuizImport } from "@/components/tutor/BulkQuizImport";
 import QuestionReports from "@/components/tutor/QuestionReports";
 import TutorAnalytics from "@/components/tutor/TutorAnalytics";
 import QuizManagement from "@/components/tutor/QuizManagement";
+import TutorAnnouncementsPanel from "@/components/tutor/TutorAnnouncementsPanel";
 import { TutorCommunityManager } from "@/components/tutor/TutorCommunityManager";
 import { OnboardingChecklist } from "@/components/tutor/OnboardingChecklist";
 import { SkeletonDashboard } from "@/components/ui/premium-skeletons";
@@ -619,6 +620,11 @@ const TutorDashboard = () => {
         {/* Analytics Dashboard */}
         <div className="mb-8">
           <TutorAnalytics />
+        </div>
+
+        {/* Announcements (Phase 8) */}
+        <div className="mb-8">
+          <TutorAnnouncementsPanel />
         </div>
 
         {/* Tutor Community */}
