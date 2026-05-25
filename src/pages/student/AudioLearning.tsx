@@ -5,7 +5,7 @@ import {
   ArrowLeft, Upload, Loader2, Play, Pause, Square, Headphones,
   ListMusic, FileText, Volume2, WifiOff, Smartphone, RotateCcw, Pencil,
   Check, X, Gauge, Bookmark, BookmarkCheck,
-  RefreshCw, FileDown,
+  RefreshCw, FileDown, Sparkles, Wand2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,11 @@ import { LevelChip } from "@/components/shell/PageHeader";
 import { NowPlayingArtwork } from "@/components/audio/NowPlayingArtwork";
 import { VoiceSheet } from "@/components/audio/VoiceSheet";
 import { AmbientSheet } from "@/components/audio/AmbientSheet";
+import { BookmarksSheet } from "@/components/audio/BookmarksSheet";
+import { SpeedSheet } from "@/components/audio/SpeedSheet";
+import { sanitizeForTts } from "@/lib/sanitizeForTts";
+import { exportSummaryPdf } from "@/lib/exportSummaryPdf";
+import { supabase } from "@/integrations/supabase/client";
 
 const MAX_CHARS = 50000;
 const SPEEDS = [0.85, 1, 1.25, 1.5, 2];
