@@ -1,0 +1,74 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { SEO } from "@/components/seo/SEO";
+import { useOpportunities, useOpportunityBookmarks, type OpportunityCategory } from "@/hooks/useOpportunities";
+import { OpportunityCard } from "@/components/opportunities/OpportunityCard";
+
+const CATEGORIES: { id: OpportunityCategory | "all"; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "internship", label: "Internships" },
+  { id: "scholarship", label: "Scholarships" },
+  { id: "hackathon", label: "Hackathons" },
+  { id: "competition", label: "Competitions" },
+  { id: "tech_program", label: "Tech Programs" },
+  { id: "career", label: "Careers" },
+];
+
+export default function Opportunities() {
+  const [cat, setCat] = useState<OpportunityCategory | "all">("all");
+  const { data: items = [], isLoading } = useOpportunities(
+    cat === "all" ? undefined : { category: cat },
+  );
+  const { data: bookmarks = new Set<string>() } = useOpportunityBookmarks();
+
+  return (
+    <>
+      <SEO title="Opportunity Hub — OverraPrep AI" description="Internships, scholarships, hackathons and more for Nigerian university students." />
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b border-amber-100/70 sticky top-0 z-30">
+          <div className="container mx-auto px-4 h-14 flex items-center gap-3">
+            <Link to="/student/dashboard" className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></Link>
+            <h1 className="font-display text-base font-bold">Opportunity Hub</h1>
+          </div>
+        </header>
+
+        <main className="container mx-auto px-4 py-5 max-w-3xl">
+          <p className="text-[12.5px] text-muted-foreground mb-3">
+            Curated internships, scholarships and programs for university students.
+          </p>
+
+          <div className="flex gap-1.5 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setCat(c.id)}
+                className={`shrink-0 text-[12px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md border transition-colors ${
+                  cat === c.id
+                    ? "bg-amber-500 border-amber-500 text-white"
+                    : "bg-card border-amber-100/70 text-muted-foreground hover:border-amber-200"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          {isLoading ? (
+            <div className="text-center text-sm text-muted-foreground py-12">Loading opportunities…</div>
+          ) : items.length === 0 ? (
+            <div className="text-center text-sm text-muted-foreground py-12 rounded-2xl border border-dashed border-amber-200/70 bg-amber-50/40">
+              No opportunities yet in this category. Check back soon.
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3">
+              {items.map((op) => (
+                <OpportunityCard key={op.id} op={op} bookmarked={bookmarks.has(op.id)} />
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    </>
+  );
+}
