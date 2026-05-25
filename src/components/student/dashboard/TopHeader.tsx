@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Bell, Flame, GraduationCap } from "lucide-react";
+import { Bell, Flame, GraduationCap, Cake } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,7 +39,7 @@ export const TopHeader = () => {
         .from("notifications")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("read", false);
+        .eq("is_read", false);
       if (cancelled) return;
       setUnread(count ?? 0);
     })();
@@ -52,6 +52,22 @@ export const TopHeader = () => {
   const department = (profile as any)?.department;
   const subline = [department, level ? `Level ${level}` : null].filter(Boolean).join(" • ");
 
+  // Birthday awareness
+  const dob = (profile as any)?.date_of_birth as string | undefined;
+  const birthdayInfo = (() => {
+    if (!dob) return null;
+    const d = new Date(dob);
+    if (isNaN(d.getTime())) return null;
+    const today = new Date();
+    if (d.getMonth() === today.getMonth() && d.getDate() === today.getDate()) {
+      return { isToday: true, days: 0 };
+    }
+    const next = new Date(today.getFullYear(), d.getMonth(), d.getDate());
+    if (next < today) next.setFullYear(today.getFullYear() + 1);
+    const days = Math.ceil((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return { isToday: false, days };
+  })();
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -6 }}
@@ -62,10 +78,10 @@ export const TopHeader = () => {
     >
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-amber-700/90">
-          {greeting()}
+          {birthdayInfo?.isToday ? "🎂 Happy birthday" : greeting()}
         </p>
         <h1 className="font-display text-[22px] sm:text-[26px] font-bold leading-tight tracking-tight text-foreground mt-0.5 truncate">
-          {firstName}
+          Welcome back, {firstName}
         </h1>
         <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200/70 text-[11px] font-bold text-amber-800">
@@ -73,6 +89,11 @@ export const TopHeader = () => {
           </span>
           {subline && (
             <span className="text-[11.5px] text-muted-foreground truncate">{subline}</span>
+          )}
+          {birthdayInfo && !birthdayInfo.isToday && birthdayInfo.days <= 14 && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200/70 text-[11px] font-bold text-rose-700">
+              <Cake className="w-3 h-3" /> {birthdayInfo.days}d
+            </span>
           )}
         </div>
       </div>
