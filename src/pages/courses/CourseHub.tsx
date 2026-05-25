@@ -3,6 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useStudentScope } from "@/hooks/useStudentScope";
+import { useMyCourses } from "@/hooks/useMyCourses";
 import DashboardNav from "@/components/layout/DashboardNav";
 import { DashboardBreadcrumb } from "@/components/layout/DashboardBreadcrumb";
 import { SEO } from "@/components/seo/SEO";
@@ -12,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen, FileText, Layers, ClipboardList, Image as ImageIcon, Sparkles,
-  Download, ExternalLink, Settings, MessageSquare, Headphones,
+  Download, ExternalLink, Settings, MessageSquare, Headphones, Lock,
 } from "lucide-react";
 import CourseProgressCard from "@/components/courses/CourseProgressCard";
 import CourseOfflineButton from "@/components/courses/CourseOfflineButton";
@@ -22,10 +24,13 @@ import CourseAudioPanel from "@/components/courses/CourseAudioPanel";
 import FlashcardProgressStrip from "@/components/courses/FlashcardProgressStrip";
 import { CourseChat } from "@/components/course/CourseChat";
 import { useTrackCourseOpen } from "@/hooks/useRecentlyOpenedCourses";
+import { EmptyState } from "@/components/shell/EmptyState";
 
 const CourseHub = () => {
   const { courseId = "" } = useParams();
   const { user, primaryRole } = useAuth();
+  const { level: studentLevel } = useStudentScope();
+  const { courseIds } = useMyCourses();
   const navRole = (primaryRole === "admin" || primaryRole === "tutor" ? primaryRole : "student") as
     "admin" | "tutor" | "student";
   const [topicFilter, setTopicFilter] = useState<string | null>(null);
@@ -122,6 +127,38 @@ const CourseHub = () => {
     );
   }
 
+  const enrolled = courseIds.includes(course.id);
+  const isStudent = primaryRole !== "admin" && primaryRole !== "tutor";
+  const levelMismatch =
+    isStudent && !enrolled && !!studentLevel && !!course.level && course.level !== studentLevel;
+
+  if (levelMismatch) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SEO title={`${course.code} — locked`} />
+        <DashboardNav role={navRole} />
+        <div className="max-w-3xl mx-auto px-4 py-10">
+          <DashboardBreadcrumb role={navRole} />
+          <EmptyState
+            icon={<Lock className="w-6 h-6" />}
+            title={`${course.code} is a ${course.level} course`}
+            description={`You're currently set to ${studentLevel}. Update your level if you've progressed, or browse courses curated for you.`}
+            action={
+              <div className="flex gap-2">
+                <Button asChild variant="outline">
+                  <Link to="/profile/edit">Update level</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/my-courses">See my level</Link>
+                </Button>
+              </div>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <SEO title={`${course.code} — ${course.name}`} description={`All documents, quizzes, flashcards, images and AI study packs for ${course.code}.`} />
@@ -129,22 +166,36 @@ const CourseHub = () => {
       <div className="max-w-6xl mx-auto px-4 py-6 pb-24">
         <DashboardBreadcrumb role={navRole} />
 
-        <header className="mt-2 mb-5 rounded-xl border bg-gradient-to-br from-white to-amber-50/40 p-4 md:p-5">
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
-              <BookOpen className="w-6 h-6" />
+        <header className="relative mt-2 mb-6 rounded-2xl border border-amber-200/60 overflow-hidden bg-gradient-to-br from-amber-50/70 via-white to-white p-5 md:p-6">
+          <div aria-hidden className="pointer-events-none absolute -top-20 -right-20 w-64 h-64 rounded-full bg-amber-300/20 blur-3xl" />
+          <div className="relative flex flex-col md:flex-row md:items-start gap-4 md:gap-5">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white grid place-items-center shadow-md shrink-0">
+              <BookOpen className="w-7 h-7" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge className="bg-amber-500/15 text-amber-700 hover:bg-amber-500/15 border-0">{course.code}</Badge>
-                {course.level && <Badge variant="outline" className="text-[10px]">{course.level}</Badge>}
-                {course.department && <span className="text-[11px] text-muted-foreground">{course.department}</span>}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Badge className="bg-amber-500 text-white hover:bg-amber-500 border-0 font-bold tracking-wider">{course.code}</Badge>
+                {course.level && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                    {course.level}
+                  </span>
+                )}
+                {course.department && (
+                  <span className="text-[11px] text-muted-foreground">· {course.department}</span>
+                )}
+                {enrolled && (
+                  <Badge className="bg-emerald-500 text-white hover:bg-emerald-500 border-0 text-[10px]">
+                    Enrolled
+                  </Badge>
+                )}
               </div>
-              <h1 className="font-display text-xl md:text-2xl mt-1.5">{course.name}</h1>
-              {course.description && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{course.description}</p>}
+              <h1 className="font-display text-xl md:text-2xl font-bold mt-2 leading-tight">{course.name}</h1>
+              {course.description && (
+                <p className="text-sm text-muted-foreground mt-2 line-clamp-3 max-w-2xl">{course.description}</p>
+              )}
             </div>
             {canManage && (
-              <Button asChild size="sm" variant="outline" className="shrink-0">
+              <Button asChild size="sm" variant="outline" className="shrink-0 self-start">
                 <Link to={`/tutor/courses/${course.id}/manage`}><Settings className="w-3.5 h-3.5 mr-1.5" /> Manage</Link>
               </Button>
             )}
@@ -162,19 +213,37 @@ const CourseHub = () => {
         <CourseTopicsStrip courseId={course.id} value={topicFilter} onChange={setTopicFilter} />
 
         <Tabs defaultValue="documents" className="w-full">
-          <TabsList className="w-full overflow-x-auto justify-start gap-1 h-auto p-1 bg-muted/50">
-            <TabsTrigger value="documents" className="gap-1.5"><FileText className="w-3.5 h-3.5" /> Documents</TabsTrigger>
-            <TabsTrigger value="flashcards" className="gap-1.5"><Layers className="w-3.5 h-3.5" /> Flashcards</TabsTrigger>
-            <TabsTrigger value="quizzes" className="gap-1.5"><ClipboardList className="w-3.5 h-3.5" /> Quizzes</TabsTrigger>
-            <TabsTrigger value="images" className="gap-1.5"><ImageIcon className="w-3.5 h-3.5" /> Images</TabsTrigger>
-            <TabsTrigger value="ai" className="gap-1.5"><Sparkles className="w-3.5 h-3.5" /> AI Packs</TabsTrigger>
-            <TabsTrigger value="audio" className="gap-1.5"><Headphones className="w-3.5 h-3.5" /> Audio</TabsTrigger>
-            <TabsTrigger value="discuss" className="gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> Discussion</TabsTrigger>
-          </TabsList>
+          <div className="sticky top-[56px] z-10 -mx-4 px-4 py-2 bg-background/85 backdrop-blur-md border-b border-border/60 mb-4">
+            <TabsList className="w-full overflow-x-auto justify-start gap-1 h-auto p-1 bg-muted/50 rounded-full">
+              <TabsTrigger value="documents" className="gap-1.5 rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background">
+                <FileText className="w-3.5 h-3.5" /> Materials
+                {documents.length > 0 && <span className="text-[10px] opacity-70">{documents.length}</span>}
+              </TabsTrigger>
+              <TabsTrigger value="flashcards" className="gap-1.5 rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background">
+                <Layers className="w-3.5 h-3.5" /> Flashcards
+              </TabsTrigger>
+              <TabsTrigger value="quizzes" className="gap-1.5 rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background">
+                <ClipboardList className="w-3.5 h-3.5" /> Quizzes
+                {quizzes.length > 0 && <span className="text-[10px] opacity-70">{quizzes.length}</span>}
+              </TabsTrigger>
+              <TabsTrigger value="audio" className="gap-1.5 rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background">
+                <Headphones className="w-3.5 h-3.5" /> Audio
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="gap-1.5 rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background">
+                <Sparkles className="w-3.5 h-3.5" /> AI Packs
+              </TabsTrigger>
+              <TabsTrigger value="images" className="gap-1.5 rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background">
+                <ImageIcon className="w-3.5 h-3.5" /> Visuals
+              </TabsTrigger>
+              <TabsTrigger value="discuss" className="gap-1.5 rounded-full data-[state=active]:bg-foreground data-[state=active]:text-background">
+                <MessageSquare className="w-3.5 h-3.5" /> Discussion
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="documents" className="mt-4">
+          <TabsContent value="documents" className="mt-2">
             {documents.length === 0 ? (
-              <EmptyState icon={<FileText className="w-6 h-6" />} text="No documents uploaded for this course yet." />
+              <EmptyState icon={<FileText className="w-6 h-6" />} title="No materials yet" description="Once your tutor uploads notes or PDFs, you'll find them here." />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {documents.map((d: any) => (
@@ -207,10 +276,10 @@ const CourseHub = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="flashcards" className="mt-4">
+          <TabsContent value="flashcards" className="mt-2">
             <FlashcardProgressStrip courseId={course.id} />
             {flashDecks.length === 0 ? (
-              <EmptyState icon={<Layers className="w-6 h-6" />} text="No flashcards yet — tutors can add some from Manage." />
+              <EmptyState icon={<Layers className="w-6 h-6" />} title="No flashcards yet" description="Tutors can publish decks from the Manage page." />
             ) : (
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {flashDecks.map((c: any) => (
@@ -223,9 +292,9 @@ const CourseHub = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="quizzes" className="mt-4">
+          <TabsContent value="quizzes" className="mt-2">
             {quizzes.length === 0 ? (
-              <EmptyState icon={<ClipboardList className="w-6 h-6" />} text="No quizzes assigned to this course yet." />
+              <EmptyState icon={<ClipboardList className="w-6 h-6" />} title="No quizzes yet" description="Active quizzes for this course will appear here." />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {quizzes.map((q: any) => (
@@ -249,9 +318,9 @@ const CourseHub = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="images" className="mt-4">
+          <TabsContent value="images" className="mt-2">
             {images.length === 0 ? (
-              <EmptyState icon={<ImageIcon className="w-6 h-6" />} text="No images or visual materials uploaded yet." />
+              <EmptyState icon={<ImageIcon className="w-6 h-6" />} title="No visuals yet" description="Diagrams, charts and figures from your tutor land here." />
             ) : (
               <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
                 {images.map((img: any) => (
@@ -266,15 +335,15 @@ const CourseHub = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="ai" className="mt-4">
+          <TabsContent value="ai" className="mt-2">
             <CourseAIPanel courseId={course.id} courseCode={course.code} topicId={topicFilter} />
           </TabsContent>
 
-          <TabsContent value="audio" className="mt-4">
+          <TabsContent value="audio" className="mt-2">
             <CourseAudioPanel courseId={course.id} courseCode={course.code} topicId={topicFilter} />
           </TabsContent>
 
-          <TabsContent value="discuss" className="mt-4">
+          <TabsContent value="discuss" className="mt-2">
             <CourseChat courseId={course.id} courseCode={course.code} />
           </TabsContent>
         </Tabs>
@@ -282,12 +351,5 @@ const CourseHub = () => {
     </div>
   );
 };
-
-const EmptyState = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
-  <Card className="p-8 text-center text-muted-foreground">
-    <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center mb-2">{icon}</div>
-    <p className="text-sm">{text}</p>
-  </Card>
-);
 
 export default CourseHub;
