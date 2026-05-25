@@ -8,7 +8,7 @@ interface Tab { to: string; label: string; icon: LucideIcon; }
 
 const STUDENT_TABS: Tab[] = [
   { to: "/student/dashboard", label: "Home",      icon: Home },
-  { to: "/study-packs",       label: "Learn",     icon: BookOpen },
+  { to: "/learn",             label: "Learn",     icon: BookOpen },
   { to: "/student/readiness", label: "Practice",  icon: Target },
   { to: "/community",         label: "Community", icon: Users },
   { to: "/profile/edit",      label: "Profile",   icon: User },
@@ -52,7 +52,7 @@ export const BottomTabBar = () => {
   // (so admins/tutors previewing the student dashboard still see the quick footer).
   const isStudentRoute =
     location.pathname.startsWith("/student") ||
-    ["/study-packs", "/chat", "/profile/edit", "/notifications", "/library", "/review"].some((p) =>
+    ["/learn", "/study-packs", "/chat", "/profile/edit", "/notifications", "/library", "/review", "/courses"].some((p) =>
       location.pathname.startsWith(p)
     );
 
