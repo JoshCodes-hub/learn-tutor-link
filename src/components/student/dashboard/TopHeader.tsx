@@ -26,7 +26,7 @@ export const TopHeader = () => {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    (async () => {
+    const loadCounts = async () => {
       const { data: s } = await supabase
         .from("study_streaks")
         .select("current_streak")
@@ -42,8 +42,23 @@ export const TopHeader = () => {
         .eq("is_read", false);
       if (cancelled) return;
       setUnread(count ?? 0);
-    })();
-    return () => { cancelled = true; };
+    };
+    loadCounts();
+
+    // Realtime: re-count on any notification change for this user
+    const channel = supabase
+      .channel(`notif-bell-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => { loadCounts(); },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const firstName = profile?.full_name?.split(" ")[0] || "Student";

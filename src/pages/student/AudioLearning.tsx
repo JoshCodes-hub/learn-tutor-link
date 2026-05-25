@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Upload, Loader2, Play, Pause, Square, Sparkles, Headphones,
@@ -40,6 +40,7 @@ const docKey = (name: string, len: number) =>
 
 const AudioLearning = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [text, setText] = useState("");
   const [fileName, setFileName] = useState("");
   const [extracting, setExtracting] = useState(false);
@@ -106,6 +107,39 @@ const AudioLearning = () => {
   }, [supported]);
 
   useEffect(() => () => { ttsRef.current?.destroy(); ambientRef.current?.destroy(); }, []);
+
+  // Auto-load from a course's lecture note when ?source=lecture_note:<id> is present.
+  useEffect(() => {
+    const src = searchParams.get("source");
+    if (!src) return;
+    const [kind, id] = src.split(":");
+    if (kind !== "lecture_note" || !id) return;
+    (async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data } = await supabase
+          .from("lecture_notes")
+          .select("title, file_url, file_type")
+          .eq("id", id)
+          .maybeSingle();
+        if (!data?.file_url) { toast.error("Could not find that lecture note."); return; }
+        const res = await fetch(data.file_url);
+        const blob = await res.blob();
+        const ext = (data.file_type || blob.type || "pdf").split("/").pop() || "pdf";
+        const file = new File([blob], `${data.title}.${ext}`, { type: blob.type });
+        lastFileRef.current = file;
+        await extractFromFile(file);
+        // Clean the URL so refresh doesn't refetch
+        const next = new URLSearchParams(searchParams);
+        next.delete("source");
+        setSearchParams(next, { replace: true });
+      } catch (e) {
+        console.error(e);
+        toast.error("Failed to load the lecture note for audio.");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* Per-doc settings */
   useEffect(() => {
