@@ -10,6 +10,7 @@ const corsHeaders = {
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-2.5-flash";
 const MAX_INPUT_CHARS = 30000;
+import { requireUser } from "../_shared/auth.ts";
 
 type Action = "flashcards" | "summary" | "quiz";
 

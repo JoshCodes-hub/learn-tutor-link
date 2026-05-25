@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,8 @@ serve(async (req) => {
   }
 
   try {
+    const guard = await requireUser(req, corsHeaders);
+    if (guard instanceof Response) return guard;
     const { question, mode, marks, context } = await req.json();
     if (!question) {
       return new Response(JSON.stringify({ error: "Missing question" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
