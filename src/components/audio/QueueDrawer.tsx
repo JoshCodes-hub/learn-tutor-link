@@ -12,7 +12,7 @@ export function QueueDrawer() {
 
   useEffect(() => {
     const off = subscribeQueue(() => setState(getQueue()));
-    return off;
+    return () => { off(); };
   }, []);
 
   return (
