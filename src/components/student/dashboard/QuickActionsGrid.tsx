@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Layers, Target, Headphones, Sparkles, Bookmark, type LucideIcon } from "lucide-react";
+import { Layers, Target, Headphones, Sparkles, Bookmark, Crown, Wallet, Gift, type LucideIcon } from "lucide-react";
 
 interface Tile {
   icon: LucideIcon;
@@ -13,7 +13,10 @@ const TILES: Tile[] = [
   { icon: Target,     label: "Practice Quiz", to: "/student/readiness" },
   { icon: Headphones, label: "Audio Reader",  to: "/audio-learning" },
   { icon: Sparkles,   label: "Ask AI",        to: "/ai-tutor" },
-  { icon: Bookmark,   label: "Saved",         to: "/library" },
+  { icon: Bookmark,   label: "My Library",    to: "/library" },
+  { icon: Crown,      label: "Premium",       to: "/subscription" },
+  { icon: Wallet,     label: "Wallet",        to: "/wallet" },
+  { icon: Gift,       label: "Referrals",     to: "/referrals" },
 ];
 
 /**
@@ -28,10 +31,10 @@ export const QuickActionsGrid = () => {
       <h2 className="font-display text-[15px] sm:text-base font-bold tracking-tight text-foreground mb-3 px-0.5">
         Quick actions
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
         {TILES.map((t, i) => {
           const Icon = t.icon;
-          const isLastOnMobile = i === TILES.length - 1;
+          const isLastOnMobile = false;
           return (
             <motion.button
               key={t.label}
