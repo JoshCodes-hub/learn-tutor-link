@@ -16,7 +16,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   ArrowLeft, Plus, Loader2, FileText, StickyNote, Sparkles, Link as LinkIcon,
-  Trash2, Upload, ChevronRight,
+  Trash2, Upload, ChevronRight, ImagePlus, X,
 } from "lucide-react";
 import {
   useCurriculum, useCurriculumMutations, useTopics, useTopicMutations,
@@ -54,6 +54,7 @@ export default function TutorCurriculumBuilder() {
   const [matText, setMatText] = useState("");
   const [matUrl, setMatUrl] = useState("");
   const [matFile, setMatFile] = useState<File | null>(null);
+  const [matImages, setMatImages] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [aiBusyTopicId, setAiBusyTopicId] = useState<string | null>(null);
 
@@ -89,6 +90,16 @@ export default function TutorCurriculumBuilder() {
         });
         storage_path = u.path; mime = u.mime; size = u.size;
       }
+      // Upload optional images attached to a Note material
+      const noteImages: { path: string; mime: string; size: number; name: string }[] = [];
+      if (showAddMat === "note" && matImages.length) {
+        for (const img of matImages) {
+          const u = await uploadTutorMaterialFile({
+            tutorId: user!.id, curriculumId: curriculum.id, topicId: activeTopic.id, file: img,
+          });
+          noteImages.push({ path: u.path, mime: u.mime, size: u.size, name: img.name });
+        }
+      }
       await mMut.create.mutateAsync({
         topic_id: activeTopic.id,
         kind: showAddMat,
@@ -96,11 +107,15 @@ export default function TutorCurriculumBuilder() {
         storage_path,
         content_text: showAddMat === "note" ? matText : null,
         external_url: showAddMat === "link" ? matUrl.trim() : null,
-        meta: mime ? { mime, size } : {},
+        meta: {
+          ...(mime ? { mime, size } : {}),
+          ...(noteImages.length ? { images: noteImages } : {}),
+        },
         order_index: matsByTopic(activeTopic.id).length,
       } as never);
       toast.success("Material added");
-      setShowAddMat(null); setMatTitle(""); setMatText(""); setMatUrl(""); setMatFile(null);
+      setShowAddMat(null); setMatTitle(""); setMatText(""); setMatUrl("");
+      setMatFile(null); setMatImages([]);
     } catch (e) { toast.error((e as Error).message); }
     finally { setBusy(false); }
   };
@@ -332,10 +347,59 @@ export default function TutorCurriculumBuilder() {
               </div>
             )}
             {showAddMat === "note" && (
-              <div className="space-y-1.5">
-                <Label>Content</Label>
-                <Textarea value={matText} onChange={(e) => setMatText(e.target.value)} rows={6} placeholder="Paste or write notes here..." />
-              </div>
+              <>
+                <div className="space-y-1.5">
+                  <Label>Content</Label>
+                  <Textarea
+                    value={matText} onChange={(e) => setMatText(e.target.value)} rows={6}
+                    placeholder="Write a summary, key formulas, diagrams captions..."
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Markdown is supported. Reference attached images by their position (e.g. "see image 1").
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5">
+                    <ImagePlus className="w-4 h-4 text-primary" /> Images (optional)
+                  </Label>
+                  <Input
+                    type="file" accept="image/*" multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      const tooBig = files.find((f) => f.size > 5 * 1024 * 1024);
+                      if (tooBig) {
+                        toast.error(`"${tooBig.name}" is over 5MB.`);
+                        return;
+                      }
+                      setMatImages((prev) => [...prev, ...files].slice(0, 8));
+                      e.target.value = "";
+                    }}
+                  />
+                  {matImages.length > 0 && (
+                    <ul className="grid grid-cols-3 gap-2 mt-2">
+                      {matImages.map((img, i) => (
+                        <li key={i} className="relative rounded-lg overflow-hidden border border-border bg-muted/40 aspect-square">
+                          <img
+                            src={URL.createObjectURL(img)} alt={img.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setMatImages((prev) => prev.filter((_, j) => j !== i))}
+                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"
+                            aria-label="Remove image"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="text-[11px] text-muted-foreground">
+                    Up to 8 images, 5MB each. Students see them inline under the note.
+                  </p>
+                </div>
+              </>
             )}
             {showAddMat === "link" && (
               <div className="space-y-1.5">
