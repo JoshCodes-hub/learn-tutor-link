@@ -785,36 +785,27 @@ const AudioLearning = () => {
               <Textarea value={text} onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
                 rows={6} placeholder="Paste lecture notes, a chapter, or any study text…"
                 className="resize-y font-sans text-sm leading-relaxed" />
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Button
+                  type="button" size="sm" variant="outline" onClick={cleanCurrentText}
+                  disabled={!text.trim()} className="h-8 text-[11px]"
+                >
+                  <Wand2 className="w-3.5 h-3.5 mr-1.5" /> Clean special chars
+                </Button>
+                <Button
+                  type="button" size="sm" onClick={generateSummaryPdf}
+                  disabled={!text.trim() || aiSummaryBusy}
+                  className="h-8 text-[11px] bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+                >
+                  {aiSummaryBusy
+                    ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    : <Sparkles className="w-3.5 h-3.5 mr-1.5" />}
+                  AI Summary PDF
+                </Button>
+                <span className="text-[10px] text-muted-foreground">Branded with OverraPrep AI watermark.</span>
+              </div>
             </div>
           </Card>
-
-          {/* Bookmarks */}
-          {bookmarks.length > 0 && (
-            <Card className="p-5 space-y-3">
-              <Label className="font-semibold flex items-center gap-2">
-                <BookmarkCheck className="w-4 h-4 text-primary" /> Bookmarks
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">{bookmarks.length}</span>
-              </Label>
-              <ul className="space-y-1.5">
-                {bookmarks.map((b) => (
-                  <li key={b.id} className="flex items-center gap-2 rounded-lg border border-border bg-card p-2">
-                    <button onClick={() => jumpToBookmark(b)} className="flex-1 text-left min-w-0">
-                      <p className="text-[12px] font-semibold truncate">{b.label}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        Section {b.sectionIdx + 1} · Chunk {b.chunkIdx + 1} · {new Date(b.createdAt).toLocaleString()}
-                      </p>
-                    </button>
-                    <Button size="icon" variant="ghost" onClick={() => jumpToBookmark(b)} aria-label="Jump" className="h-7 w-7">
-                      <Play className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => deleteBookmark(b.id)} aria-label="Delete" className="h-7 w-7">
-                      <X className="w-3.5 h-3.5" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
 
           {/* Queue (sections) with synced highlight */}
           <Card className="p-5 space-y-4">
