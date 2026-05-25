@@ -82,6 +82,20 @@ const AudioLearning = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supported = isTtsSupported();
   const docId = useMemo(() => docKey(fileName, text.length), [fileName, text.length]);
+  const [aiSummaryBusy, setAiSummaryBusy] = useState(false);
+  const activeChunkRef = useRef<HTMLParagraphElement | null>(null);
+
+  // Auto-scroll the synced chunk view so the spoken chunk stays centered.
+  useEffect(() => {
+    if (tick.state !== "playing" && tick.state !== "paused") return;
+    const el = activeChunkRef.current;
+    if (!el) return;
+    try {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+    } catch {
+      el.scrollIntoView();
+    }
+  }, [tick.chunk, tick.state]);
 
   // Currently-spoken word for the highlight overlay
   const liveWord = useMemo(() => {
