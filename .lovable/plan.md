@@ -1,99 +1,118 @@
-# Phase 7 — Academic Organization, Library, Course Hub, Audio Refinement
+# Redesign: My Courses, Library, Audio Learning, Course Hub
+## + Level-Based Content Visibility
 
-Scope is large but additive. No dashboard redesign, no onboarding/subscription rework. Reuse existing tables (`student_courses`, `recently_opened_courses`, `user_resources`, `lecture_notes`, `srs_cards`, `quiz_attempts`, `ai_generation_history`, `student_resource_bookmarks`, `student_download_history`, `community_announcements`, `course_messages`) and the existing `globalAudio` singleton + `MiniPlayerBar`.
+Locked taste: **white + gold + Inter** (per project memory). No navy, no new color tokens. All four pages will share one visual language so the ecosystem feels like one product, not four pages.
 
-## 1. Course-first experience
+---
 
-**New components**
-- `src/components/courses/CourseCard.tsx` — premium card: code, title, tutor, unread count, readiness %, 6 quick-action chips (Open, Continue, Audio, Flashcards, Quiz, Resources).
-- `src/components/courses/MyCoursesGrid.tsx` — grid wrapper used on `MyCourses` and dashboard preview slot.
+## 1. Level-based content filtering (data layer first)
 
-**Hook**
-- `src/hooks/useCourseSnapshots.ts` — single batched query that returns `{ course, tutor, unread_updates, readiness_pct, last_opened_at }` for the student's enrolled courses (joins `student_courses`, `courses`, `recently_opened_courses`, counts unread `community_announcements`/`course_messages`, pulls readiness from existing `exam_readiness` data).
+Students only see what matches their `profiles.level` (and `department` where relevant).
 
-**Edits**
-- `src/pages/student/MyCourses.tsx` — replace flat list with `MyCoursesGrid`.
-- `src/pages/courses/CourseHub.tsx` — add ordered tab strip: Materials · PDFs · Notes · Flashcards · Quizzes · Audio · Discussions · Announcements. Reuse existing panels; only reorder + add a unified `CourseHubHeader` showing tutor + readiness.
+- Add a `useStudentScope()` hook → returns `{ level, department }` from `profiles`.
+- Filter queries in:
+  - `MyCourses` enrolled list and "Discover" suggestions → `courses.level = student.level` (and same department when present).
+  - `Library` → tutor materials only from courses matching the student's level.
+  - `AudioLearning` → suggested course material list scoped to level.
+  - `CourseHub` → block access (friendly "this course is for {level}" empty state) if the course's level doesn't match and the student isn't already enrolled.
+- DB migration: add an RLS-safe SQL function `student_can_access_course(_course_id)` used by the new RPCs; tighten the `get_course_snapshots` query to filter by level. No destructive policy rewrites — additive only.
 
-## 2. Library rebuild
+---
 
-**Refactor `src/pages/student/Library.tsx`**
-- Sticky search + filter chip rail.
-- Sidebar groups: `Courses`, `Recent`, `Saved`, `Audio`, `Flashcards`, `AI Generations`, `Personal`.
-- Body switches to compact `ResourceListItem` cards.
+## 2. Shared design pattern (used across all four pages)
 
-**New components**
-- `src/components/library/LibrarySidebar.tsx`
-- `src/components/library/ResourceListItem.tsx`
-- `src/components/library/LibrarySearchBar.tsx` — debounced, hits `useCourseSearch` + `user_resources` title ILIKE in parallel.
+A single header + content frame so all four pages feel related:
 
-**Duplicate detection**
-- `src/lib/userResources.ts` — add `sha256` of blob during `saveResource`; store in `meta.content_hash` and `meta.normalized_title`.
-- New helper `findDuplicateResource(userId, hash, title)` → returns existing row; UI shows "This looks like a duplicate of X — Replace / Keep both / Cancel".
-- Migration adds index on `((meta->>'content_hash'))`.
-
-## 3. Continue learning
-
-- `src/hooks/useContinueLearning.ts` — merges last `recently_opened_courses`, last `globalAudio` track (persisted to `localStorage`), unfinished `srs_cards`, in-progress `quiz_attempts`, latest `ai_generation_history` → one ranked list.
-- `src/components/student/ContinueLearningStrip.tsx` — horizontal carousel; one-tap resume.
-- Mount on `StudentDashboard` above existing study-pack hero (not redesigning hero, just adding strip above).
-
-## 4. Modern audio learning
-
-**Refactor `src/pages/student/AudioLearning.tsx`**
-- New layout: large artwork, animated waveform bar (CSS-only bars driven by `requestAnimationFrame` reading `currentTime`), big play/skip controls, speed pill (0.75/1/1.25/1.5/2), queue drawer, "Continue listening" row.
-- Background-play indicator + sleep-timer button.
-
-**New**
-- `src/components/audio/Waveform.tsx` — lightweight, no extra deps.
-- `src/components/audio/QueueDrawer.tsx`
-- `src/components/audio/SpeedPicker.tsx`
-- `src/lib/audioQueue.ts` — persistent queue (`localStorage`) wired to `globalAudio`; next/prev across tracks.
-
-**Ambient mode**
-- `src/lib/ambientAudio.ts` already exists — add `rain`, `forest`, `lofi` presets (CDN-hosted Pixabay free loops; URLs constants). Mixer slider in player ducks ambience under narration.
-
-**Optional AI narration enhancement**
-- Existing `text-to-speech` edge function stays default. Add a toggle "Enhanced AI voice (beta)" that, when on, routes through existing `overra-tts` edge function (already wired). No new paid deps.
-
-## 5. Smart search
-
-- Promote `useCourseSearch` to power a global `⌘K`/search-icon palette: `src/components/search/GlobalSearchPalette.tsx`. Returns grouped hits (Courses, Topics, Tutors, Materials, My Library, AI Generations). Triggered from TopHeader search icon and `/library`.
-
-## 6. Resource auto-organization
-
-- `saveResource` already accepts `courseId`/`topicId`. Add a small `autoTagResource(userId, blob, title)` heuristic that, when no course is supplied, fuzzy-matches title against the student's enrolled course codes (`CSC201`, etc.) and proposes a course before save.
-
-## Database (one migration)
-
-```sql
--- Index for content-hash duplicate lookup
-CREATE INDEX IF NOT EXISTS idx_user_resources_content_hash
-  ON public.user_resources (((meta->>'content_hash')));
-
--- RPC: course snapshots in one round-trip
-CREATE OR REPLACE FUNCTION public.get_course_snapshots(_user_id uuid)
-RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
-  SELECT coalesce(jsonb_agg(row_to_json(t)), '[]'::jsonb) FROM (
-    SELECT c.id, c.code, c.name, c.department, c.level,
-      (SELECT count(*) FROM community_announcements ca
-        WHERE ca.course_id = c.id
-          AND ca.created_at > coalesce((SELECT opened_at FROM recently_opened_courses
-            WHERE user_id=_user_id AND course_id=c.id), 'epoch')) AS unread_updates,
-      (SELECT opened_at FROM recently_opened_courses
-        WHERE user_id=_user_id AND course_id=c.id) AS last_opened_at
-    FROM student_courses sc JOIN courses c ON c.id = sc.course_id
-    WHERE sc.student_id = _user_id
-    ORDER BY last_opened_at DESC NULLS LAST, c.code
-  ) t;
-$$;
+```text
+┌──────────────────────────────────────────┐
+│  PageHeader                              │
+│  ── eyebrow (level chip)                 │
+│  ── H1 + 1-line subtitle                 │
+│  ── action row (search / filter / CTA)   │
+├──────────────────────────────────────────┤
+│  Sticky FilterRail (chips + sort)        │
+├──────────────────────────────────────────┤
+│  Section blocks (titled, spaced)         │
+│  · empty states with illustration        │
+│  · skeletons that match final layout     │
+└──────────────────────────────────────────┘
 ```
 
-## Out of scope
-- Dashboard redesign, splash, onboarding, subscriptions/pricing, tutor curriculum builder, new social features, new admin tools.
+New shared primitives in `src/components/shell/`:
+- `PageHeader.tsx` — eyebrow, H1, subtitle, right-aligned actions.
+- `FilterRail.tsx` — sticky chip row + sort dropdown.
+- `SectionBlock.tsx` — titled section with optional "see all".
+- `EmptyState.tsx` — icon + headline + helper text + CTA.
 
-## Files (new)
-CourseCard, MyCoursesGrid, useCourseSnapshots, LibrarySidebar, ResourceListItem, LibrarySearchBar, useContinueLearning, ContinueLearningStrip, Waveform, QueueDrawer, SpeedPicker, audioQueue, GlobalSearchPalette, CourseHubHeader, migration.
+All use existing semantic tokens (`bg-background`, `text-foreground`, `border-border`, gold accent via `bg-primary text-primary-foreground`). Mobile-first; 1-col → 2-col at `md`.
 
-## Files (edited)
-MyCourses, CourseHub, Library, AudioLearning, userResources, ambientAudio, StudentDashboard (1 import + 1 element), TopHeader (search icon hook), App router (palette mount).
+---
+
+## 3. /my-courses redesign
+
+- Header: "My Courses" + level chip ("300L · Computer Science") + search.
+- Sections:
+  1. **Continue learning** — horizontal scroller of last-opened courses with progress bar.
+  2. **Enrolled** — `CourseCard` grid (already exists; reused).
+  3. **Recommended for {level}** — courses matching student level the user has not yet joined, with one-tap Enroll.
+- Empty enrolled state: friendly card with "Browse {level} courses" CTA.
+
+## 4. /library redesign
+
+- Header + sticky filter rail with chips: All · Notes · PDFs · Audio · Flashcards · AI Generations · Personal.
+- Left rail collapses to a bottom-sheet on mobile.
+- Resource list uses compact `ResourceListItem` (icon, title, course chip, date, duplicate badge).
+- Two grouping modes: by Course (default) / by Type — toggle in the rail.
+- Empty state per filter ("No audio yet — generate one from any PDF").
+
+## 5. /audio-learning redesign
+
+- New layout:
+  - **Now Playing card**: large gold-tinted artwork, title, course chip, animated waveform, speed pill, queue button.
+  - **Section list**: chapters/sections with per-section progress.
+  - **Voice picker** moves into a sheet (no longer crowds the main view).
+  - **Ambient mixer** as a single pill button → opens sheet with rain/forest/lofi sliders.
+  - **Continue listening** strip above the player.
+- Keep all existing TTS / Noiz / queue logic — pure presentation refactor.
+
+## 6. /courses/:id (Course Hub) redesign
+
+- New `CourseHubHeader`: course code badge, title, tutor avatar+name, level chip, enroll/leave button.
+- Sticky tab bar (horizontally scrollable on mobile): **Overview · Materials · Audio · Flashcards · Quizzes · Discussions · Announcements**.
+- Overview tab: tutor intro card, readiness ring, "what's new" feed (last 5 updates).
+- Locked tabs show a soft lock icon when not enrolled, with one inline CTA.
+
+---
+
+## Technical section
+
+**Files created**
+- `src/components/shell/PageHeader.tsx`
+- `src/components/shell/FilterRail.tsx`
+- `src/components/shell/SectionBlock.tsx`
+- `src/components/shell/EmptyState.tsx`
+- `src/components/library/ResourceListItem.tsx`
+- `src/components/courses/CourseHubHeader.tsx`
+- `src/components/courses/ContinueLearningStrip.tsx`
+- `src/components/audio/NowPlayingCard.tsx`
+- `src/hooks/useStudentScope.ts`
+- `src/hooks/useRecommendedCourses.ts`
+- 1 supabase migration: `student_can_access_course` SQL function + level-filtering tweak to `get_course_snapshots`.
+
+**Files edited (presentation only, business logic preserved)**
+- `src/pages/student/MyCourses.tsx`
+- `src/pages/student/Library.tsx`
+- `src/pages/student/AudioLearning.tsx`
+- `src/pages/courses/CourseHub.tsx`
+
+**Not touched**
+- Dashboard, splash, onboarding, subscriptions, tutor pages, auth, payments, edge functions, splash 3D scene, existing TTS/queue logic.
+
+**Migration scope**
+Additive only — one SQL function + one function update. No destructive policy changes. Existing RLS continues to apply.
+
+---
+
+## Confirmation
+
+This is a large change (4 pages + shared primitives + level filtering). Reply **"go"** to proceed and I'll ship it end-to-end without further pauses. Reply with edits if you want to trim or reorder.
