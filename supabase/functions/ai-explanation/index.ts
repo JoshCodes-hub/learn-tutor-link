@@ -38,19 +38,24 @@ serve(async (req) => {
   }
 
   try {
-    let callerKey = req.headers.get("x-forwarded-for") || "anon";
     const authHeader = req.headers.get("Authorization");
-    if (authHeader) {
-      try {
-        const supabase = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_ANON_KEY")!,
-          { global: { headers: { Authorization: authHeader } } }
-        );
-        const { data } = await supabase.auth.getUser();
-        if (data.user) callerKey = `u:${data.user.id}`;
-      } catch (_) { /* ignore */ }
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const callerKey = `u:${userData.user.id}`;
     if (!checkLimit(callerKey)) {
       return new Response(
         JSON.stringify({ error: "Too many explanation requests. Please wait a minute." }),

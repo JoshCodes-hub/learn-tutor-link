@@ -10,6 +10,7 @@ const corsHeaders = {
 };
 
 const ENGINE_URL = "https://overra-2-overra-ai-engine.hf.space/generate";
+import { requireUser } from "../_shared/auth.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -17,6 +18,8 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const guard = await requireUser(req, corsHeaders);
+    if (guard instanceof Response) return guard;
     const apiKey = Deno.env.get("HUGGINGFACE_API_KEY");
     if (!apiKey) {
       return new Response(

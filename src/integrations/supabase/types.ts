@@ -259,6 +259,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attendance_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
@@ -630,6 +637,13 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_subjects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
             referencedColumns: ["id"]
           },
           {
@@ -1560,6 +1574,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fee_payments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fee_payments_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
@@ -1612,6 +1633,13 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fees_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
             referencedColumns: ["id"]
           },
           {
@@ -3049,6 +3077,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "quizzes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "quizzes_topic_id_fkey"
             columns: ["topic_id"]
             isOneToOne: false
@@ -3273,6 +3308,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "report_card_verifications_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "report_card_verifications_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
@@ -3359,6 +3401,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "results_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "results_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
@@ -3427,6 +3476,13 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "school_announcements_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       school_classes: {
@@ -3462,6 +3518,13 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "school_classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       school_members: {
@@ -3492,6 +3555,13 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_members_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
             referencedColumns: ["id"]
           },
         ]
@@ -3560,6 +3630,13 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "school_students_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       school_subjects: {
@@ -3590,6 +3667,13 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_subjects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
             referencedColumns: ["id"]
           },
         ]
@@ -3631,6 +3715,13 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_terms_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
             referencedColumns: ["id"]
           },
         ]
@@ -4654,6 +4745,13 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timetable_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
             referencedColumns: ["id"]
           },
           {
@@ -5760,6 +5858,72 @@ export type Database = {
       }
     }
     Views: {
+      schools_public: {
+        Row: {
+          address: string | null
+          brand_color: string | null
+          classes_offered: string[] | null
+          created_at: string | null
+          established_year: number | null
+          id: string | null
+          lga: string | null
+          logo_url: string | null
+          motto: string | null
+          name: string | null
+          owner_id: string | null
+          principal_name: string | null
+          report_footer: string | null
+          social_link: string | null
+          state: string | null
+          status: string | null
+          student_count: number | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          brand_color?: string | null
+          classes_offered?: string[] | null
+          created_at?: string | null
+          established_year?: number | null
+          id?: string | null
+          lga?: string | null
+          logo_url?: string | null
+          motto?: string | null
+          name?: string | null
+          owner_id?: string | null
+          principal_name?: string | null
+          report_footer?: string | null
+          social_link?: string | null
+          state?: string | null
+          status?: string | null
+          student_count?: number | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          brand_color?: string | null
+          classes_offered?: string[] | null
+          created_at?: string | null
+          established_year?: number | null
+          id?: string | null
+          lga?: string | null
+          logo_url?: string | null
+          motto?: string | null
+          name?: string | null
+          owner_id?: string | null
+          principal_name?: string | null
+          report_footer?: string | null
+          social_link?: string | null
+          state?: string | null
+          status?: string | null
+          student_count?: number | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       tutor_communities_public: {
         Row: {
           created_at: string | null

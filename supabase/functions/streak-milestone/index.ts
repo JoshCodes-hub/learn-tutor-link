@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { requireUser } from "../_shared/auth.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -57,11 +58,14 @@ serve(async (req) => {
   }
 
   try {
-    const { user_id, streak_days } = await req.json();
+    const guard = await requireUser(req, corsHeaders);
+    if (guard instanceof Response) return guard;
+    const user_id = guard.userId;
+    const { streak_days } = await req.json();
 
-    if (!user_id || !streak_days) {
+    if (!streak_days) {
       return new Response(
-        JSON.stringify({ error: "user_id and streak_days required" }),
+        JSON.stringify({ error: "streak_days required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -77,6 +81,19 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify the user actually has the claimed streak.
+    const { data: streakRow } = await supabase
+      .from("study_streaks")
+      .select("current_streak")
+      .eq("user_id", user_id)
+      .maybeSingle();
+    if (!streakRow || streakRow.current_streak < streak_days) {
+      return new Response(
+        JSON.stringify({ error: "Streak not verified" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Get user profile
     const { data: profile, error: profileError } = await supabase

@@ -9,6 +9,7 @@ const corsHeaders = {
 };
 
 const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+import { requireUser } from "../_shared/auth.ts";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -19,6 +20,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    const guard = await requireUser(req, corsHeaders);
+    if (guard instanceof Response) return guard;
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not set" }), {
