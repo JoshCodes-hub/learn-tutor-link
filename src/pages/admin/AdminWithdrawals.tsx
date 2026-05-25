@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,8 @@ import { useAuth } from '@/hooks/useAuth';
 export default function AdminWithdrawals() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [tab, setTab] = useState<'withdrawals' | 'refunds'>('withdrawals');
+
   const { data } = useQuery({
     queryKey: ['admin-withdrawals'],
     queryFn: async () => {
@@ -16,6 +19,15 @@ export default function AdminWithdrawals() {
         .from('withdrawal_requests')
         .select('*, profiles!withdrawal_requests_tutor_id_fkey(full_name, tutor_code, email)')
         .order('created_at', { ascending: false }).limit(100);
+      return data ?? [];
+    },
+  });
+
+  const { data: refunds = [] } = useQuery({
+    queryKey: ['admin-refunds'],
+    queryFn: async () => {
+      const { data } = await (supabase.from as any)('refund_events')
+        .select('*').order('created_at', { ascending: false }).limit(100);
       return data ?? [];
     },
   });
@@ -32,7 +44,16 @@ export default function AdminWithdrawals() {
 
   return (
     <div className="container mx-auto p-4 max-w-3xl space-y-4">
-      <h1 className="text-2xl font-bold">Withdrawal Requests</h1>
+      <h1 className="text-2xl font-bold">Withdrawals &amp; refunds</h1>
+      <div className="flex gap-1.5">
+        {(['withdrawals','refunds'] as const).map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`text-[12px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md border ${
+              tab === t ? 'bg-amber-500 border-amber-500 text-white' : 'bg-card border-amber-100/70 text-muted-foreground'
+            }`}>{t}</button>
+        ))}
+      </div>
+      {tab === 'withdrawals' && <>
       {(data ?? []).map((w: any) => (
         <Card key={w.id}>
           <CardHeader>
@@ -52,6 +73,21 @@ export default function AdminWithdrawals() {
         </Card>
       ))}
       {(data ?? []).length === 0 && <Card><CardContent className="p-6 text-center text-muted-foreground">No withdrawals yet.</CardContent></Card>}
+      </>}
+      {tab === 'refunds' && <>
+        {refunds.length === 0 && <Card><CardContent className="p-6 text-center text-muted-foreground">No refunds recorded.</CardContent></Card>}
+        {refunds.map((r: any) => (
+          <Card key={r.id}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">{r.paddle_transaction_id ?? r.id.slice(0,8)}</CardTitle>
+                <Badge variant="destructive">{((r.amount_cents ?? 0) / 100).toFixed(2)} {r.currency ?? ''}</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">{r.reason ?? 'No reason'} • {new Date(r.created_at).toLocaleString()}</p>
+            </CardHeader>
+          </Card>
+        ))}
+      </>}
     </div>
   );
 }
