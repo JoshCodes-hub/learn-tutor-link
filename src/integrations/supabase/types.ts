@@ -5769,6 +5769,7 @@ export type Database = {
       generate_team_code: { Args: never; Returns: string }
       generate_tutor_code: { Args: never; Returns: string }
       get_admin_insights: { Args: never; Returns: Json }
+      get_course_snapshots: { Args: { _user_id: string }; Returns: Json }
       get_health_metrics: {
         Args: { days?: number }
         Returns: {
