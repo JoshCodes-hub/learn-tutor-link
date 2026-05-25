@@ -45,6 +45,8 @@ export async function saveResource(opts: {
   mime?: string;
   ext?: string; // e.g. "mp3", "pdf"
   meta?: Record<string, unknown>;
+  courseId?: string | null;
+  topicId?: string | null;
 }): Promise<UserResource> {
   const { userId, kind, title, blob, meta } = opts;
   const folder = opts.folder?.trim() || "General";
@@ -70,7 +72,9 @@ export async function saveResource(opts: {
       mime: opts.mime || blob.type || null,
       size_bytes: blob.size,
       meta: (meta || {}) as never,
-    }])
+      course_id: opts.courseId ?? null,
+      topic_id: opts.topicId ?? null,
+    } as never])
     .select()
     .single();
   if (error) {
@@ -89,6 +93,8 @@ export function saveTextNote(opts: {
   folder?: string;
   kind?: ResourceKind; // defaults to "note"
   meta?: Record<string, unknown>;
+  courseId?: string | null;
+  topicId?: string | null;
 }) {
   return saveResource({
     userId: opts.userId,
@@ -99,6 +105,8 @@ export function saveTextNote(opts: {
     mime: "text/plain",
     ext: "txt",
     meta: opts.meta,
+    courseId: opts.courseId ?? null,
+    topicId: opts.topicId ?? null,
   });
 }
 

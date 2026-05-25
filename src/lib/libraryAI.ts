@@ -96,6 +96,8 @@ export async function runLibraryAI(
       mime: "application/json",
       ext: "json",
       meta: { source_resource_id: resource.id, count: list.length, course_id: opts.courseId ?? null, topic_id: opts.topicId ?? null },
+      courseId: opts.courseId ?? null,
+      topicId: opts.topicId ?? null,
     });
     cards = list;
   } else if (action === "summary") {
@@ -134,6 +136,8 @@ export async function runLibraryAI(
       content: lines,
       folder: resource.folder,
       meta: { source_resource_id: resource.id, material_type: "summary", course_id: opts.courseId ?? null, topic_id: opts.topicId ?? null },
+      courseId: opts.courseId ?? null,
+      topicId: opts.topicId ?? null,
     });
   } else if (action === "quiz") {
     const qs = result?.questions || [];
@@ -147,6 +151,8 @@ export async function runLibraryAI(
       mime: "application/json",
       ext: "json",
       meta: { source_resource_id: resource.id, material_type: "quiz", count: qs.length, course_id: opts.courseId ?? null, topic_id: opts.topicId ?? null },
+      courseId: opts.courseId ?? null,
+      topicId: opts.topicId ?? null,
     });
   }
 
