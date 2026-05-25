@@ -72,6 +72,7 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
       } else if (a === "summary") {
         toast.success("Summary saved to your Library");
       } else if (a === "quiz") {
+        if (out.saved?.id) (window as any).__lastSavedQuizId = out.saved.id;
         toast.success("Practice quiz saved to Library");
       }
     } catch (e) {

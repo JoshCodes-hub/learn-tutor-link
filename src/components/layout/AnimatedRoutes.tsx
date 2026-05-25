@@ -113,6 +113,7 @@ const Library = lazy(() => import("@/pages/student/Library"));
 const UploadAnalytics = lazy(() => import("@/pages/student/UploadAnalytics"));
 const OfflineDownloads = lazy(() => import("@/pages/student/OfflineDownloads"));
 const AIHistory = lazy(() => import("@/pages/student/AIHistory"));
+const AIQuizRunner = lazy(() => import("@/pages/student/AIQuizRunner"));
 const ChatInbox = lazy(() => import("@/pages/chat/Inbox"));
 const ChatThread = lazy(() => import("@/pages/chat/ThreadView"));
 const ChatJoin = lazy(() => import("@/pages/chat/ChatJoin"));
@@ -356,6 +357,7 @@ export const AnimatedRoutes = () => {
           <Route path="/library/analytics" element={<PageTransition><UploadAnalytics /></PageTransition>} />
           <Route path="/library/offline-downloads" element={<PageTransition><OfflineDownloads /></PageTransition>} />
           <Route path="/ai-history" element={<PageTransition><AIHistory /></PageTransition>} />
+          <Route path="/ai-quiz/:resourceId" element={<PageTransition><AIQuizRunner /></PageTransition>} />
           <Route path="/subscription" element={<PageTransition><Subscription /></PageTransition>} />
           <Route path="/referrals" element={<PageTransition><Referrals /></PageTransition>} />
           <Route path="/wallet" element={<PageTransition><Wallet /></PageTransition>} />
