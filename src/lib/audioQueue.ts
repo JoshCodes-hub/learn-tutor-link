@@ -24,9 +24,9 @@ function write(items: GlobalAudioTrack[], index: number) {
   listeners.forEach((l) => l());
 }
 
-export function subscribeQueue(l: Listener) {
+export function subscribeQueue(l: Listener): () => void {
   listeners.add(l);
-  return () => listeners.delete(l);
+  return () => { listeners.delete(l); };
 }
 
 export function getQueue() { return read(); }
