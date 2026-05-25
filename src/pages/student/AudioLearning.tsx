@@ -3,9 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Upload, Loader2, Play, Pause, Square, Sparkles, Headphones,
-  ListMusic, FileText, Volume2, WifiOff, Smartphone, RotateCcw, Star, Pencil,
-  Check, X, Pin, Download as DownloadIcon, Gauge, Bookmark, BookmarkCheck,
-  RefreshCw, Music, FileDown,
+  ListMusic, FileText, Volume2, WifiOff, Smartphone, RotateCcw, Pencil,
+  Check, X, Gauge, Bookmark, BookmarkCheck,
+  RefreshCw, FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -442,15 +442,6 @@ const AudioLearning = () => {
     });
     toast.success("Recap exported (JSON + Markdown)");
   };
-
-  /* Voice grouping */
-  const orderedVoices = useMemo(() => {
-    const pinSet = new Set(pinned.map((p) => p.uri));
-    const pinnedFirst = voices.filter((v) => pinSet.has(v.id));
-    const en = voices.filter((v) => !pinSet.has(v.id) && v.lang.toLowerCase().startsWith("en"));
-    const others = voices.filter((v) => !pinSet.has(v.id) && !v.lang.toLowerCase().startsWith("en"));
-    return [...pinnedFirst, ...en, ...others].slice(0, 16);
-  }, [voices, pinned]);
 
   const isPlaying = tick.state === "playing";
   const isPaused = tick.state === "paused";
