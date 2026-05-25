@@ -49,7 +49,7 @@ export async function runLibraryAI(
   resource: UserResource,
   action: LibraryAIAction,
   userId: string,
-  opts: { signal?: AbortSignal } = {},
+  opts: { signal?: AbortSignal; courseId?: string | null; topicId?: string | null } = {},
 ): Promise<LibraryAIResult> {
   const startedAt = Date.now();
   void track("library_ai_started", { action, resource_id: resource.id });
@@ -59,6 +59,8 @@ export async function runLibraryAI(
     resourceId: resource.id,
     resourceLabel: resource.title,
     status: "processing",
+    courseId: opts.courseId ?? null,
+    topicId: opts.topicId ?? null,
   });
 
   try {
@@ -93,7 +95,7 @@ export async function runLibraryAI(
       blob: new Blob([JSON.stringify({ cards: list }, null, 2)], { type: "application/json" }),
       mime: "application/json",
       ext: "json",
-      meta: { source_resource_id: resource.id, count: list.length },
+      meta: { source_resource_id: resource.id, count: list.length, course_id: opts.courseId ?? null, topic_id: opts.topicId ?? null },
     });
     cards = list;
   } else if (action === "summary") {
@@ -131,7 +133,7 @@ export async function runLibraryAI(
       title: `Summary — ${resource.title}`,
       content: lines,
       folder: resource.folder,
-      meta: { source_resource_id: resource.id, material_type: "summary" },
+      meta: { source_resource_id: resource.id, material_type: "summary", course_id: opts.courseId ?? null, topic_id: opts.topicId ?? null },
     });
   } else if (action === "quiz") {
     const qs = result?.questions || [];
@@ -144,7 +146,7 @@ export async function runLibraryAI(
       blob: new Blob([JSON.stringify({ questions: qs }, null, 2)], { type: "application/json" }),
       mime: "application/json",
       ext: "json",
-      meta: { source_resource_id: resource.id, material_type: "quiz", count: qs.length },
+      meta: { source_resource_id: resource.id, material_type: "quiz", count: qs.length, course_id: opts.courseId ?? null, topic_id: opts.topicId ?? null },
     });
   }
 
