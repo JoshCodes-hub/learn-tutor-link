@@ -1261,6 +1261,36 @@ export type Database = {
         }
         Relationships: []
       }
+      device_login_history: {
+        Row: {
+          created_at: string
+          device_label: string | null
+          id: string
+          ip_hash: string | null
+          last_active_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_label?: string | null
+          id?: string
+          ip_hash?: string | null
+          last_active_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_label?: string | null
+          id?: string
+          ip_hash?: string | null
+          last_active_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       direct_messages: {
         Row: {
           content: string
@@ -5856,6 +5886,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_trust_score: {
+        Args: { _uid?: string }
+        Returns: {
+          age_days: number
+          has_subscription: boolean
+          profile_pct: number
+          score: number
+          study_days: number
+        }[]
+      }
       get_tutor_leaderboard: {
         Args: { _limit?: number }
         Returns: {
@@ -5961,6 +6001,34 @@ export type Database = {
       }
       my_university: { Args: never; Returns: string }
       ping_session: { Args: { _token: string }; Returns: string }
+      recommend_opportunities: {
+        Args: { _limit?: number }
+        Returns: {
+          apply_url: string | null
+          category: Database["public"]["Enums"]["opportunity_category"]
+          cover_image_url: string | null
+          created_at: string
+          deadline: string | null
+          description: string
+          id: string
+          organization: string
+          posted_by: string | null
+          status: Database["public"]["Enums"]["opportunity_status"]
+          title: string
+          university: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "opportunities"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      record_device_login: {
+        Args: { _label: string; _ua: string }
+        Returns: string
+      }
       record_device_session: {
         Args: { _token: string; _ua: string }
         Returns: undefined
