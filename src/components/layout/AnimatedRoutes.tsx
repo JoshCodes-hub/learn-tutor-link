@@ -138,6 +138,7 @@ const AdminTutorScorecards = lazy(() => import("@/pages/admin/AdminTutorScorecar
 const AdminWithdrawals = lazy(() => import("@/pages/admin/AdminWithdrawals"));
 const AdminCohorts = lazy(() => import("@/pages/admin/AdminCohorts"));
 const AdminCampaigns = lazy(() => import("@/pages/admin/AdminCampaigns"));
+const AdminInsights = lazy(() => import("@/pages/admin/AdminInsights"));
 const SmartSearch = lazy(() => import("@/pages/SmartSearch"));
 const LiveRoom = lazy(() => import("@/pages/sessions/LiveRoom"));
 const CopilotPage = lazy(() => import("@/pages/student/CopilotPage"));
@@ -253,6 +254,16 @@ export const AnimatedRoutes = () => {
               <AdminRoute>
                 <PageTransition>
                   <AdminDashboard />
+                </PageTransition>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/insights"
+            element={
+              <AdminRoute>
+                <PageTransition>
+                  <AdminInsights />
                 </PageTransition>
               </AdminRoute>
             }

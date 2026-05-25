@@ -3,6 +3,7 @@ import { Bookmark, ExternalLink, Calendar } from "lucide-react";
 import { format, isAfter } from "date-fns";
 import type { Opportunity } from "@/hooks/useOpportunities";
 import { useToggleOpportunityBookmark } from "@/hooks/useOpportunities";
+import { track } from "@/lib/analytics";
 
 const CATEGORY_LABEL: Record<string, string> = {
   internship: "Internship",
@@ -56,7 +57,7 @@ export function OpportunityCard({ op, bookmarked }: { op: Opportunity; bookmarke
           <a
             href={op.apply_url}
             target="_blank" rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); void track("opportunity_apply_click", { id: op.id, category: op.category }); }}
             className="inline-flex items-center gap-1 text-amber-700 hover:text-amber-800 font-bold"
           >
             Apply <ExternalLink className="h-3 w-3" />

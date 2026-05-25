@@ -18,15 +18,38 @@ export interface ActivityEvent {
 export function useActivityFeed(limit = 50) {
   const qc = useQueryClient();
   useEffect(() => {
-    const channel = supabase
-      .channel("activity-events")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "activity_events" },
-        () => qc.invalidateQueries({ queryKey: ["activity-feed"] }),
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const subscribe = () => {
+      if (channel) return;
+      channel = supabase
+        .channel("activity-events")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "activity_events" },
+          () => qc.invalidateQueries({ queryKey: ["activity-feed"] }),
+        )
+        .subscribe();
+    };
+    const unsubscribe = () => {
+      if (channel) { supabase.removeChannel(channel); channel = null; }
+    };
+
+    const onVis = () => {
+      if (document.visibilityState === "visible") {
+        subscribe();
+        qc.invalidateQueries({ queryKey: ["activity-feed"] });
+      } else {
+        unsubscribe();
+      }
+    };
+
+    subscribe();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      unsubscribe();
+    };
   }, [qc]);
 
   return useQuery({

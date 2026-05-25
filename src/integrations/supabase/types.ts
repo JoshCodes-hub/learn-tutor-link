@@ -3735,6 +3735,33 @@ export type Database = {
           },
         ]
       }
+      session_devices: {
+        Row: {
+          created_at: string
+          id: string
+          last_seen_at: string
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       srs_cards: {
         Row: {
           back: string
@@ -5741,6 +5768,7 @@ export type Database = {
       generate_referral_code: { Args: never; Returns: string }
       generate_team_code: { Args: never; Returns: string }
       generate_tutor_code: { Args: never; Returns: string }
+      get_admin_insights: { Args: never; Returns: Json }
       get_health_metrics: {
         Args: { days?: number }
         Returns: {
@@ -5931,6 +5959,11 @@ export type Database = {
         }[]
       }
       my_university: { Args: never; Returns: string }
+      ping_session: { Args: { _token: string }; Returns: string }
+      record_device_session: {
+        Args: { _token: string; _ua: string }
+        Returns: undefined
+      }
       reject_payment_request: {
         Args: { _id: string; _note?: string }
         Returns: undefined

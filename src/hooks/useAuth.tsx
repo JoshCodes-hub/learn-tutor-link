@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { logSecurityEvent } from "@/lib/securityAudit";
+import { useSingleSession } from "@/hooks/useSingleSession";
 
 type AppRole = "student" | "tutor" | "admin" | "school_owner" | "school_admin" | "teacher" | "parent";
 export type AcademicPath = "secondary" | "jamb" | "university";
@@ -46,6 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Single-active-session enforcement (graceful sign-out if a newer login replaces this device)
+  useSingleSession(user?.id);
 
   const fetchUserData = useCallback(async (userId: string) => {
     try {

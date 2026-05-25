@@ -4,6 +4,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Phase 6 mobile polish — disable double-tap zoom on tap targets and
+   prevent rubber-band overscroll on long chat / audio scroll areas. */
+@layer base {
+  html { -webkit-text-size-adjust: 100%; touch-action: manipulation; }
+  button, a, [role="button"] { touch-action: manipulation; }
+  body { overscroll-behavior-y: contain; }
+  /* Improve tap-target affordance on tiny phones without restyling */
+  @media (max-width: 480px) {
+    button:not(:disabled), [role="button"] { min-height: 36px; }
+  }
+}
+
 @layer base {
   :root {
     /* Navy + Gold premium system (light mode = clean white surfaces, navy text) */
