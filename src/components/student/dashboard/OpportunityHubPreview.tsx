@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Briefcase, GraduationCap, Trophy, Compass, ArrowRight, type LucideIcon } from "lucide-react";
+import { useOpportunities } from "@/hooks/useOpportunities";
 
 interface OpportunityCard {
   icon: LucideIcon;
@@ -25,6 +26,8 @@ interface Props {
  */
 export const OpportunityHubPreview = ({ university = "FUTA" }: Props) => {
   const navigate = useNavigate();
+  const { data: live = [] } = useOpportunities({ limit: 4 });
+  const hasLive = live.length > 0;
 
   return (
     <section aria-label="Opportunity hub" className="mb-7">
@@ -37,19 +40,33 @@ export const OpportunityHubPreview = ({ university = "FUTA" }: Props) => {
             Curated for {university} students
           </p>
         </div>
-        <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200/70 text-amber-800">
-          Coming soon
-        </span>
+        <button
+          type="button"
+          onClick={() => navigate("/opportunities")}
+          className="text-[12px] font-bold text-amber-700 hover:text-amber-800"
+        >
+          See all
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-        {CARDS.map((c, i) => {
-          const Icon = c.icon;
+        {(hasLive
+          ? live.slice(0, 4).map((op) => ({
+              icon: op.category === "scholarship" ? GraduationCap
+                  : op.category === "hackathon" || op.category === "competition" ? Trophy
+                  : op.category === "internship" ? Briefcase : Compass,
+              label: op.title,
+              hint: op.organization,
+              href: `/opportunities/${op.id}`,
+            }))
+          : CARDS.map((c) => ({ icon: c.icon, label: c.label, hint: c.hint, href: "/opportunities" }))
+        ).map((c, i) => {
+          const Icon = c.icon as LucideIcon;
           return (
             <motion.button
               key={c.label}
               type="button"
-              onClick={() => navigate("/coming-soon")}
+              onClick={() => navigate(c.href)}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
@@ -61,7 +78,7 @@ export const OpportunityHubPreview = ({ university = "FUTA" }: Props) => {
                 <Icon className="h-[18px] w-[18px] text-amber-700" strokeWidth={2} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-display text-[13.5px] font-bold text-foreground leading-tight">
+                <span className="block font-display text-[13.5px] font-bold text-foreground leading-tight line-clamp-2">
                   {c.label}
                 </span>
                 <span className="block text-[11.5px] text-muted-foreground mt-0.5 truncate">
