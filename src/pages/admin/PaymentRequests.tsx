@@ -23,10 +23,15 @@ const PaymentRequests = () => {
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["admin-payment-requests", tab],
     queryFn: async () => {
-      let q = (supabase as any).from("payment_requests").select("*, profiles!payment_requests_user_id_fkey(full_name,email)").order("created_at", { ascending: false });
+      let q = (supabase as any).from("payment_requests").select("*").order("created_at", { ascending: false });
       if (tab === "pending") q = q.eq("status", "pending");
-      const { data } = await q;
-      return data ?? [];
+      const { data: rows } = await q;
+      const ids = Array.from(new Set((rows ?? []).map((r: any) => r.user_id)));
+      const { data: profs } = ids.length
+        ? await supabase.from("profiles").select("id,full_name,email").in("id", ids)
+        : { data: [] as any[] };
+      const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      return (rows ?? []).map((r: any) => ({ ...r, profile: map.get(r.user_id) }));
     },
   });
 
@@ -88,8 +93,8 @@ const PaymentRequests = () => {
                 <Card key={r.id} className="p-4">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="min-w-0">
-                      <p className="font-semibold text-sm">{r.profiles?.full_name || r.profiles?.email || r.user_id.slice(0, 8)}</p>
-                      <p className="text-xs text-muted-foreground">{r.profiles?.email}</p>
+                      <p className="font-semibold text-sm">{r.profile?.full_name || r.profile?.email || r.user_id.slice(0, 8)}</p>
+                      <p className="text-xs text-muted-foreground">{r.profile?.email}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
                         <Badge variant="outline" className="capitalize">{r.plan_id}</Badge>
                         <span>{r.currency} {(r.amount_cents / 100).toFixed(2)}</span>
