@@ -1138,11 +1138,13 @@ export type Database = {
           created_by: string | null
           department: string | null
           description: string | null
+          faculty: string | null
           id: string
           is_active: boolean
           level: string | null
           name: string
           path_type: Database["public"]["Enums"]["academic_path"]
+          university: string
           updated_at: string
         }
         Insert: {
@@ -1151,11 +1153,13 @@ export type Database = {
           created_by?: string | null
           department?: string | null
           description?: string | null
+          faculty?: string | null
           id?: string
           is_active?: boolean
           level?: string | null
           name: string
           path_type?: Database["public"]["Enums"]["academic_path"]
+          university?: string
           updated_at?: string
         }
         Update: {
@@ -1164,11 +1168,13 @@ export type Database = {
           created_by?: string | null
           department?: string | null
           description?: string | null
+          faculty?: string | null
           id?: string
           is_active?: boolean
           level?: string | null
           name?: string
           path_type?: Database["public"]["Enums"]["academic_path"]
+          university?: string
           updated_at?: string
         }
         Relationships: []
@@ -1627,6 +1633,7 @@ export type Database = {
           level: string | null
           thumbnail_url: string | null
           title: string
+          topic_id: string | null
           tutor_id: string
           updated_at: string
           view_count: number
@@ -1645,6 +1652,7 @@ export type Database = {
           level?: string | null
           thumbnail_url?: string | null
           title: string
+          topic_id?: string | null
           tutor_id: string
           updated_at?: string
           view_count?: number
@@ -1663,11 +1671,20 @@ export type Database = {
           level?: string | null
           thumbnail_url?: string | null
           title?: string
+          topic_id?: string | null
           tutor_id?: string
           updated_at?: string
           view_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lecture_notes_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       live_breakouts: {
         Row: {
@@ -2121,6 +2138,7 @@ export type Database = {
           date_of_birth: string | null
           department: string | null
           email: string
+          faculty: string | null
           full_name: string | null
           gender: string | null
           hobbies: string[] | null
@@ -2140,6 +2158,7 @@ export type Database = {
           tutor_specialization:
             | Database["public"]["Enums"]["academic_path"]
             | null
+          university: string | null
           updated_at: string
           x_handle: string | null
         }
@@ -2155,6 +2174,7 @@ export type Database = {
           date_of_birth?: string | null
           department?: string | null
           email: string
+          faculty?: string | null
           full_name?: string | null
           gender?: string | null
           hobbies?: string[] | null
@@ -2174,6 +2194,7 @@ export type Database = {
           tutor_specialization?:
             | Database["public"]["Enums"]["academic_path"]
             | null
+          university?: string | null
           updated_at?: string
           x_handle?: string | null
         }
@@ -2189,6 +2210,7 @@ export type Database = {
           date_of_birth?: string | null
           department?: string | null
           email?: string
+          faculty?: string | null
           full_name?: string | null
           gender?: string | null
           hobbies?: string[] | null
@@ -2208,6 +2230,7 @@ export type Database = {
           tutor_specialization?:
             | Database["public"]["Enums"]["academic_path"]
             | null
+          university?: string | null
           updated_at?: string
           x_handle?: string | null
         }
@@ -2681,6 +2704,7 @@ export type Database = {
           school_id: string | null
           title: string
           token_cost: number
+          topic_id: string | null
           tutor_id: string | null
         }
         Insert: {
@@ -2698,6 +2722,7 @@ export type Database = {
           school_id?: string | null
           title: string
           token_cost?: number
+          topic_id?: string | null
           tutor_id?: string | null
         }
         Update: {
@@ -2715,6 +2740,7 @@ export type Database = {
           school_id?: string | null
           title?: string
           token_cost?: number
+          topic_id?: string | null
           tutor_id?: string | null
         }
         Relationships: [
@@ -2737,6 +2763,39 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quizzes_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recently_opened_courses: {
+        Row: {
+          course_id: string
+          opened_at: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          opened_at?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          opened_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recently_opened_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
         ]
@@ -5370,6 +5429,11 @@ export type Database = {
         Returns: undefined
       }
       complete_session: { Args: { _booking_id: string }; Returns: undefined }
+      course_in_my_university: {
+        Args: { _course_id: string }
+        Returns: boolean
+      }
+      course_owner: { Args: { _course_id: string }; Returns: boolean }
       credit_tokens_for_purchase: {
         Args: {
           p_amount_cents: number
@@ -5410,6 +5474,7 @@ export type Database = {
           date_of_birth: string | null
           department: string | null
           email: string
+          faculty: string | null
           full_name: string | null
           gender: string | null
           hobbies: string[] | null
@@ -5429,6 +5494,7 @@ export type Database = {
           tutor_specialization:
             | Database["public"]["Enums"]["academic_path"]
             | null
+          university: string | null
           updated_at: string
           x_handle: string | null
         }
@@ -5498,6 +5564,7 @@ export type Database = {
           url: string
         }[]
       }
+      my_university: { Args: never; Returns: string }
       request_withdrawal: {
         Args: { _payout_email: string; _tokens: number }
         Returns: string
@@ -5507,6 +5574,16 @@ export type Database = {
         Returns: {
           destination: string
           id: string
+        }[]
+      }
+      search_courses_scoped: {
+        Args: { _q: string }
+        Returns: {
+          course_id: string
+          id: string
+          kind: string
+          subtitle: string
+          title: string
         }[]
       }
       start_dm: { Args: { _other_user: string }; Returns: string }

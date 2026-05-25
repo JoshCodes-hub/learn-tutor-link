@@ -36,6 +36,10 @@ const RefinePath = lazy(() => import("@/pages/onboarding/RefinePath"));
 const TutorMatching = lazy(() => import("@/pages/onboarding/TutorMatching"));
 const ChooseProduct = lazy(() => import("@/pages/onboarding/ChooseProduct"));
 const ChoosePersona = lazy(() => import("@/pages/onboarding/ChoosePersona"));
+const ChooseUniversity = lazy(() => import("@/pages/onboarding/ChooseUniversity"));
+const ChooseFaculty = lazy(() => import("@/pages/onboarding/ChooseFaculty"));
+const ChooseDepartment = lazy(() => import("@/pages/onboarding/ChooseDepartment"));
+const ChooseLevel = lazy(() => import("@/pages/onboarding/ChooseLevel"));
 const SchoolIntro = lazy(() => import("@/pages/school/Intro"));
 const SubjectBrowser = lazy(() => import("@/pages/subjects/SubjectBrowser"));
 const Flashcards = lazy(() => import("@/pages/flashcards/Flashcards"));
@@ -357,6 +361,10 @@ export const AnimatedRoutes = () => {
           <Route path="/onboarding/path" element={<PageTransition><ChoosePath /></PageTransition>} />
           <Route path="/onboarding/refine" element={<PageTransition><RefinePath /></PageTransition>} />
           <Route path="/onboarding/match" element={<PageTransition><TutorMatching /></PageTransition>} />
+          <Route path="/onboarding/university" element={<PageTransition><ChooseUniversity /></PageTransition>} />
+          <Route path="/onboarding/faculty" element={<PageTransition><ChooseFaculty /></PageTransition>} />
+          <Route path="/onboarding/department" element={<PageTransition><ChooseDepartment /></PageTransition>} />
+          <Route path="/onboarding/level" element={<PageTransition><ChooseLevel /></PageTransition>} />
           <Route path="/subjects" element={<PageTransition><SubjectBrowser /></PageTransition>} />
           <Route path="/flashcards" element={<PageTransition><Flashcards /></PageTransition>} />
           <Route
