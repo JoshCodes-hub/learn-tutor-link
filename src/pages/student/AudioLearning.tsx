@@ -712,56 +712,16 @@ const AudioLearning = () => {
             </Card>
           )}
 
-          {/* Voices */}
-          <Card className="p-5 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="font-semibold flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-primary" /> Voices
-                {pinned.length > 0 && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">{pinned.length} pinned</span>
-                )}
-              </Label>
-              <Button size="sm" variant="ghost" onClick={exportPinnedVoices} disabled={!pinned.length} className="h-7 px-2 text-[11px]">
-                <DownloadIcon className="w-3 h-3 mr-1" /> Backup
-              </Button>
-            </div>
-            <p className="text-[11px] text-muted-foreground">Pin favourites — auto-resolved if your device updates voices.</p>
-            {orderedVoices.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Loading your phone's voices…</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {orderedVoices.map((v) => {
-                  const active = voiceURI === v.id;
-                  const isPinned = pinned.some((p) => p.uri === v.id);
-                  return (
-                    <div key={v.id} className={cn("relative rounded-xl p-3 border-2 transition-all min-w-0",
-                      active ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/50 hover:bg-muted/40")}>
-                      <button onClick={() => handleVoice(v.id)} className="text-left w-full pr-7">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-semibold text-[13px] truncate">{v.name}</p>
-                          {v.localService && (
-                            <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">OFFLINE</span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{v.lang}</p>
-                      </button>
-                      <button onClick={() => togglePin(v)} aria-label={isPinned ? "Unpin" : "Pin"}
-                        className={cn("absolute top-2 right-2 p-1 rounded-md transition-colors",
-                          isPinned ? "text-primary" : "text-muted-foreground/40 hover:text-primary")}>
-                        {isPinned ? <Star className="w-3.5 h-3.5 fill-current" /> : <Pin className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </Card>
-
-          {/* Sections with synced highlight */}
+          {/* Queue (sections) with synced highlight */}
           <Card className="p-5 space-y-4">
             <div className="flex items-center justify-between gap-2">
               <Label className="font-semibold flex items-center gap-2">
-                <ListMusic className="w-4 h-4 text-primary" /> Section transcript
+                <ListMusic className="w-4 h-4 text-primary" /> Queue
+                {sections.length > 0 && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                    {sections.length}
+                  </span>
+                )}
               </Label>
               <Button size="sm" variant="outline" onClick={generateTranscript} disabled={!text.trim()}>
                 <RefreshCw className="w-3 h-3 mr-1" /> {sections.length ? "Regenerate" : "Generate"}
