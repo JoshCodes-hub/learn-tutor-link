@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle, XCircle, Settings } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle, XCircle, Settings, Sparkles, GraduationCap, Briefcase, MessageSquare, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useNotifications } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
+import { useMemo, useState } from "react";
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -25,8 +26,33 @@ const getNotificationIcon = (type: string) => {
   }
 };
 
+type FilterKey = "all" | "ai" | "tutors" | "opportunities" | "discussions" | "subscriptions";
+
+const FILTERS: { key: FilterKey; label: string; icon: any }[] = [
+  { key: "all", label: "All", icon: Bell },
+  { key: "ai", label: "AI", icon: Sparkles },
+  { key: "tutors", label: "Tutors", icon: GraduationCap },
+  { key: "opportunities", label: "Opportunities", icon: Briefcase },
+  { key: "discussions", label: "Discussions", icon: MessageSquare },
+  { key: "subscriptions", label: "Plan", icon: CreditCard },
+];
+
+const matchesFilter = (n: { title: string; message: string; link: string | null; type: string }, key: FilterKey) => {
+  if (key === "all") return true;
+  const hay = `${n.title} ${n.message} ${n.link ?? ""} ${n.type}`.toLowerCase();
+  switch (key) {
+    case "ai": return /\bai\b|overraprep ai|gemini/.test(hay);
+    case "tutors": return /tutor|upload|announcement|note|quiz/.test(hay);
+    case "opportunities": return /opportunity|opportunit|internship|scholarship/.test(hay);
+    case "discussions": return /discussion|chat|message|mention|reply|thread/.test(hay);
+    case "subscriptions": return /subscription|premium|payment|plan|wallet|token/.test(hay);
+    default: return true;
+  }
+};
+
 export const NotificationCenter = () => {
   const navigate = useNavigate();
+  const [filter, setFilter] = useState<FilterKey>("all");
   const {
     notifications,
     unreadCount,
@@ -35,6 +61,11 @@ export const NotificationCenter = () => {
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
+
+  const filtered = useMemo(
+    () => notifications.filter((n) => matchesFilter(n, filter)),
+    [notifications, filter],
+  );
 
   const handleNotificationClick = (notification: {
     id: string;
@@ -84,19 +115,37 @@ export const NotificationCenter = () => {
             </Button>
           </div>
         </div>
+        <div className="flex gap-1 px-3 py-2 border-b overflow-x-auto scrollbar-hide">
+          {FILTERS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilter(key)}
+              className={cn(
+                "shrink-0 inline-flex items-center gap-1 text-[11px] font-medium rounded-full px-2.5 py-1 border transition",
+                filter === key
+                  ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                  : "bg-white text-muted-foreground border-amber-100 hover:bg-amber-50 hover:text-amber-800",
+              )}
+            >
+              <Icon className="h-3 w-3" />
+              {label}
+            </button>
+          ))}
+        </div>
         <ScrollArea className="h-[300px]">
           {isLoading ? (
             <div className="flex items-center justify-center h-20">
               <p className="text-sm text-muted-foreground">Loading...</p>
             </div>
-          ) : notifications.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-20 text-muted-foreground">
               <Bell className="h-8 w-8 mb-2 opacity-50" />
-              <p className="text-sm">No notifications yet</p>
+              <p className="text-sm">{filter === "all" ? "No notifications yet" : "Nothing in this filter"}</p>
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.map((notification) => (
+              {filtered.map((notification) => (
                 <div
                   key={notification.id}
                   className={cn(
