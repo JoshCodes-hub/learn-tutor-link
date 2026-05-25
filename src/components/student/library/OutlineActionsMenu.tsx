@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Layers, FileText, ClipboardList, Loader2, AlertTriangle, CheckCircle2, RefreshCw, X } from "lucide-react";
@@ -30,6 +31,7 @@ const LABELS: Record<LibraryAIAction, string> = {
 export const OutlineActionsMenu = ({ resource }: Props) => {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [studyOpen, setStudyOpen] = useState(false);
   const [action, setAction] = useState<LibraryAIAction | null>(null);
@@ -70,6 +72,7 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
       } else if (a === "summary") {
         toast.success("Summary saved to your Library");
       } else if (a === "quiz") {
+        if (out.saved?.id) (window as any).__lastSavedQuizId = out.saved.id;
         toast.success("Practice quiz saved to Library");
       }
     } catch (e) {
@@ -87,8 +90,14 @@ export const OutlineActionsMenu = ({ resource }: Props) => {
 
   const closeDialog = () => {
     const wasFlash = action === "flashcards" && cards.length > 0 && done;
+    const wasQuiz = action === "quiz" && done;
+    const savedQuizId = wasQuiz ? (window as any).__lastSavedQuizId as string | undefined : undefined;
     setAction(null); setProgress(0); setStage(0); setError(null); setDone(false); setCancelled(false);
     if (wasFlash) setStudyOpen(true);
+    if (wasQuiz && savedQuizId) {
+      (window as any).__lastSavedQuizId = undefined;
+      navigate(`/ai-quiz/${savedQuizId}`);
+    }
   };
 
   return (

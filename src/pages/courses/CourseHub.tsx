@@ -17,6 +17,9 @@ import {
 import CourseProgressCard from "@/components/courses/CourseProgressCard";
 import CourseOfflineButton from "@/components/courses/CourseOfflineButton";
 import CourseTopicsStrip from "@/components/courses/CourseTopicsStrip";
+import CourseAIPanel from "@/components/courses/CourseAIPanel";
+import CourseAudioPanel from "@/components/courses/CourseAudioPanel";
+import FlashcardProgressStrip from "@/components/courses/FlashcardProgressStrip";
 import { CourseChat } from "@/components/course/CourseChat";
 import { useTrackCourseOpen } from "@/hooks/useRecentlyOpenedCourses";
 
@@ -205,6 +208,7 @@ const CourseHub = () => {
           </TabsContent>
 
           <TabsContent value="flashcards" className="mt-4">
+            <FlashcardProgressStrip courseId={course.id} />
             {flashDecks.length === 0 ? (
               <EmptyState icon={<Layers className="w-6 h-6" />} text="No flashcards yet — tutors can add some from Manage." />
             ) : (
@@ -263,29 +267,11 @@ const CourseHub = () => {
           </TabsContent>
 
           <TabsContent value="ai" className="mt-4">
-            <Card className="p-5 text-center">
-              <Sparkles className="w-7 h-7 text-amber-500 mx-auto mb-2" />
-              <h3 className="font-semibold">AI Study Packs</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
-                Generate flashcards, structured summaries and practice quizzes from any of this course's documents — straight from your Library.
-              </p>
-              <Button asChild className="mt-3 bg-amber-500 hover:bg-amber-600 text-white">
-                <Link to="/library">Open Library</Link>
-              </Button>
-            </Card>
+            <CourseAIPanel courseId={course.id} courseCode={course.code} topicId={topicFilter} />
           </TabsContent>
 
           <TabsContent value="audio" className="mt-4">
-            <Card className="p-5 text-center">
-              <Headphones className="w-7 h-7 text-amber-500 mx-auto mb-2" />
-              <h3 className="font-semibold">Audio Lessons</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
-                Listen to this course's materials on the go. Convert any document to audio from your library.
-              </p>
-              <Button asChild className="mt-3 bg-amber-500 hover:bg-amber-600 text-white">
-                <Link to="/audio-learning">Open Audio Learning</Link>
-              </Button>
-            </Card>
+            <CourseAudioPanel courseId={course.id} courseCode={course.code} topicId={topicFilter} />
           </TabsContent>
 
           <TabsContent value="discuss" className="mt-4">

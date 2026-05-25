@@ -23,6 +23,8 @@ export async function logAIGeneration(input: {
   status?: AIGenStatus;
   outputRef?: string | null;
   params?: Record<string, unknown>;
+  courseId?: string | null;
+  topicId?: string | null;
 }): Promise<string | null> {
   const { data, error } = await supabase
     .from("ai_generation_history")
@@ -34,6 +36,8 @@ export async function logAIGeneration(input: {
       status: input.status ?? "processing",
       output_ref: input.outputRef ?? null,
       params: (input.params ?? {}) as never,
+      course_id: input.courseId ?? null,
+      topic_id: input.topicId ?? null,
     })
     .select("id")
     .maybeSingle();
@@ -109,4 +113,20 @@ export async function deleteAIGeneration(id: string): Promise<void> {
 export async function clearAllAIGenerations(userId: string): Promise<void> {
   const { error } = await supabase.from("ai_generation_history").delete().eq("user_id", userId);
   if (error) throw error;
+}
+
+/** List the current user's AI generation history scoped to a course. */
+export async function listCourseAIGenerations(courseId: string): Promise<AIGenRow[]> {
+  const { data, error } = await supabase.rpc("list_course_ai_generations", { _course_id: courseId } as never);
+  if (error) {
+    // Fallback: client filter
+    const { data: d2 } = await supabase
+      .from("ai_generation_history")
+      .select("*")
+      .eq("course_id", courseId)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    return (d2 ?? []) as unknown as AIGenRow[];
+  }
+  return (data ?? []) as unknown as AIGenRow[];
 }
